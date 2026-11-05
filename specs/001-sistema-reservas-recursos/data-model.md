@@ -56,6 +56,9 @@
 - **Índice Compuesto de Búsqueda de Reservas**:
   - `CREATE INDEX idx_reservas_recurso_fechas ON reservas(recurso_id, fecha_inicio, fecha_fin, estado);`
   - Optimiza la consulta de solapamiento de horarios para un recurso específico.
+- **Restricción de Coherencia de Fechas**:
+  - `CONSTRAINT ck_reservas_fechas CHECK (fecha_fin > fecha_inicio)`
+  - Refuerza en la base de datos la regla de que la fecha final sea posterior a la inicial.
 - **Índice de Conteo por Usuario**:
   - `CREATE INDEX idx_reservas_usuario_estado ON reservas(usuario_id, estado);`
   - Optimiza la validación del límite de 3 reservas activas simultáneas.

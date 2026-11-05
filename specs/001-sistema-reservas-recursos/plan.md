@@ -4,10 +4,10 @@
 ## Technical Context
 
 - **Lenguaje / Runtime**: Java 21 LTS
-- **Framework**: Spring Boot 3.x (Spring Web, Spring Data JPA, Spring Validation)
-- **Base de Datos**: PostgreSQL / H2 (Base de datos relacional con soporte ACID)
+- **Framework**: Spring Boot 4.x (Spring Web MVC, Spring Data JPA, Spring Validation)
+- **Base de Datos**: PostgreSQL (Base de datos relacional con soporte ACID)
 - **Migraciones de BD**: Flyway Migration (`src/main/resources/db/migration/`)
-- **Mapeo de Datos**: MapStruct / DTO Manual
+- **Mapeo de Datos**: Mappers manuales como componentes de Spring (`@Component`)
 - **Librerías de Soporte**: Lombok
 - **Arquitectura de Capas**:
   - `controller`: Expone endpoints REST y mapea respuestas DTO.

@@ -72,6 +72,6 @@ Brechas entre el código actual y los estándares, detectadas al adoptar el harn
 |---|---|
 | Los identificadores del código están en español (`RecursoController`, `fechaInicio`, `EstadoReserva`) | Política de idioma de `docs/base-standards.md`: código e identificadores en inglés |
 | El directorio `specs/001-sistema-reservas-recursos/` está nombrado en español | Política de idioma de `docs/base-standards.md`: nombres de archivos y directorios en inglés |
-| `specs/001-sistema-reservas-recursos/plan.md` declara Spring Boot 3.x y `build.gradle` usa 4.x | La especificación es la fuente de verdad (`docs/base-standards.md`): el plan quedó desactualizado o la versión cambió sin actualizarlo. Indeterminado cuál de los dos refleja la decisión |
+| `gradlew` está versionado sin permiso de ejecución (modo `100644`): `./gradlew` falla con *permission denied* | Stack: el build corre siempre a través del *wrapper* (`./gradlew`) |
 | No hay plugin de *mutation testing* configurado en `build.gradle` | Constitución, sección "Estándares de Calidad" |
 | La única prueba es `ReservasApplicationTests`; las reglas de negocio no tienen pruebas | Test Driven Development, en `docs/engineering-standards.md` |

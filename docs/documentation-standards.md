@@ -1,11 +1,11 @@
 ---
-description: "Estándares de forma de la documentación versionada: el catálogo de documentos de docs/ con sus disparadores de actualización, la convención de nombres, la ubicación del backlog y las reglas de formato del Markdown del repositorio."
+description: "Estándares de forma de la documentación versionada: el catálogo de documentos de docs/ con sus disparadores de actualización, la convención de nombres, la ubicación del backlog, cuándo se actualizan los artefactos de spec-kit y las reglas de formato del Markdown del repositorio."
 ---
 # Estándares de documentación técnica
 
 ## Propósito y alcance
 
-Este documento define cómo se escribe y se mantiene la documentación versionada del proyecto: todo lo que vive en `docs/` —modelos de datos, contratos, especificaciones de API, guías operativas y estándares—, el `README.md`, que por convención universal vive en la raíz y no en `docs/` pero se rige por estas mismas reglas, y el backlog en `backlog/`, que tiene su propia sección más abajo.
+Este documento define cómo se escribe y se mantiene la documentación versionada del proyecto: todo lo que vive en `docs/` —modelos de datos, contratos, especificaciones de API, guías operativas y estándares—, el `README.md`, que por convención universal vive en la raíz y no en `docs/` pero se rige por estas mismas reglas, el backlog en `backlog/`, y los artefactos de spec-kit en `specs/`, `.specify/` y `checklists/`. Estos dos últimos tienen su propia sección más abajo.
 
 Es un documento delegado desde `docs/base-standards.md`, que es el punto de entrada del proyecto y gobierna las reglas transversales. Aquí se desarrolla en detalle un único dominio: la forma de lo que el repositorio documenta y versiona. Los artefactos que definen el comportamiento de los agentes de IA —todo lo que vive bajo `ai-specs/`— se delegan por su parte a `ai-specs/ai-specs-standards.md`.
 
@@ -66,6 +66,26 @@ Esa fila es la convención completa. Tres reglas la cierran:
 - **`backlog.md` es el único archivo del directorio.** No existe patrón de nombre para una historia suelta, y **derivar uno de la convención general no equivale a tenerlo sancionado**: si el catálogo no lo lista, no existe. Una historia va en ese mismo archivo, después del marco, o al tablero. Si alguna vez hicieran falta archivos por historia, el patrón se propone acá y se espera aprobación, igual que cualquier otro.
 - **Lo crean y lo mantienen las skills del backlog**: `drafting-backlogs` escribe el marco y las historias iniciales, y `enriching-user-stories` integra una historia en un marco que ya existe. No lo mantiene `updating-docs`, cuyo modo sincronización sigue acotado a `docs/`: un cambio en el backlog no dispara el procedimiento de sincronización documental.
 - **La forma de una historia la fija `docs/trello-backlog-contract.md`.** Este documento sanciona dónde vive el archivo; aquel, qué contiene una historia.
+
+## Los artefactos de Spec-Driven Development
+
+La especificación funcional y técnica vive **fuera de `docs/`**, en los artefactos de spec-kit. Su forma la fija spec-kit; esta sección fija solo cuándo se actualizan, que es lo que se desalinea si nadie lo dice.
+
+| Ruta | Contenido | Actualizar cuando |
+|---|---|---|
+| `.specify/memory/constitution.md` | Principios de arquitectura y calidad, y restricciones de diseño | El equipo cambia un principio o una restricción |
+| `specs/<nnn>-<funcionalidad>/spec.md` | Requisitos funcionales, escenarios, criterios de éxito y dudas abiertas (`NEEDS CLARIFICATION`) | Cambia un requisito, o se resuelve una duda abierta |
+| `specs/<nnn>-<funcionalidad>/plan.md` | Contexto técnico, capas y decisiones de diseño | Cambia el stack, la versión mayor de una dependencia o una decisión de diseño |
+| `specs/<nnn>-<funcionalidad>/research.md` | Decisiones técnicas con sus alternativas descartadas | Se toma o se revierte una decisión técnica |
+| `specs/<nnn>-<funcionalidad>/data-model.md` | Entidades, campos, restricciones e índices | Se agrega una migración de Flyway |
+| `specs/<nnn>-<funcionalidad>/tasks.md` | Tareas de implementación y su estado | Se completa una tarea, o aparece trabajo que la especificación exige y ninguna tarea cubre |
+| `checklists/requirements.md` | Verificación de calidad de los requisitos | Cambia una regla de negocio o dónde se valida |
+
+Tres reglas la cierran:
+
+- **Una tarea se marca como hecha (`[x]`) en el mismo cambio que la completa.** Una tarea implementada y sin marcar deja la especificación desactualizada, y ese cambio está incompleto según `docs/base-standards.md`, sección "La especificación es la fuente de verdad".
+- **El modelo de datos de una funcionalidad vive en su `data-model.md`**, no en un `*-data-model.md` de `docs/`: tener los dos crearía dos fuentes para lo mismo.
+- **No los mantiene `updating-docs`**, cuyo modo sincronización está acotado a `docs/`. Los actualiza quien hace el cambio, en el mismo commit.
 
 ## Cuándo actualizar
 
