@@ -21,6 +21,7 @@ EXCLUIDAS=(
   "docs/study-partners-product-brief.md"  # ejemplo ilustrativo de un patrón de nombre
   "backlog/backlog.md"                    # destino prescriptivo: existe solo si hay backlog
   "ai-specs/templates"                    # se cita como ejemplo de directorio fuera de alcance
+  "docs/api-spec.yml"                     # destino prescriptivo de HU-11: existe cuando se escriba el contrato OpenAPI
 )
 
 reportar() { hallazgos=$((hallazgos + 1)); printf '  %s\n' "$1"; }

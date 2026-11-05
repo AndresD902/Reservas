@@ -37,12 +37,13 @@ Antes de cambiar código o documentación, lee **[`docs/base-standards.md`](docs
 | `specs/` | Especificación, plan, investigación, modelo de datos y tareas de cada funcionalidad |
 | `.specify/memory/constitution.md` | Principios de arquitectura y calidad que todo el código cumple |
 | `checklists/` | Listas de verificación de requisitos |
+| `backlog/backlog.md` | Marco del backlog —iniciativa, DoR, DoD, épicas, perfiles y tabla de seguimiento— y las historias completas |
 | `docs/` | Estándares del proyecto. `base-standards.md` es el punto de entrada |
 | `ai-specs/` | La capa agéntica y su fuente canónica: las *skills*, los *agents* y los *scripts* |
 | `CLAUDE.md`, `AGENTS.md` | Symlinks a `docs/base-standards.md` |
 | `.claude/`, `.opencode/` | Symlinks generados hacia `ai-specs/`, uno por agente activo. No se editan a mano: los mantiene la skill `syncing-agent-symlinks` |
 
-El backlog vive en Trello; el tablero está registrado en la sección "Integraciones" de `docs/base-standards.md`.
+El estado de cada historia vive en el tablero de Trello, registrado en la sección "Integraciones" de `docs/base-standards.md`; su contenido está también en `backlog/backlog.md`.
 
 Para verificar que las referencias entre documentos y los symlinks están sanos:
 
