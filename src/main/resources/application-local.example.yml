@@ -1,0 +1,5 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/sistema_reservas
+    username: postgres
+    password: CAMBIA_ESTA_CLAVE
