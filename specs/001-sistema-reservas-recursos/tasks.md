@@ -83,3 +83,17 @@
 - [ ] **T-015**: Configurar plugin PIT Mutation Testing y verificar cobertura de mutación en la capa de servicios.
   - **Archivos**: `build.gradle`.
   - **Dependencias**: T-013.
+
+## Fase 7: Ciclo de vida de la reserva y mantenimiento
+
+- [ ] **T-017**: Implementar la finalización automática de reservas vencidas: proceso `@Scheduled` con frecuencia configurable (`reservas.finalizacion.frecuencia`, por defecto `PT5M`) que pasa a `FINALIZADA` las reservas `ACTIVA` con `fecha_fin` anterior al instante de ejecución.
+  - **Archivos**: `ReservasApplication.java`, `service/ReservaService.java`, `service/impl/ReservaServiceImpl.java` (o un componente de finalización), `repository/ReservaRepository.java`, `src/main/resources/application.yml`.
+  - **Dependencias**: T-009.
+
+- [ ] **T-018**: Bloquear el cambio de estado de un recurso a `MANTENIMIENTO` cuando tenga reservas `ACTIVA` con `fecha_fin` posterior al momento del cambio, con el error `RECURSO_CON_RESERVAS_FUTURAS` (409).
+  - **Archivos**: `service/impl/RecursoServiceImpl.java`, `repository/ReservaRepository.java`, `exception/GlobalExceptionHandler.java`.
+  - **Dependencias**: T-008.
+
+- [ ] **T-019**: Agregar la migración Flyway del índice que soporta la finalización automática.
+  - **Archivos**: `src/main/resources/db/migration/V2__add_index_reservas_estado_fin.sql`.
+  - **Dependencias**: T-002.

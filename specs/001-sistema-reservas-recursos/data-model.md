@@ -62,3 +62,15 @@
 - **Índice de Conteo por Usuario**:
   - `CREATE INDEX idx_reservas_usuario_estado ON reservas(usuario_id, estado);`
   - Optimiza la validación del límite de 3 reservas activas simultáneas.
+- **Índice de Finalización Automática**:
+  - `CREATE INDEX idx_reservas_estado_fin ON reservas(estado, fecha_fin);`
+  - Optimiza la búsqueda de reservas `ACTIVA` vencidas que ejecuta el proceso programado.
+
+## Transiciones de estado de la reserva
+
+| Origen | Destino | Disparador | Regla |
+|---|---|---|---|
+| `ACTIVA` | `CANCELADA` | Cancelación explícita (`DELETE /reservas/{id}`) | Solo una reserva `ACTIVA` se puede cancelar (FR-014). |
+| `ACTIVA` | `FINALIZADA` | Proceso programado, frecuencia configurable (5 minutos por defecto) | Ocurre cuando `fecha_fin` es anterior al instante de ejecución. |
+| `CANCELADA` | — | — | Estado terminal; ninguna transición posterior. |
+| `FINALIZADA` | — | — | Estado terminal; ninguna transición posterior. |

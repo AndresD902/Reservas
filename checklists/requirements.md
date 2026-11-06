@@ -13,3 +13,6 @@
 - [x] **Regla de Negocio 8**: Límite estricto de máximo 3 reservas activas simultáneas por usuario (Validado en `ReservaService`).
 - [x] **Estructura Standard de Errores**: Objeto JSON global configurado en `@RestControllerAdvice` con código, tipo de error y mensaje explicativo.
 - [x] **Preparado para Alta Concurrencia**: Estrategia de bloqueo pesimista definida para soportar la prueba futura de 500 usuarios simultáneos sin reservas duplicadas.
+- [x] **Intervalos Semiabiertos**: El solapamiento usa `[fechaInicio, fechaFin)`; una reserva que empieza justo cuando termina otra se permite. Registrado en `spec.md` y `research.md`.
+- [x] **Finalización Automática**: Una reserva `ACTIVA` vencida pasa a `FINALIZADA` mediante un proceso programado con frecuencia configurable (5 minutos por defecto). Especificado en `spec.md`; su implementación corresponde a T-017.
+- [x] **Bloqueo de Mantenimiento con Reservas Vigentes**: El cambio de un recurso a `MANTENIMIENTO` se rechaza con `RECURSO_CON_RESERVAS_FUTURAS` mientras tenga reservas `ACTIVA` cuya `fecha_fin` sea posterior al cambio. Especificado en `spec.md`; su implementación corresponde a T-018.

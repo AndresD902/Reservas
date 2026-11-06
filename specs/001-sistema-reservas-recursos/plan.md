@@ -46,3 +46,19 @@ Estructura de error unificada según requerimiento:
   "error": "RECURSO_NO_DISPONIBLE",
   "message": "El recurso ya se encuentra reservado para este horario"
 }
+```
+
+## Phase 2: Ciclo de vida de la reserva y mantenimiento
+
+### Finalización automática de reservas vencidas
+
+- **Decisión**: proceso programado con Spring `@Scheduled` (`@EnableScheduling`), con la frecuencia configurable por la propiedad `reservas.finalizacion.frecuencia` en formato ISO-8601; valor por defecto `PT5M` (5 minutos).
+- **Comportamiento**: en cada ejecución, dentro de una transacción, marca como `FINALIZADA` las reservas en estado `ACTIVA` cuya `fecha_fin` sea anterior al instante de ejecución. No modifica `CANCELADA` ni `FINALIZADA`.
+- **Consulta**: `ReservaRepository.finalizarVencidas(ahora)` como `UPDATE ... WHERE estado = 'ACTIVA' AND fecha_fin < :ahora`. Se apoya en el índice `idx_reservas_estado_fin`.
+- **Justificación**: un job desacoplado mantiene el estado correcto sin penalizar las lecturas ni exigir una petición del usuario.
+
+### Cambio de un recurso a `MANTENIMIENTO`
+
+- **Decisión**: bloquear la transición si el recurso tiene reservas `ACTIVA` con `fecha_fin` posterior al momento del cambio, incluidas las que están en curso.
+- **Comportamiento**: `RecursoService.actualizarEstado` consulta las reservas vigentes o futuras antes de persistir el cambio; si existen, lanza el error de negocio `RECURSO_CON_RESERVAS_FUTURAS` (HTTP 409). El administrador debe cancelarlas primero.
+- **Alternativa descartada**: cancelar automáticamente las reservas, porque destruye reservas ya confirmadas sin intervención del usuario.
