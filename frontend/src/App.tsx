@@ -1,0 +1,18 @@
+import { Navigate, Route, Routes } from 'react-router-dom'
+import { Layout } from './components/layout'
+import { NotFoundPage } from './pages/not-found-page'
+import { ReservationPage } from './pages/reservation-page'
+import { ResourceDetailPage } from './pages/resource-detail-page'
+
+export default function App() {
+  return (
+    <Routes>
+      <Route element={<Layout />}>
+        <Route index element={<Navigate to="/reservar" replace />} />
+        <Route path="/reservar" element={<ReservationPage />} />
+        <Route path="/recursos/:recursoId" element={<ResourceDetailPage />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
+    </Routes>
+  )
+}

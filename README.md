@@ -33,7 +33,7 @@ La interfaz del contrato OpenAPI está en `http://localhost:8080/swagger-ui/inde
 
 `docker compose down` detiene los servicios; `docker compose down -v` elimina también el volumen de PostgreSQL y vuelve a sembrar los datos en el siguiente arranque.
 
-`.env` no se versiona. `.env.example` solo contiene valores de desarrollo. El servicio de frontend se agregará cuando HU-19 defina su stack y exista el directorio de la interfaz.
+`.env` no se versiona. `.env.example` solo contiene valores de desarrollo. El servicio de frontend en Compose queda para la tarea T-021; por ahora la interfaz se ejecuta con Vite, como se explica en «Interfaz web».
 
 ### Entorno con devcontainer (recomendado)
 
@@ -81,9 +81,38 @@ cp src/main/resources/application-local.example.yml application-local.yml
 ./gradlew test
 ```
 
+## Interfaz web
+
+La SPA vive en `frontend/` y sigue [`docs/frontend-standards.md`](docs/frontend-standards.md). Requiere Node 24 y la API en `http://localhost:8080` (por ejemplo, con `docker compose up --build`).
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Abre `http://localhost:5173`. Vite proxya `/api` hacia la API; `VITE_API_PROXY_TARGET` permite cambiar ese destino.
+
+```bash
+npm run lint
+npm run typecheck
+npm test
+npm run build
+```
+
+Las pruebas E2E usan Playwright, levantan la API y Vite automáticamente y necesitan PostgreSQL y un JDK 21 para el backend:
+
+```bash
+cd frontend
+npx playwright install chromium
+npm run test:e2e
+```
+
+Si la API ya está corriendo en `http://localhost:8080`, el script la reutiliza.
+
 ## Integración continua
 
-Cada push y pull request ejecuta [`.github/workflows/ci.yml`](.github/workflows/ci.yml) en GitHub Actions. El pipeline corre, en orden, compilación, pruebas unitarias e integración, mutation testing con PIT, cobertura con JaCoCo, pruebas de aceptación y E2E. Si una etapa falla, el pipeline termina en rojo y el paso indica cuál falló.
+Cada push y pull request ejecuta [`.github/workflows/ci.yml`](.github/workflows/ci.yml) en GitHub Actions. El workflow tiene tres jobs: `pipeline` corre, en orden, compilación, pruebas unitarias e integración, mutation testing con PIT, cobertura con JaCoCo, pruebas de aceptación y E2E por HTTP; `frontend` corre lint, typecheck, pruebas de componentes y build de la SPA; y `browser-e2e` ejecuta Playwright contra PostgreSQL real, la API y Vite. Si una etapa falla, el job termina en rojo y el paso indica cuál falló.
 
 Las tareas locales equivalentes son:
 
@@ -91,9 +120,10 @@ Las tareas locales equivalentes son:
 ./gradlew test
 ./gradlew acceptanceTest
 ./gradlew e2eTest
+cd frontend && npm test && npm run test:e2e
 ```
 
-Los reportes de cada etapa quedan como artefactos de la ejecución del workflow. La prueba E2E de navegador se sumará con HU-19; la actual ejercita el flujo completo por HTTP contra el servidor embebido.
+Los reportes de cada etapa quedan como artefactos de la ejecución del workflow, incluidos el reporte HTML de Playwright y las trazas de las pruebas de navegador que fallan.
 
 Antes de cambiar código o documentación, lee **[`docs/base-standards.md`](docs/base-standards.md)**: es el punto de entrada de las reglas del proyecto, para las personas del equipo y para los agentes de IA, y el índice del resto de los estándares.
 
@@ -102,6 +132,7 @@ Antes de cambiar código o documentación, lee **[`docs/base-standards.md`](docs
 | Ruta | Qué es |
 |---|---|
 | `src/` | Código de la API y migraciones de base de datos |
+| `frontend/` | Interfaz web en React, Vite y TypeScript |
 | `Dockerfile`, `docker-compose.yml` | Entorno local completo: API y PostgreSQL con datos semilla |
 | `.devcontainer/` | Entorno de desarrollo con JDK 21 y PostgreSQL 16 |
 | `specs/` | Especificación, plan, investigación, modelo de datos y tareas de cada funcionalidad |

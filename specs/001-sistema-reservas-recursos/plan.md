@@ -75,7 +75,7 @@ Estructura de error unificada según requerimiento:
 
 ## Phase 4: Entorno local reproducible
 
-- **Compose**: `docker-compose.yml` levanta `db` (PostgreSQL 16) y `api` (Spring Boot) con un solo `docker compose up --build`; el servicio de frontend queda pendiente hasta que HU-19 defina el stack y exista el directorio.
+- **Compose**: `docker-compose.yml` levanta `db` (PostgreSQL 16) y `api` (Spring Boot) con un solo `docker compose up --build`; el servicio de frontend queda para T-021, ya con el stack definido en la Fase 8 y el directorio `frontend/` existente.
 - **Imagen de la API**: `Dockerfile` multi-stage. La etapa de build usa JDK 21 y el wrapper de Gradle para generar el `bootJar`; la etapa final usa JRE 21 y ejecuta el jar con un usuario sin privilegios.
 - **Datos semilla**: `src/main/resources/db/seed/R__local_seed.sql`, migración repeatable e idempotente. Solo se carga desde `application-local.yml`, que agrega `classpath:db/seed` a `spring.flyway.locations`; producción no incluye esa ubicación.
 - **Credenciales**: `DB_NAME`, `DB_USERNAME` y `DB_PASSWORD` se leen de variables de entorno. `.env.example` documenta los valores de desarrollo y `.env` queda fuera del repositorio.
@@ -100,7 +100,7 @@ Estructura de error unificada según requerimiento:
 - **Etapas**: compilación, pruebas unitarias e integración, mutation testing con PIT, verificación de cobertura con JaCoCo, pruebas de aceptación y pruebas E2E. Cada etapa es un paso nombrado del workflow; si una falla, el pipeline termina en rojo y el paso señala la etapa.
 - **Pruebas por etapa**: `test` ejecuta la suite unitaria y de integración sobre el perfil `test` (H2). `acceptanceTest` y `e2eTest` son tareas de Gradle separadas que seleccionan las pruebas con los tags `acceptance` y `e2e`; la suite común las excluye para no duplicarlas.
 - **Suite de aceptación**: Cucumber-JVM sobre JUnit Platform. Las features Gherkin de `src/test/resources/features/` ejecutan los escenarios de FR-001 a FR-016 contra la API con MockMvc; cada escenario lleva el tag del requisito que verifica. Los escenarios de comportamiento aún no implementado se escriben igual y quedan omitidos (`TestAbortedException`) sin bloquear al resto.
-- **Alcance de aceptación y E2E**: las pruebas actuales ejercitan la API completa por HTTP. La prueba E2E de navegador se agrega con HU-19 cuando exista la interfaz web y su stack; el stage ya queda en el pipeline para recibirla.
+- **Alcance de aceptación y E2E**: la suite de Gradle ejercita la API completa por HTTP. La prueba E2E de navegador vive en `frontend/e2e` con Playwright y la ejecuta el job `browser-e2e`, que levanta PostgreSQL, arranca la API y Vite; el stage de Gradle se mantiene para la verificación por HTTP.
 - **Umbral**: PIT falla por debajo de 80 % de mutation score y JaCoCo por debajo de 90 % de líneas en los servicios, según `build.gradle`.
 - **Reportes**: cada etapa publica sus reportes como artefactos de GitHub Actions: resultados de pruebas (`build/reports/tests/*`), cobertura (`build/reports/jacoco/test/html`) y mutación (`build/reports/pitest`). La publicación usa `if: always()` para que los reportes queden disponibles incluso cuando una etapa falla.
 
@@ -114,3 +114,12 @@ Estructura de error unificada según requerimiento:
 - **Parámetros**: 10 hilos por escenario, intervalo de 1 a 2 horas a 2 días vista, HTTP real sobre el servidor embebido.
 - **Resultado**: 10 hilos sobre el mismo recurso e intervalo producen 1 respuesta 201 y 9 respuestas 409 `RECURSO_NO_DISPONIBLE`, con una sola reserva activa en la base de datos; 6 hilos del mismo usuario por recursos distintos producen 3 respuestas 201 y 3 respuestas 400 `LIMITE_RESERVAS_ACTIVAS`, sin superar nunca 3 reservas activas.
 - **Justificación**: los bloqueos pesimistas ya implementados en `ReservaServiceImpl` se verifican contra el motor que los ejecuta, no contra H2, que no reproduce su semántica con fidelidad.
+
+## Phase 8: Interfaz web
+
+- **Stack**: React + Vite + TypeScript, React Router para la navegación, TanStack Query para el estado del servidor y Tailwind CSS para los estilos. Se descartó Thymeleaf porque el plan recomendaba una SPA y el equipo lo confirmó.
+- **Ubicación**: `frontend/`, una aplicación independiente de la API. En desarrollo y en las pruebas E2E, Vite proxya `/api` hacia `http://localhost:8080`; `VITE_API_BASE_URL` permite apuntar a otro backend sin recompilar la lógica de la interfaz.
+- **Flujo de HU-19**: selector de usuario activo —sin autenticación en esta fase—, listado y búsqueda de recursos, detalle con disponibilidad y formulario de reserva con validación de fechas en el cliente.
+- **Errores**: el cliente lee la estructura `{status, error, message}` de la API y traduce los códigos 400, 404 y 409 a mensajes claros. Los estados de carga, vacío y error son explícitos en cada pantalla.
+- **Pruebas**: Vitest y Testing Library para la lógica y los componentes; Playwright en `frontend/e2e` para el flujo real contra el backend. El job `browser-e2e` del workflow levanta PostgreSQL, arranca la API y Vite, y publica el reporte de Playwright.
+- **Convenciones**: identificadores en inglés, textos de interfaz en español y archivos en kebab-case, según la política de idioma de `docs/base-standards.md`. El detalle vive en `docs/frontend-standards.md`.
