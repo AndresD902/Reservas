@@ -48,3 +48,16 @@ perf/html-report/
 perf/results.jtl
 perf/results2.jtl
 jmeter.log
+
+### Interfaz web (HU-19) ###
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+frontend/.vite/
+frontend/playwright-report/
+frontend/test-results/
+frontend/blob-report/
+frontend/playwright/.cache/
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local

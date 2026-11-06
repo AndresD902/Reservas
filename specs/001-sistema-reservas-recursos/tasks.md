@@ -104,7 +104,7 @@
   - **Archivos**: `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `.env.example`, `src/main/resources/application-local.yml`, `src/main/resources/db/seed/R__local_seed.sql`, `README.md`, `docs/backend-standards.md`.
   - **Dependencias**: T-002, T-017.
 
-- [ ] **T-021**: Agregar el frontend como servicio opcional de Compose cuando HU-19 defina el stack y exista el directorio de la interfaz.
+- [ ] **T-021**: Agregar el frontend como servicio opcional de Compose, ahora que HU-19 definió el stack y existe `frontend/`.
   - **Archivos**: `docker-compose.yml`, documentación del entorno local.
   - **Dependencias**: T-020, HU-19.
 
@@ -125,3 +125,25 @@
 - [x] **T-024**: Verificar cero duplicados bajo concurrencia con una prueba de integración que lanza N hilos HTTP simultáneos contra PostgreSQL real y confirma que solo una solicitud se confirma, el resto recibe 409 `RECURSO_NO_DISPONIBLE`, y la base de datos conserva una sola reserva activa para el recurso e intervalo; incluye el escenario de límite de 3 reservas activas por usuario.
   - **Archivos**: `src/test/java/com/institucion/reservas/concurrency/ReservaConcurrencyTest.java`, `src/test/resources/application-postgres.yml`, `build.gradle`.
   - **Dependencias**: T-009, T-014.
+
+## Fase 12: Interfaz web
+
+- [x] **T-025**: Crear la aplicación `frontend/` con React, Vite, TypeScript, React Router, TanStack Query y Tailwind CSS, y el selector de usuario activo.
+  - **Archivos**: `frontend/package.json`, `frontend/vite.config.ts`, `frontend/src/main.tsx`, `frontend/src/App.tsx`, `frontend/src/components/user-selector.tsx`, `frontend/src/context/user-selection-context.ts`, `frontend/src/context/user-selection-provider.tsx`, `frontend/src/hooks/use-user-selection.ts`, `frontend/src/api/*`, `frontend/src/hooks/use-usuarios.ts`, `docs/frontend-standards.md`.
+  - **Dependencias**: T-022.
+
+- [x] **T-026**: Implementar el listado y la búsqueda de recursos, el detalle y la consulta de disponibilidad, con estados de carga, vacío y error.
+  - **Archivos**: `frontend/src/pages/reservation-page.tsx`, `frontend/src/pages/resource-detail-page.tsx`, `frontend/src/components/resource-list.tsx`, `frontend/src/components/availability-panel.tsx`, `frontend/src/hooks/use-recursos.ts`, `frontend/src/hooks/use-disponibilidad.ts`.
+  - **Dependencias**: T-025.
+
+- [x] **T-027**: Implementar el formulario de reserva con validación de fechas en el cliente y mensajes claros para los errores 400, 404 y 409 de la API.
+  - **Archivos**: `frontend/src/components/reservation-form.tsx`, `frontend/src/utils/date-time.ts`, `frontend/src/utils/error-messages.ts`, `frontend/src/hooks/use-crear-reserva.ts`.
+  - **Dependencias**: T-026.
+
+- [x] **T-028**: Escribir la prueba E2E del flujo de reserva con Playwright contra el backend real, incluidos el conflicto de horario y la validación de fechas.
+  - **Archivos**: `frontend/playwright.config.ts`, `frontend/e2e/reservation.spec.ts`, `frontend/scripts/start-backend.mjs`.
+  - **Dependencias**: T-027.
+
+- [x] **T-029**: Integrar la interfaz en el pipeline —lint, typecheck, pruebas y build— y agregar el job de E2E de navegador con PostgreSQL real.
+  - **Archivos**: `.github/workflows/ci.yml`, `README.md`, `docs/frontend-standards.md`, `docs/backend-standards.md`, `.gitignore`, `.dockerignore`.
+  - **Dependencias**: T-028.

@@ -33,9 +33,9 @@ services:
     ports:
       - "${API_PORT:-8080}:8080"
 
-# El servicio `frontend` se agrega cuando HU-19 defina el stack y exista el
-# directorio de la interfaz. No se define un servicio vacío para no inventar
-# una arquitectura que el backlog todavía tiene como indeterminada.
+# El servicio `frontend` se agrega en la tarea T-021, ahora que HU-19 definió
+# el stack y existe el directorio de la interfaz. No se define un servicio
+# vacío para no inventar una arquitectura que el backlog todavía no detalla.
 
 volumes:
   postgres-data:

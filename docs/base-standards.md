@@ -77,6 +77,7 @@ Un cambio que deja la especificación desactualizada está incompleto, aunque fu
 | `docs/harness-adoption-guide.md` | Cómo adaptar este harness a un proyecto nuevo | Vigente |
 | `docs/trello-backlog-contract.md` | Esquema de las cards del backlog | Vigente |
 | `docs/backend-standards.md` | Stack, estructura de paquetes, base de datos y migraciones del backend | Vigente |
+| `docs/frontend-standards.md` | Stack, estructura, contrato con la API, accesibilidad y pruebas de la interfaz web | Vigente |
 | `ai-specs/ai-specs-standards.md` | Artefactos de la capa agéntica | Vigente |
 
 Los estándares por dominio (`backend-standards.md`, `frontend-standards.md`, y los que el proyecto requiera) se crean cuando el proyecto los necesita, siguiendo la convención de nombres de `documentation-standards.md`.
