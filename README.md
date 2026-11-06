@@ -13,17 +13,57 @@ El alcance funcional completo, con sus reglas de negocio, está en [`specs/001-s
 
 ## Empezar
 
-Requisitos: un JDK en la versión que fija el *toolchain* de `build.gradle`, y PostgreSQL con una base de datos `sistema_reservas`.
+### Entorno con devcontainer (recomendado)
+
+El repositorio incluye `.devcontainer/` con un JDK 21 y un PostgreSQL 16. Aísla las herramientas del proyecto de las de tu máquina y evita instalar Java o PostgreSQL a mano.
+
+Requisito: Docker disponible en el host. En WSL 2 se habilita desde Docker Desktop, en *Settings* → *Resources* → *WSL Integration*, para la distribución que uses.
+
+Con VS Code y la extensión *Dev Containers*, usa **Dev Containers: Reopen in Container**. Al crear el contenedor, `postCreateCommand` compila las clases de prueba. La API usa la base `sistema_reservas` y las pruebas usan `sistema_reservas_test`, que crea el servicio `db`.
+
+```bash
+# pruebas de integración de usuarios (HU-03)
+./gradlew test --tests "*UsuarioControllerTest"
+
+# suite completa
+./gradlew test
+```
+
+Si el volumen de PostgreSQL ya existía antes de agregar el script de inicialización, la base `sistema_reservas_test` no se habrá creado. Créala desde el host:
+
+```bash
+docker compose -p reservas_devcontainer -f .devcontainer/docker-compose.yml exec db \
+  psql -U postgres -c "CREATE DATABASE sistema_reservas_test;"
+```
+
+Para recrear la base desde cero, desde el host, elimina el volumen y vuelve a abrir el contenedor:
+
+```bash
+docker compose -p reservas_devcontainer -f .devcontainer/docker-compose.yml down -v
+```
+
+Dentro del contenedor la base no está en `localhost`, así que para levantar la API se sobreescribe la URL:
+
+```bash
+SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/sistema_reservas ./gradlew bootRun
+```
+
+### Entorno local sin contenedor
+
+Requisitos: un JDK en la versión que fija el *toolchain* de `build.gradle`, y PostgreSQL con las bases `sistema_reservas` y `sistema_reservas_test`.
 
 ```bash
 # 1. credenciales locales: la copia en la raíz no se versiona
 cp src/main/resources/application-local.example.yml application-local.yml
 #    y reemplaza la contraseña de ejemplo por la de tu PostgreSQL
 
-# 2. levantar la API: Flyway aplica las migraciones al arrancar
+# 2. base de datos para las pruebas de integración
+createdb sistema_reservas_test
+
+# 3. levantar la API: Flyway aplica las migraciones al arrancar
 ./gradlew bootRun
 
-# 3. correr las pruebas
+# 4. correr las pruebas
 ./gradlew test
 ```
 
@@ -34,6 +74,7 @@ Antes de cambiar código o documentación, lee **[`docs/base-standards.md`](docs
 | Ruta | Qué es |
 |---|---|
 | `src/` | Código de la API y migraciones de base de datos |
+| `.devcontainer/` | Entorno de desarrollo con JDK 21 y PostgreSQL 16 |
 | `specs/` | Especificación, plan, investigación, modelo de datos y tareas de cada funcionalidad |
 | `.specify/memory/constitution.md` | Principios de arquitectura y calidad que todo el código cumple |
 | `checklists/` | Listas de verificación de requisitos |
