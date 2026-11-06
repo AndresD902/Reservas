@@ -85,7 +85,7 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 | HU-06 · Cancelación de reservas | EP-03 | En Revisión | — |
 | HU-07 · Consulta de reservas por usuario y recurso, y disponibilidad | EP-03 | En Revisión | — |
 | HU-08 · Resolución de las dudas abiertas de la especificación | EP-01 | Completado | 1 |
-| HU-09 · Consulta de reservas por rango de fechas | EP-03 | En Progreso | 3 |
+| HU-09 · Consulta de reservas por rango de fechas | EP-03 | Completado | 3 |
 | HU-10 · Finalización automática de reservas vencidas | EP-03 | Backlog | 2 |
 | HU-11 · Contrato OpenAPI de la API | EP-03 | Backlog | 3 |
 | HU-12 · Paginación y filtros en listados | EP-03 | Backlog | 3 |
