@@ -1,0 +1,8 @@
+# Reglas de OWASP ZAP para el laboratorio local servido por HTTP.
+# El token XSRF-TOKEN debe ser legible por la SPA para el patrón CSRF de doble envío.
+10010	INFO	Cookie XSRF-TOKEN legible por la SPA por diseño
+# HSTS no aplica en un entorno local sin TLS.
+10035	IGNORE	HSTS no aplica sobre HTTP en el laboratorio
+# Respuestas no cacheables y SPA moderna: informativos, no bloquean.
+10049	INFO	Contenido no cacheable esperado en la API y la SPA
+10109	INFO	Aplicación web moderna; informativo

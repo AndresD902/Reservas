@@ -49,6 +49,13 @@ perf/results.jtl
 perf/results2.jtl
 jmeter.log
 
+### Análisis de seguridad (HU-26) ###
+security/zap/reports/*.html
+security/zap/reports/*.json
+security/zap/reports/summary.md
+security/zap/reports/zap.yaml
+security/zap/__pycache__/
+
 ### Interfaz web (HU-19) ###
 frontend/node_modules/
 frontend/dist/

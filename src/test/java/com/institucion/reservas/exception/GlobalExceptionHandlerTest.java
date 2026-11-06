@@ -13,7 +13,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.time.LocalDateTime;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -21,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Verifica las siete ramas de {@link GlobalExceptionHandler} contra el contrato
+ * Verifica las ramas de {@link GlobalExceptionHandler} contra el contrato
  * de error {@code status}, {@code error} y {@code message}.
  * Las rutas {@code /handler/*} solo existen en el contexto de prueba.
  */
@@ -93,6 +96,16 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void returns400WithSolicitudInvalidaWhenQueryParameterHasWrongType() throws Exception {
+        mockMvc.perform(get("/handler/wrong-type")
+                        .param("fecha", "no-es-fecha"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.error").value("SOLICITUD_INVALIDA"))
+                .andExpect(jsonPath("$.message").isNotEmpty());
+    }
+
+    @Test
     void returns500WithErrorInternoForUnexpectedException() throws Exception {
         mockMvc.perform(get("/handler/unexpected"))
                 .andExpect(status().isInternalServerError())
@@ -133,6 +146,10 @@ class GlobalExceptionHandlerTest {
         @GetMapping("/handler/illegal-argument")
         void illegalArgument() {
             throw new IllegalArgumentException("Argumento inválido");
+        }
+
+        @GetMapping("/handler/wrong-type")
+        void wrongType(@RequestParam LocalDateTime fecha) {
         }
 
         @GetMapping("/handler/unexpected")

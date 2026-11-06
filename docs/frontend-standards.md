@@ -54,6 +54,7 @@ Los nombres de archivos y directorios van en inglés y kebab-case. Los identific
 
 - `frontend/Dockerfile` es multi-stage: compila con Node 24 y `npm ci`, y sirve el `dist` con Nginx.
 - `frontend/nginx.conf` sirve la SPA con *fallback* a `index.html` y reenvía `/api/` a `http://api:8080/`, eliminando el prefijo igual que el proxy de Vite. No requiere configuración en tiempo de ejecución.
+- `frontend/nginx.conf` aplica las cabeceras de seguridad `Content-Security-Policy`, `X-Content-Type-Options`, `X-Frame-Options`, `Permissions-Policy`, `Cross-Origin-Opener-Policy`, `Cross-Origin-Embedder-Policy` y `Cross-Origin-Resource-Policy`, y oculta la versión de Nginx con `server_tokens off`. El análisis DAST de HU-26 las verifica.
 - En `docker-compose.yml` el servicio `frontend` está detrás del perfil `frontend`: `docker compose --profile frontend up --build` levanta la interfaz en `http://localhost:5173` (`FRONTEND_PORT`). Sin el perfil, Compose levanta solo la base y la API.
 - `frontend/.dockerignore` deja fuera `node_modules`, `dist`, reportes y archivos `.env`.
 
@@ -95,6 +96,8 @@ El workflow `.github/workflows/ci.yml` tiene tres jobs:
 | `browser-e2e` | Playwright contra PostgreSQL real, la API y Vite |
 
 Los reportes de Playwright se publican como artefacto aunque la ejecución falle.
+
+El workflow `.github/workflows/zap-baseline.yml` ejecuta el análisis DAST con OWASP ZAP sobre la API y la SPA, y publica los reportes HTML y JSON como el artefacto `reporte-seguridad-zap`. El procedimiento reproducible y las reglas viven en [`security/zap/README.md`](../security/zap/README.md).
 
 ## Limitaciones conocidas
 

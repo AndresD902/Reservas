@@ -455,6 +455,8 @@ cd frontend && npm test && npm run test:e2e
 
 Los reportes de cada etapa quedan como artefactos de la ejecución del workflow, incluidos el reporte HTML de Playwright y las trazas de las pruebas de navegador que fallan.
 
+El workflow [`zap-baseline.yml`](.github/workflows/zap-baseline.yml) ejecuta además el análisis DAST con OWASP ZAP sobre la API y la interfaz, y publica los reportes HTML y JSON como el artefacto `reporte-seguridad-zap`. El procedimiento reproducible vive en [`security/zap`](security/zap/README.md).
+
 ## Comandos de referencia
 
 | Objetivo | Comando |
@@ -502,6 +504,7 @@ Antes de cambiar código o documentación, lee **[`docs/base-standards.md`](docs
 |---|---|
 | `src/` | Código de la API y migraciones de base de datos |
 | `frontend/` | Interfaz web en React, Vite y TypeScript |
+| `security/` | Escaneo DAST con OWASP ZAP: script reproducible, reglas y reportes de seguridad |
 | `Dockerfile`, `docker-compose.yml` | Entorno local completo: API, PostgreSQL con datos semilla y frontend opcional (`--profile frontend`) |
 | `.env.example` | Valores de desarrollo para las variables de Compose, la API y la SPA |
 | `.devcontainer/` | Entorno de desarrollo con JDK 21 y PostgreSQL 16 |
