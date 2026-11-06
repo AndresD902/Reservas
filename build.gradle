@@ -41,14 +41,36 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform {
-		excludeTags 'postgres'
+		excludeTags 'acceptance', 'e2e', 'postgres'
 	}
+}
+
+def acceptanceTest = tasks.register('acceptanceTest', Test) {
+	description = 'Ejecuta las pruebas de aceptación etiquetadas con acceptance.'
+	group = 'verification'
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = sourceSets.test.runtimeClasspath
+	useJUnitPlatform {
+		includeTags 'acceptance'
+	}
+	shouldRunAfter tasks.named('test')
+}
+
+def e2eTest = tasks.register('e2eTest', Test) {
+	description = 'Ejecuta las pruebas E2E etiquetadas con e2e.'
+	group = 'verification'
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = sourceSets.test.runtimeClasspath
+	useJUnitPlatform {
+		includeTags 'e2e'
+	}
+	shouldRunAfter tasks.named('test')
 }
 
 // Las pruebas de concurrencia verifican los bloqueos de PostgreSQL, que H2 no
 // reproduce con fidelidad. Corren contra un PostgreSQL real vía TEST_DB_URL y
 // quedan fuera de `test` para que la suite rápida siga sin base externa.
-tasks.register('postgresTest', Test) {
+def postgresTest = tasks.register('postgresTest', Test) {
 	description = 'Ejecuta las pruebas que necesitan un PostgreSQL real.'
 	group = 'verification'
 	testClassesDirs = sourceSets.test.output.classesDirs
@@ -99,3 +121,5 @@ jacocoTestCoverageVerification {
 
 check.dependsOn jacocoTestCoverageVerification
 check.dependsOn tasks.named('pitest')
+check.dependsOn acceptanceTest
+check.dependsOn e2eTest

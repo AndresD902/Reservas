@@ -99,7 +99,7 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 | HU-20 · Consultar y cancelar mis reservas desde la interfaz web | EP-06 | Backlog | 3 |
 | HU-21 · Administrar usuarios y recursos desde la interfaz web | EP-06 | Backlog | 3 |
 | HU-22 · Entorno local con un solo comando | EP-07 | En Revisión | 3 |
-| HU-23 · Pipeline de integración continua | EP-07 | Backlog | 3 |
+| HU-23 · Pipeline de integración continua | EP-07 | En Revisión | 3 |
 | HU-24 · README operativo con arquitectura, variables y ejemplos curl | EP-07 | Backlog | 3 |
 
 ## Historias
