@@ -76,8 +76,8 @@
   - **Archivos**: `src/test/java/.../service/ReservaServiceTest.java`, `src/test/java/.../service/UsuarioServiceTest.java`, `src/test/java/.../service/RecursoServiceTest.java`.
   - **Dependencias**: T-009.
 
-- [ ] **T-014**: Crear pruebas de integración para los controladores REST y el manejador de excepciones.
-  - **Archivos**: `src/test/java/.../controller/*ControllerTest.java`.
+- [x] **T-014**: Crear pruebas de integración para los controladores REST y el manejador de excepciones.
+  - **Archivos**: `src/test/java/.../controller/*ControllerTest.java`, `src/test/java/.../exception/GlobalExceptionHandlerTest.java`.
   - **Dependencias**: T-012.
 
 - [x] **T-015**: Configurar plugin PIT Mutation Testing y verificar cobertura de mutación en la capa de servicios.
