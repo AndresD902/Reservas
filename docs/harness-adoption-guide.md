@@ -19,7 +19,11 @@ git config --global core.symlinks true
 
 Sin eso, Git materializa cada symlink como un archivo de texto que contiene la ruta de destino. El repositorio se ve normal y las reglas desaparecen sin ningún mensaje de error. En macOS y Linux funciona por defecto.
 
-Verifica el clon antes de trabajar:
+**Ese comando aplica al Git de Windows, no al de WSL.** Ahí la decisión no es la terminal que uses sino dónde vive el clon. Si el clon está en el filesystem de Linux de WSL, el checkout lo hace Git de Linux y los symlinks son nativos: `core.symlinks` no interviene y forzarlo no aporta nada. Si el clon está en `/mnt/c`, el checkout lo hace Git de Windows y sí necesita el `core.symlinks` de arriba, además de Modo para desarrolladores o una terminal elevada, porque crear symlinks exige ese privilegio. La configuración es por usuario y por entorno: el `~/.gitconfig` de WSL y el de Windows son archivos distintos. Lo que no conviene es clonar en `/mnt/c` con Git de Windows y después trabajar desde WSL, ni mantener dos clones en paralelo.
+
+**Windows no muestra un symlink de Linux como symlink.** Explorer y PowerShell ven `CLAUDE.md` y `AGENTS.md` como archivos regulares de 22 bytes cuyo contenido es `docs/base-standards.md`, y lo mismo pasa con los espejos de `.claude/` y `.opencode/`. No es un clobber: es cómo se ve desde Windows un enlace de ext4. Por eso la verificación se corre desde WSL, y si abrís el proyecto con VS Code conviene Remote-WSL, que sí sigue los enlaces. No borres los directorios de un agente porque "no tengan symlinks" vistos desde Windows, ni corras Git de Windows sobre un clon que vive en ext4.
+
+Verifica el clon antes de trabajar, desde el mismo entorno que va a usar el repositorio:
 
 ```bash
 for f in CLAUDE.md AGENTS.md; do
