@@ -231,3 +231,21 @@
 - [x] **T-048**: Escribir la prueba E2E del flujo de consulta y cancelación con Playwright y actualizar la documentación y el backlog.
   - **Archivos**: `frontend/e2e/my-reservations.spec.ts`, `docs/frontend-standards.md`, `backlog/backlog.md`.
   - **Dependencias**: T-047.
+
+## Fase 17: README operativo
+
+- [x] **T-049**: Documentar la arquitectura por capas, las tablas principales y las rutas de la interfaz web en el README.
+  - **Archivos**: `README.md`.
+  - **Dependencias**: HU-24.
+
+- [x] **T-050**: Documentar las variables de entorno, los comandos de build, pruebas y entorno local, y la solución de problemas frecuentes.
+  - **Archivos**: `README.md`, `.env.example`, `docker-compose.yml`, `frontend/playwright.config.ts`.
+  - **Dependencias**: T-049.
+
+- [x] **T-051**: Agregar ejemplos `curl` de autenticación, CSRF, usuarios, recursos, reservas, disponibilidad, consultas por rango y errores frecuentes.
+  - **Archivos**: `README.md`, `docs/api-spec.yml`.
+  - **Dependencias**: T-050.
+
+- [x] **T-052**: Ejecutar los ejemplos contra la API local, verificar las referencias del README y actualizar el backlog y el estado de la historia.
+  - **Archivos**: `README.md`, `backlog/backlog.md`.
+  - **Dependencias**: T-051.
