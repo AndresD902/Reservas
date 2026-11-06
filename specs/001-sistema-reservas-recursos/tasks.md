@@ -119,3 +119,9 @@
 - [x] **T-023**: Crear el pipeline de GitHub Actions con compilación, pruebas unitarias e integración, PIT con umbral, aceptación, E2E y publicación de reportes en cada push y pull request.
   - **Archivos**: `.github/workflows/ci.yml`, `build.gradle`, `src/test/java/com/institucion/reservas/acceptance/ReservationAcceptanceTest.java`, `src/test/java/com/institucion/reservas/e2e/ReservationE2ETest.java`, `specs/001-sistema-reservas-recursos/plan.md`, `README.md`.
   - **Dependencias**: T-013, T-015, T-022.
+
+## Fase 11: Concurrencia y rendimiento
+
+- [x] **T-024**: Verificar cero duplicados bajo concurrencia con una prueba de integración que lanza N hilos HTTP simultáneos contra PostgreSQL real y confirma que solo una solicitud se confirma, el resto recibe 409 `RECURSO_NO_DISPONIBLE`, y la base de datos conserva una sola reserva activa para el recurso e intervalo; incluye el escenario de límite de 3 reservas activas por usuario.
+  - **Archivos**: `src/test/java/com/institucion/reservas/concurrency/ReservaConcurrencyTest.java`, `src/test/resources/application-postgres.yml`, `build.gradle`.
+  - **Dependencias**: T-009, T-014.

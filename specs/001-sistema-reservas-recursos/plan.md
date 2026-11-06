@@ -102,3 +102,14 @@ Estructura de error unificada según requerimiento:
 - **Alcance de aceptación y E2E**: las pruebas actuales ejercitan la API completa por HTTP. La prueba E2E de navegador se agrega con HU-19 cuando exista la interfaz web y su stack; el stage ya queda en el pipeline para recibirla.
 - **Umbral**: PIT falla por debajo de 80 % de mutation score y JaCoCo por debajo de 90 % de líneas en los servicios, según `build.gradle`.
 - **Reportes**: cada etapa publica sus reportes como artefactos de GitHub Actions: resultados de pruebas (`build/reports/tests/*`), cobertura (`build/reports/jacoco/test/html`) y mutación (`build/reports/pitest`). La publicación usa `if: always()` para que los reportes queden disponibles incluso cuando una etapa falla.
+
+## Phase 7: Concurrencia y rendimiento
+
+### Verificación de cero duplicados bajo concurrencia
+
+- **Decisión**: una prueba de integración que envía peticiones HTTP reales y simultáneas contra un PostgreSQL real y verifica que solo una se confirma, sin reservas duplicadas ni solapadas.
+- **Prueba**: `ReservaConcurrencyTest` levanta el servidor embebido en un puerto aleatorio y lanza N hilos que disparan `POST /reservas` a la vez con un `CountDownLatch`; cada hilo usa un usuario distinto y comparte el mismo recurso e intervalo, de modo que lo que los serializa es el bloqueo pesimista del recurso.
+- **Perfil y tarea**: corre con el perfil `postgres` (`src/test/resources/application-postgres.yml`) y la tarea `./gradlew postgresTest`; la suite rápida `./gradlew test` la excluye con la etiqueta `postgres` para seguir sin un PostgreSQL externo.
+- **Parámetros**: 10 hilos por escenario, intervalo de 1 a 2 horas a 2 días vista, HTTP real sobre el servidor embebido.
+- **Resultado**: 10 hilos sobre el mismo recurso e intervalo producen 1 respuesta 201 y 9 respuestas 409 `RECURSO_NO_DISPONIBLE`, con una sola reserva activa en la base de datos; 6 hilos del mismo usuario por recursos distintos producen 3 respuestas 201 y 3 respuestas 400 `LIMITE_RESERVAS_ACTIVAS`, sin superar nunca 3 reservas activas.
+- **Justificación**: los bloqueos pesimistas ya implementados en `ReservaServiceImpl` se verifican contra el motor que los ejecuta, no contra H2, que no reproduce su semántica con fidelidad.
