@@ -82,6 +82,13 @@ Todo el código vive bajo `com.institucion.reservas`. La regla de dependencia en
 - Las variables `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`, `POSTGRES_PORT`, `API_PORT` y `FRONTEND_PORT` se leen del entorno. `.env.example` documenta valores de desarrollo y `.env` está ignorado por Git.
 - El servicio `frontend` es opcional y vive detrás del perfil `frontend`: `docker compose --profile frontend up --build`. Compila la SPA con `frontend/Dockerfile` (Node 24 + Nginx) y reenvía `/api` a `api:8080`. Sin el perfil, `docker compose up --build` levanta solo `db` y `api`.
 
+## Análisis de seguridad
+
+- `.github/workflows/zap-baseline.yml` ejecuta OWASP ZAP sobre la API y la SPA en cada pull request y push a `main`. El procedimiento reproducible, las reglas y el umbral viven en `security/zap/`.
+- El escaneo corre contra el entorno de Docker Compose con datos semilla y una base desechable; nunca contra producción.
+- El umbral de fallo es `medium`: una alerta de severidad media o superior rompe el job; las bajas e informativas se trian en el reporte de la ejecución.
+- El manejador global de errores traduce `MethodArgumentTypeMismatchException` a `400` con `SOLICITUD_INVALIDA`, para que un parámetro con formato inválido no termine en `500`.
+
 ## Pruebas
 
 La mecánica es la de `docs/engineering-standards.md`. Lo que se exige a la suite —aislamiento de la lógica de negocio, pruebas unitarias y de integración, *mutation testing* sobre los servicios— lo fija la constitución, en su principio 4 y en la sección "Estándares de Calidad". Las pruebas de integración corren con el perfil `test` sobre H2 en memoria; Flyway aplica las migraciones y no se comparte la base de datos de desarrollo. Los builders de datos y la limpieza entre pruebas viven en `src/test/java/.../support/`.

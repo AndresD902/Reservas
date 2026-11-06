@@ -1,0 +1,60 @@
+name: DAST OWASP ZAP
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zap-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  zap-baseline:
+    name: Análisis DAST con OWASP ZAP
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Dar permiso de ejecución al wrapper
+        run: chmod +x gradlew
+
+      - name: Pruebas y compilación del backend
+        run: ./gradlew test --console=plain
+
+      - name: Ejecutar escaneo DAST
+        env:
+          ZAP_FAIL_ON: medium
+        run: bash security/zap/run-baseline.sh
+
+      - name: Publicar resumen
+        if: always()
+        run: |
+          if [ -f security/zap/reports/summary.md ]; then
+            cat security/zap/reports/summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Publicar reportes ZAP
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reporte-seguridad-zap
+          path: |
+            security/zap/reports/*.html
+            security/zap/reports/*.json
+            security/zap/reports/summary.md
+          if-no-files-found: warn
