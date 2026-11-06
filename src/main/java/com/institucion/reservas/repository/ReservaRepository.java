@@ -3,6 +3,8 @@ package com.institucion.reservas.repository;
 import com.institucion.reservas.entity.EstadoReserva;
 import com.institucion.reservas.entity.ReservaEntity;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
@@ -28,6 +30,17 @@ public interface ReservaRepository extends JpaRepository<ReservaEntity, Long> {
     List<ReservaEntity> findByRecursoIdOrderByFechaInicioAsc(Long recursoId);
 
     List<ReservaEntity> findByRecursoIdAndEstadoOrderByFechaInicioAsc(Long recursoId, EstadoReserva estado);
+
+    @Query("""
+            SELECT r FROM ReservaEntity r
+            WHERE (:estado IS NULL OR r.estado = :estado)
+              AND (:usuarioId IS NULL OR r.usuario.id = :usuarioId)
+              AND (:recursoId IS NULL OR r.recurso.id = :recursoId)
+            """)
+    Page<ReservaEntity> buscar(@Param("estado") EstadoReserva estado,
+                               @Param("usuarioId") Long usuarioId,
+                               @Param("recursoId") Long recursoId,
+                               Pageable pageable);
 
     @Query("""
             SELECT COUNT(r) FROM ReservaEntity r

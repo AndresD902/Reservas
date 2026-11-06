@@ -17,6 +17,8 @@ import com.institucion.reservas.repository.ReservaRepository;
 import com.institucion.reservas.repository.UsuarioRepository;
 import com.institucion.reservas.service.ReservaService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -82,6 +84,13 @@ public class ReservaServiceImpl implements ReservaService {
                 .orElseThrow(() -> new ResourceNotFoundException("RESERVA_NO_ENCONTRADA",
                         "No existe una reserva con id: " + id));
         return reservaMapper.toResponse(entity);
+    }
+
+    @Override
+    public Page<ReservaResponse> listar(EstadoReserva estado, Long usuarioId, Long recursoId,
+                                        Pageable pageable) {
+        return reservaRepository.buscar(estado, usuarioId, recursoId, pageable)
+                .map(reservaMapper::toResponse);
     }
 
     @Override

@@ -447,15 +447,17 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 
 - El plan de trabajo dice "añadir paginación y filtros donde aplique".
 - Hoy los listados devuelven todo sin paginar. `RecursoRepository` ya tiene consultas por estado y por tipo que ningún servicio usa.
-- Indeterminado (bloquea el DoR): qué listados se paginan, el tamaño de página por defecto y el máximo, y qué filtros ofrece cada uno.
-- Supuesto: se usan los parámetros estándar de Spring Data (`page`, `size`, `sort`).
+- **Decidido**: se paginan `GET /usuarios`, `GET /recursos` y un nuevo `GET /reservas`; los endpoints específicos de reservas por usuario, recurso y rango no cambian.
+- **Filtros**: usuarios por `estado`; recursos por `estado` y `tipo` (sin distinguir mayúsculas); reservas por `estado`, `usuarioId` y `recursoId`.
+- **Paginación**: parámetros estándar de Spring Data (`page`, `size`, `sort`), con 20 elementos por defecto y 100 como máximo. La respuesta es un `Page<T>` con `content`, `totalElements`, `totalPages`, `number` y `size`.
+- La documentación de los parámetros queda en `specs/001-sistema-reservas-recursos/plan.md`; el contrato OpenAPI corresponde a HU-11.
 
 **Tareas**
 
 - Definir qué listados se paginan y con qué filtros
 - Implementar la paginación en los listados elegidos
 - Implementar los filtros definidos
-- Documentar los parámetros en el contrato de la API
+- Documentar los parámetros en `plan.md`
 
 **Criterios de Aceptación**
 

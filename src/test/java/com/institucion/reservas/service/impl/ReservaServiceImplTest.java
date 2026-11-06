@@ -13,6 +13,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -111,5 +115,27 @@ class ReservaServiceImplTest {
 
         assertThat(finalizadas).isEqualTo(3);
         verify(reservaRepository).finalizarVencidas(ahora);
+    }
+
+    @Test
+    void listarConFiltrosDelegaEnBuscarYDevuelveLaPaginaMapeada() {
+        Pageable pageable = PageRequest.of(0, 20);
+        ReservaEntity entity = new ReservaEntity();
+        ReservaResponse response = new ReservaResponse(
+                1L, 10L, "Ana", 20L, "Sala 1",
+                LocalDateTime.of(2026, 12, 1, 9, 0),
+                LocalDateTime.of(2026, 12, 1, 10, 0),
+                EstadoReserva.ACTIVA,
+                LocalDateTime.of(2026, 11, 5, 10, 0));
+        when(reservaRepository.buscar(EstadoReserva.ACTIVA, 10L, 20L, pageable))
+                .thenReturn(new PageImpl<>(List.of(entity), pageable, 1));
+        when(reservaMapper.toResponse(entity)).thenReturn(response);
+
+        Page<ReservaResponse> resultado = reservaService.listar(
+                EstadoReserva.ACTIVA, 10L, 20L, pageable);
+
+        assertThat(resultado.getContent()).containsExactly(response);
+        assertThat(resultado.getTotalElements()).isEqualTo(1);
+        verify(reservaRepository).buscar(EstadoReserva.ACTIVA, 10L, 20L, pageable);
     }
 }

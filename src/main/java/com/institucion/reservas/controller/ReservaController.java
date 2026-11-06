@@ -2,9 +2,12 @@ package com.institucion.reservas.controller;
 
 import com.institucion.reservas.dto.ReservaRequest;
 import com.institucion.reservas.dto.ReservaResponse;
+import com.institucion.reservas.entity.EstadoReserva;
 import com.institucion.reservas.service.ReservaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +33,14 @@ public class ReservaController {
     @PostMapping
     public ResponseEntity<ReservaResponse> crear(@Valid @RequestBody ReservaRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(reservaService.crear(request));
+    }
+
+    @GetMapping
+    public Page<ReservaResponse> listar(@RequestParam(required = false) EstadoReserva estado,
+                                        @RequestParam(required = false) Long usuarioId,
+                                        @RequestParam(required = false) Long recursoId,
+                                        Pageable pageable) {
+        return reservaService.listar(estado, usuarioId, recursoId, pageable);
     }
 
     @GetMapping("/rango")

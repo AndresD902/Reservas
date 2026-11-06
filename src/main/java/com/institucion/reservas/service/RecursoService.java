@@ -4,9 +4,10 @@ import com.institucion.reservas.dto.DisponibilidadResponse;
 import com.institucion.reservas.dto.RecursoRequest;
 import com.institucion.reservas.dto.RecursoResponse;
 import com.institucion.reservas.entity.EstadoRecurso;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 public interface RecursoService {
 
@@ -14,7 +15,7 @@ public interface RecursoService {
 
     RecursoResponse obtenerPorId(Long id);
 
-    List<RecursoResponse> listar();
+    Page<RecursoResponse> listar(EstadoRecurso estado, String tipo, Pageable pageable);
 
     RecursoResponse actualizar(Long id, RecursoRequest request);
 

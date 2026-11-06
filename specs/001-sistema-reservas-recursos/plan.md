@@ -72,3 +72,15 @@ Estructura de error unificada según requerimiento:
 - **Validación**: si `fechaFin` no es estrictamente posterior a `fechaInicio`, se lanza `BusinessRuleException` con error `FECHAS_INVALIDAS` y se responde 400.
 - **Consulta**: `ReservaRepository.findOverlappingInRange(fechaInicio, fechaFin)`, ordenada por `fechaInicio ASC`.
 - **Respuesta**: `List<ReservaResponse>` con el mismo DTO de las consultas existentes.
+
+## Phase 4: Paginación y filtros en listados
+
+- **Endpoints**: `GET /usuarios`, `GET /recursos` y un nuevo `GET /reservas`. Los endpoints `/reservas/usuario/{id}`, `/reservas/recurso/{id}` y `/reservas/rango` mantienen su contrato sin paginar.
+- **Parámetros**: `page` (base 0), `size` (20 por defecto, 100 máximo) y `sort` con el formato de Spring Data (`campo,asc|desc`), resueltos por el `PageableHandlerMethodArgumentResolver`.
+- **Filtros**:
+  - Usuarios: `estado`.
+  - Recursos: `estado` y `tipo`; el tipo se compara sin distinguir mayúsculas y se ignora si viene en blanco.
+  - Reservas: `estado`, `usuarioId` y `recursoId`; los tres son opcionales y se combinan con AND.
+- **Respuesta**: `Page<T>` de Spring Data con `content`, `totalElements`, `totalPages`, `number`, `size` y los metadatos de ordenamiento.
+- **Consulta de reservas**: `ReservaRepository.buscar(estado, usuarioId, recursoId, pageable)` con filtros nulos opcionales, para no duplicar consultas por cada combinación.
+- **Compatibilidad**: los listados dejan de devolver un arreglo plano; el cambio se documenta en esta historia y el contrato OpenAPI se crea en HU-11.

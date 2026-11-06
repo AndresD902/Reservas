@@ -15,6 +15,8 @@ import com.institucion.reservas.repository.RecursoRepository;
 import com.institucion.reservas.repository.ReservaRepository;
 import com.institucion.reservas.service.RecursoService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,10 +46,21 @@ public class RecursoServiceImpl implements RecursoService {
     }
 
     @Override
-    public List<RecursoResponse> listar() {
-        return recursoRepository.findAll().stream()
-                .map(recursoMapper::toResponse)
-                .toList();
+    public Page<RecursoResponse> listar(EstadoRecurso estado, String tipo, Pageable pageable) {
+        String tipoNormalizado = tipo == null || tipo.isBlank() ? null : tipo.trim();
+        Page<RecursoEntity> page;
+
+        if (estado != null && tipoNormalizado != null) {
+            page = recursoRepository.findByEstadoAndTipoIgnoreCase(estado, tipoNormalizado, pageable);
+        } else if (estado != null) {
+            page = recursoRepository.findByEstado(estado, pageable);
+        } else if (tipoNormalizado != null) {
+            page = recursoRepository.findByTipoIgnoreCase(tipoNormalizado, pageable);
+        } else {
+            page = recursoRepository.findAll(pageable);
+        }
+
+        return page.map(recursoMapper::toResponse);
     }
 
     @Override

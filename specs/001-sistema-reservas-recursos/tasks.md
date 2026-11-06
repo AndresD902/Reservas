@@ -97,3 +97,7 @@
 - [ ] **T-019**: Agregar la migración Flyway del índice que soporta la finalización automática.
   - **Archivos**: `src/main/resources/db/migration/V2__add_index_reservas_estado_fin.sql`.
   - **Dependencias**: T-002.
+
+- [x] **T-020**: Paginar y filtrar los listados de usuarios, recursos y reservas con `page`, `size`, `sort`, 20 elementos por defecto y 100 como máximo; usuarios por `estado`, recursos por `estado` y `tipo`, y reservas por `estado`, `usuarioId` y `recursoId`.
+  - **Archivos**: `controller/UsuarioController.java`, `controller/RecursoController.java`, `controller/ReservaController.java`, `service/UsuarioService.java`, `service/RecursoService.java`, `service/ReservaService.java`, `service/impl/UsuarioServiceImpl.java`, `service/impl/RecursoServiceImpl.java`, `service/impl/ReservaServiceImpl.java`, `repository/UsuarioRepository.java`, `repository/RecursoRepository.java`, `repository/ReservaRepository.java`, `src/main/resources/application.yml`, `src/test/java/com/institucion/reservas/service/impl/*ServiceImplTest.java`, `src/test/java/com/institucion/reservas/controller/PaginationControllerTest.java`.
+  - **Dependencias**: T-010, T-011, T-012.
