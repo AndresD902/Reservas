@@ -92,3 +92,14 @@ Estructura de error unificada según requerimiento:
 - **Respuesta**: `Page<T>` de Spring Data con `content`, `totalElements`, `totalPages`, `number`, `size` y los metadatos de ordenamiento.
 - **Consulta de reservas**: `ReservaRepository.buscar(estado, usuarioId, recursoId, pageable)` con filtros nulos opcionales, para no duplicar consultas por cada combinación.
 - **Compatibilidad**: los listados dejan de devolver un arreglo plano; el cambio se documenta en esta historia y el contrato OpenAPI se crea en HU-11.
+
+## Phase 6: Concurrencia y rendimiento
+
+### Verificación de cero duplicados bajo concurrencia
+
+- **Decisión**: una prueba de integración que envía peticiones HTTP reales y simultáneas contra un PostgreSQL real y verifica que solo una se confirma, sin reservas duplicadas ni solapadas.
+- **Prueba**: `ReservaConcurrencyTest` levanta el servidor embebido en un puerto aleatorio y lanza N hilos que disparan `POST /reservas` a la vez con un `CountDownLatch`; cada hilo usa un usuario distinto y comparte el mismo recurso e intervalo, de modo que lo que los serializa es el bloqueo pesimista del recurso.
+- **Perfil y tarea**: corre con el perfil `postgres` (`src/test/resources/application-postgres.yml`) y la tarea `./gradlew postgresTest`; la suite rápida `./gradlew test` la excluye con la etiqueta `postgres` para seguir sin un PostgreSQL externo.
+- **Parámetros**: 10 hilos por escenario, intervalo de 1 a 2 horas a 2 días vista, HTTP real sobre el servidor embebido.
+- **Resultado**: 10 hilos sobre el mismo recurso e intervalo producen 1 respuesta 201 y 9 respuestas 409 `RECURSO_NO_DISPONIBLE`, con una sola reserva activa en la base de datos; 6 hilos del mismo usuario por recursos distintos producen 3 respuestas 201 y 3 respuestas 400 `LIMITE_RESERVAS_ACTIVAS`, sin superar nunca 3 reservas activas.
+- **Justificación**: los bloqueos pesimistas ya implementados en `ReservaServiceImpl` se verifican contra el motor que los ejecuta, no contra H2, que no reproduce su semántica con fidelidad.

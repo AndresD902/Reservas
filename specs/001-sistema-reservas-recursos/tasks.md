@@ -113,3 +113,9 @@
 - [x] **T-022**: Paginar y filtrar los listados de usuarios, recursos y reservas con `page`, `size`, `sort`, 20 elementos por defecto y 100 como máximo; usuarios por `estado`, recursos por `estado` y `tipo`, y reservas por `estado`, `usuarioId` y `recursoId`.
   - **Archivos**: `controller/UsuarioController.java`, `controller/RecursoController.java`, `controller/ReservaController.java`, `service/UsuarioService.java`, `service/RecursoService.java`, `service/ReservaService.java`, `service/impl/UsuarioServiceImpl.java`, `service/impl/RecursoServiceImpl.java`, `service/impl/ReservaServiceImpl.java`, `repository/UsuarioRepository.java`, `repository/RecursoRepository.java`, `repository/ReservaRepository.java`, `src/main/resources/application.yml`, `src/test/java/com/institucion/reservas/service/impl/*ServiceImplTest.java`, `src/test/java/com/institucion/reservas/controller/PaginationControllerTest.java`.
   - **Dependencias**: T-010, T-011, T-012.
+
+## Fase 10: Concurrencia y rendimiento
+
+- [x] **T-023**: Verificar cero duplicados bajo concurrencia con una prueba de integración que lanza N hilos HTTP simultáneos contra PostgreSQL real y confirma que solo una solicitud se confirma, el resto recibe 409 `RECURSO_NO_DISPONIBLE`, y la base de datos conserva una sola reserva activa para el recurso e intervalo; incluye el escenario de límite de 3 reservas activas por usuario.
+  - **Archivos**: `src/test/java/com/institucion/reservas/concurrency/ReservaConcurrencyTest.java`, `src/test/resources/application-postgres.yml`, `build.gradle`.
+  - **Dependencias**: T-009, T-014.

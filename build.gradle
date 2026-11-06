@@ -40,7 +40,22 @@ dependencies {
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+	useJUnitPlatform {
+		excludeTags 'postgres'
+	}
+}
+
+// Las pruebas de concurrencia verifican los bloqueos de PostgreSQL, que H2 no
+// reproduce con fidelidad. Corren contra un PostgreSQL real vía TEST_DB_URL y
+// quedan fuera de `test` para que la suite rápida siga sin base externa.
+tasks.register('postgresTest', Test) {
+	description = 'Ejecuta las pruebas que necesitan un PostgreSQL real.'
+	group = 'verification'
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = sourceSets.test.runtimeClasspath
+	useJUnitPlatform {
+		includeTags 'postgres'
+	}
 }
 
 pitest {
