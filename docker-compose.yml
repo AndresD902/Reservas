@@ -33,9 +33,16 @@ services:
     ports:
       - "${API_PORT:-8080}:8080"
 
-# El servicio `frontend` se agrega en la tarea T-021, ahora que HU-19 definió
-# el stack y existe el directorio de la interfaz. No se define un servicio
-# vacío para no inventar una arquitectura que el backlog todavía no detalla.
+  frontend:
+    profiles: ["frontend"]
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_started
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
 
 volumes:
   postgres-data:
