@@ -69,8 +69,8 @@ Todo el código vive bajo `com.institucion.reservas`. La regla de dependencia en
 
 - `docker-compose.yml` levanta PostgreSQL (`db`) y la API (`api`) con `docker compose up --build`. El `Dockerfile` es multi-stage: compila con JDK 21 y el wrapper de Gradle, y ejecuta el `bootJar` con JRE 21 y un usuario sin privilegios.
 - Los datos semilla viven en `src/main/resources/db/seed/R__local_seed.sql`, una migración repeatable e idempotente. `application-local.yml` agrega `classpath:db/seed` a `spring.flyway.locations`; los perfiles que no son `local` no cargan esa ubicación.
-- Las variables `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`, `POSTGRES_PORT` y `API_PORT` se leen del entorno. `.env.example` documenta valores de desarrollo y `.env` está ignorado por Git.
-- El frontend todavía no se define en el compose; agregarlo es la tarea T-021, ya con el stack y el directorio `frontend/` existentes. No se agrega un servicio vacío.
+- Las variables `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`, `POSTGRES_PORT`, `API_PORT` y `FRONTEND_PORT` se leen del entorno. `.env.example` documenta valores de desarrollo y `.env` está ignorado por Git.
+- El servicio `frontend` es opcional y vive detrás del perfil `frontend`: `docker compose --profile frontend up --build`. Compila la SPA con `frontend/Dockerfile` (Node 24 + Nginx) y reenvía `/api` a `api:8080`. Sin el perfil, `docker compose up --build` levanta solo `db` y `api`.
 
 ## Pruebas
 

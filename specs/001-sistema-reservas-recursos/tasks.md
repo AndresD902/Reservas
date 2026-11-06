@@ -104,8 +104,8 @@
   - **Archivos**: `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `.env.example`, `src/main/resources/application-local.yml`, `src/main/resources/db/seed/R__local_seed.sql`, `README.md`, `docs/backend-standards.md`.
   - **Dependencias**: T-002, T-017.
 
-- [ ] **T-021**: Agregar el frontend como servicio opcional de Compose, ahora que HU-19 definió el stack y existe `frontend/`.
-  - **Archivos**: `docker-compose.yml`, documentación del entorno local.
+- [x] **T-021**: Agregar el frontend como servicio opcional de Compose (`--profile frontend`), con imagen multi-stage de Node 24 + Nginx y proxy de `/api` hacia la API.
+  - **Archivos**: `docker-compose.yml`, `frontend/Dockerfile`, `frontend/nginx.conf`, `frontend/.dockerignore`, `.env.example`, `README.md`, `docs/frontend-standards.md`, `docs/backend-standards.md`.
   - **Dependencias**: T-020, HU-19.
 
 ## Fase 9: Paginación y filtros en listados
