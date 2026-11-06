@@ -29,6 +29,8 @@ curl http://localhost:8080/usuarios
 curl http://localhost:8080/recursos
 ```
 
+La interfaz del contrato OpenAPI está en `http://localhost:8080/swagger-ui/index.html`. La raíz `/usuarios` y `/recursos` devuelven ahora `Page` (paginación de HU-12); las consultas de reservas por usuario, recurso y rango siguen devolviendo un listado plano.
+
 `docker compose down` detiene los servicios; `docker compose down -v` elimina también el volumen de PostgreSQL y vuelve a sembrar los datos en el siguiente arranque.
 
 `.env` no se versiona. `.env.example` solo contiene valores de desarrollo. El servicio de frontend se agregará cuando HU-19 defina su stack y exista el directorio de la interfaz.
