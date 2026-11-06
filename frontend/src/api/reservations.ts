@@ -9,3 +9,15 @@ export async function createReservation(
     body: JSON.stringify(request),
   })
 }
+
+export async function listReservationsByUser(
+  userId: number,
+): Promise<Reservation[]> {
+  return apiFetch<Reservation[]>(`/reservas/usuario/${userId}`)
+}
+
+export async function cancelReservation(id: number): Promise<Reservation> {
+  return apiFetch<Reservation>(`/reservas/${id}`, {
+    method: 'DELETE',
+  })
+}

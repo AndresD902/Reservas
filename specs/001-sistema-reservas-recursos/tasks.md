@@ -213,3 +213,21 @@
 - [ ] **T-044**: Regenerar `docs/api-spec.yml`, actualizar los estándares de backend y frontend, el README y el estado de la historia en el backlog.
   - **Archivos**: `docs/api-spec.yml`, `docs/backend-standards.md`, `docs/frontend-standards.md`, `README.md`, `backlog/backlog.md`.
   - **Dependencias**: T-043.
+
+## Fase 16: Mis reservas
+
+- [x] **T-045**: Extender el cliente de la API y los hooks para consultar las reservas de un usuario y cancelar una reserva activa.
+  - **Archivos**: `frontend/src/api/reservations.ts`, `frontend/src/hooks/use-user-reservations.ts`, `frontend/src/hooks/use-cancel-reservation.ts`.
+  - **Dependencias**: T-025.
+
+- [x] **T-046**: Implementar la página `/mis-reservas` con el listado de reservas del usuario seleccionado, sus estados, la cancelación con confirmación y los estados de carga, vacío y error.
+  - **Archivos**: `frontend/src/pages/my-reservations-page.tsx`, `frontend/src/components/confirm-dialog.tsx`.
+  - **Dependencias**: T-045.
+
+- [x] **T-047**: Agregar la navegación a mis reservas y las pruebas de componentes del listado, los estados y la cancelación confirmada.
+  - **Archivos**: `frontend/src/App.tsx`, `frontend/src/components/layout.tsx`, `frontend/src/pages/my-reservations-page.test.tsx`.
+  - **Dependencias**: T-046.
+
+- [x] **T-048**: Escribir la prueba E2E del flujo de consulta y cancelación con Playwright y actualizar la documentación y el backlog.
+  - **Archivos**: `frontend/e2e/my-reservations.spec.ts`, `docs/frontend-standards.md`, `backlog/backlog.md`.
+  - **Dependencias**: T-047.

@@ -80,10 +80,10 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 | HU-01 · Especificación del sistema de reservas con spec-kit | EP-01 | Completado | — |
 | HU-02 · Estándares de trabajo y capa agéntica del proyecto | EP-01 | Completado | — |
 | HU-03 · Registro y gestión de estado de usuarios | EP-02 | En Revisión | — |
-| HU-04 · Registro y gestión de estado de recursos | EP-02 | En Revisión | — |
-| HU-05 · Creación de reservas con reglas de negocio y control de concurrencia | EP-03 | En Revisión | — |
-| HU-06 · Cancelación de reservas | EP-03 | En Revisión | — |
-| HU-07 · Consulta de reservas por usuario y recurso, y disponibilidad | EP-03 | En Revisión | — |
+| HU-04 · Registro y gestión de estado de recursos | EP-02 | Completado | — |
+| HU-05 · Creación de reservas con reglas de negocio y control de concurrencia | EP-03 | Completado | — |
+| HU-06 · Cancelación de reservas | EP-03 | Completado | — |
+| HU-07 · Consulta de reservas por usuario y recurso, y disponibilidad | EP-03 | Completado | — |
 | HU-08 · Resolución de las dudas abiertas de la especificación | EP-01 | Completado | 1 |
 | HU-09 · Consulta de reservas por rango de fechas | EP-03 | Completado | 3 |
 | HU-10 · Finalización automática de reservas vencidas | EP-03 | Completado | 2 |
@@ -96,7 +96,7 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 | HU-17 · Cero reservas duplicadas bajo concurrencia | EP-05 | Backlog | 2 |
 | HU-18 · Prueba de carga con 500 usuarios simultáneos | EP-05 | Backlog | 3 |
 | HU-19 · Reservar un recurso desde la interfaz web | EP-06 | En Revisión | 3 |
-| HU-20 · Consultar y cancelar mis reservas desde la interfaz web | EP-06 | Backlog | 3 |
+| HU-20 · Consultar y cancelar mis reservas desde la interfaz web | EP-06 | Completado | — |
 | HU-21 · Administrar usuarios y recursos desde la interfaz web | EP-06 | En Revisión | 3 |
 | HU-22 · Entorno local con un solo comando | EP-07 | En Revisión | 3 |
 | HU-23 · Pipeline de integración continua | EP-07 | En Revisión | 3 |
@@ -207,8 +207,8 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 
 - Cubre FR-004 a FR-006. Endpoints: `POST /recursos`, `GET /recursos`, `GET /recursos/{id}`, `PUT /recursos/{id}` y `PUT`/`PATCH /recursos/{id}/estado`.
 - Un recurso tiene nombre, descripción, tipo, capacidad (mayor que 0) y estado (`DISPONIBLE`, `MANTENIMIENTO`, `FUERA_DE_SERVICIO`). La base de datos refuerza capacidad y estado con restricciones `CHECK`.
-- Qué pasa con las reservas futuras de un recurso que entra en mantenimiento es una duda abierta de `spec.md` y queda fuera de esta historia.
-- Implementada sin pruebas y sin compilación verificada (el entorno no tiene JDK): los criterios quedan sin marcar hasta que una prueba los verifique.
+- El cambio a `MANTENIMIENTO` con reservas `ACTIVA` futuras se resolvió en T-018: se rechaza con 409 `RECURSO_CON_RESERVAS_FUTURAS`, tanto en el cambio de estado como en la edición del recurso.
+- Verificada el 2026-11-06 con la suite completa del backend en Docker: pruebas, PIT con 100 % de mutaciones eliminadas, JaCoCo, aceptación y E2E por HTTP.
 
 **Tareas**
 
@@ -239,7 +239,7 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 - Reglas, en el orden en que se validan: fin posterior al inicio y sin fechas pasadas, usuario `ACTIVO`, recurso `DISPONIBLE`, máximo 3 reservas activas por usuario, y sin solapamiento con una reserva activa del mismo recurso.
 - El solapamiento usa intervalos semiabiertos `[inicio, fin)`: una reserva que empieza justo cuando termina otra no choca. Solo cuentan las reservas `ACTIVA`.
 - Concurrencia: dentro de la transacción se bloquean el usuario y el recurso con `PESSIMISTIC_WRITE`, para que dos solicitudes simultáneas no confirmen el mismo intervalo. La base de datos refuerza `fecha_fin > fecha_inicio`.
-- Implementada sin pruebas y sin compilación verificada (el entorno no tiene JDK): los criterios quedan sin marcar hasta que una prueba los verifique.
+- Verificada el 2026-11-06 con la suite completa del backend en Docker: pruebas, PIT con 100 % de mutaciones eliminadas, JaCoCo, aceptación y E2E por HTTP.
 
 **Tareas**
 
@@ -272,8 +272,8 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 
 - Cubre FR-014 y FR-015 con `DELETE /reservas/{id}`, que no borra la reserva: la pasa a `CANCELADA` y la devuelve.
 - Solo se cancela una reserva `ACTIVA`. Una `FINALIZADA` o ya `CANCELADA` se rechaza. La reserva se bloquea con `PESSIMISTIC_WRITE` durante la cancelación.
-- Hoy ninguna reserva pasa a `FINALIZADA`, porque no existe esa transición: el rechazo de cancelar una finalizada está implementado pero no puede ocurrir todavía. Cómo se finaliza una reserva queda fuera de esta historia.
-- Implementada sin pruebas y sin compilación verificada (el entorno no tiene JDK): los criterios quedan sin marcar hasta que una prueba los verifique.
+- La finalización automática implementada en T-017 permite que una reserva llegue a `FINALIZADA`; el rechazo de cancelación en ese estado es alcanzable y está cubierto.
+- Verificada el 2026-11-06 con la suite completa del backend en Docker: pruebas, PIT con 100 % de mutaciones eliminadas, JaCoCo, aceptación y E2E por HTTP.
 
 **Tareas**
 
@@ -300,8 +300,8 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 
 - Cubre FR-016 en parte. Endpoints: `GET /reservas/{id}`, `GET /reservas/usuario/{usuarioId}`, `GET /reservas/recurso/{recursoId}` y `GET /recursos/{id}/disponibilidad?fechaInicio=&fechaFin=` (ISO 8601).
 - La disponibilidad aplica la misma regla de solapamiento que la creación: solo bloquean las reservas `ACTIVA`, con intervalos semiabiertos.
-- La consulta de reservas por fecha que también exige FR-016 queda fuera de esta historia (tarea T-016).
-- Implementada sin pruebas y sin compilación verificada (el entorno no tiene JDK): los criterios quedan sin marcar hasta que una prueba los verifique.
+- La consulta de reservas por rango que también exige FR-016 se implementó en T-016 y se expone en HU-09.
+- Verificada el 2026-11-06 con la suite completa del backend en Docker: pruebas, PIT con 100 % de mutaciones eliminadas, JaCoCo, aceptación y E2E por HTTP.
 
 **Tareas**
 
@@ -684,9 +684,10 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 
 **Conversación**
 
-- Indeterminado (bloquea el DoR): el stack de la interfaz. El plan de trabajo recomienda React, Vite, TypeScript, React Router, TanStack Query y Tailwind, y pide preguntar antes si se prefiere Thymeleaf.
-- Solo las reservas `ACTIVA` ofrecen la acción de cancelar.
-- Las pruebas E2E se escriben con Playwright.
+- Resuelto el 2026-11-06: el stack es React, Vite, TypeScript, React Router, TanStack Query y Tailwind CSS, ya implementado en HU-19. La interfaz vive en `frontend/` y consume la API por `/api` mediante el proxy de Vite.
+- Implementado: `/mis-reservas` lista las reservas del usuario elegido en el selector, muestra su estado y ofrece cancelar solo las `ACTIVA`, con confirmación en un diálogo accesible.
+- La cancelación usa `DELETE /reservas/{id}` y, al completarse, invalida las consultas de reservas y disponibilidad. Los errores de la API se muestran con mensajes claros; hay estados de carga, vacío y error.
+- Verificado el 2026-11-06: lint, typecheck, 48 pruebas de Vitest, build y 11 pruebas E2E de Playwright contra PostgreSQL y la API reales en Docker; todas pasan.
 
 **Tareas**
 
