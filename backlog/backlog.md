@@ -100,7 +100,7 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 | HU-21 · Administrar usuarios y recursos desde la interfaz web | EP-06 | En Revisión | 3 |
 | HU-22 · Entorno local con un solo comando | EP-07 | En Revisión | 3 |
 | HU-23 · Pipeline de integración continua | EP-07 | En Revisión | 3 |
-| HU-24 · README operativo con arquitectura, variables y ejemplos curl | EP-07 | En Progreso | 3 |
+| HU-24 · README operativo con arquitectura, variables y ejemplos curl | EP-07 | En Revisión | 3 |
 | HU-25 · Login del administrador | EP-02 | En Progreso | 1 |
 
 ## Historias
@@ -808,6 +808,7 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 - Los ejemplos `curl` cubren CSRF, `login`/`me`/`logout`, usuarios, recursos, disponibilidad, reservas, consultas por usuario, recurso y rango, y los errores frecuentes. Se ejecutaron contra la API local: login, alta de usuario y recurso, disponibilidad, alta de reserva, duplicado `409 RECURSO_NO_DISPONIBLE`, consultas, cancelación y segunda cancelación `400 RESERVA_CANCELADA`.
 - `check-references.sh`: las secciones de rutas citadas y documentos citados sin ruta no reportan hallazgos en el README. El script reporta 12 hallazgos preexistentes de encabezados citados en otros documentos y del backlog, ninguno en el README.
 - `specs/001-sistema-reservas-recursos/tasks.md` suma la Fase 17 (T-049..T-052) para dejar trazadas las tareas de esta historia.
+- PR: https://github.com/AndresD902/Reservas/pull/21 (rama `feature/hu-24-operational-readme` → `main`), CI en verde; el merge queda para el usuario.
 
 **Tareas**
 
