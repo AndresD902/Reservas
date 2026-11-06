@@ -59,10 +59,12 @@ Todo el código vive bajo `com.institucion.reservas`. La regla de dependencia en
 
 - `application.yml` activa el perfil `local` y toma las credenciales de la base de datos de las variables de entorno `DB_USERNAME` y `DB_PASSWORD`.
 - `src/main/resources/application-local.example.yml` es la plantilla versionada del perfil local. La copia con credenciales reales va en la raíz del repositorio como `application-local.yml`: Spring Boot la carga desde el directorio de trabajo, y `.gitignore` la excluye solo en esa ruta.
+- `.devcontainer/` es el entorno de desarrollo recomendado: JDK 21 y PostgreSQL 16, sin instalar nada en la máquina. La API usa la base `sistema_reservas`; las pruebas usan el perfil `test` de `src/test/resources/application-test.yml`, que apunta a `sistema_reservas_test` para no compartir datos con desarrollo. Las credenciales del contenedor son solo de desarrollo y no se reutilizan fuera de él.
+- Para levantar la API dentro del contenedor hay que sobreescribir la URL, porque la base no está en `localhost`: `SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/sistema_reservas ./gradlew bootRun`.
 
 ## Pruebas
 
-La mecánica es la de `docs/engineering-standards.md`. Lo que se exige a la suite —aislamiento de la lógica de negocio, pruebas unitarias y de integración, *mutation testing* sobre los servicios— lo fija la constitución, en su principio 4 y en la sección "Estándares de Calidad".
+La mecánica es la de `docs/engineering-standards.md`. Lo que se exige a la suite —aislamiento de la lógica de negocio, pruebas unitarias y de integración, *mutation testing* sobre los servicios— lo fija la constitución, en su principio 4 y en la sección "Estándares de Calidad". Las pruebas de integración corren con el perfil `test` y no comparten la base de datos de desarrollo.
 
 ## Desviaciones conocidas
 
@@ -72,6 +74,5 @@ Brechas entre el código actual y los estándares, detectadas al adoptar el harn
 |---|---|
 | Los identificadores del código están en español (`RecursoController`, `fechaInicio`, `EstadoReserva`) | Política de idioma de `docs/base-standards.md`: código e identificadores en inglés |
 | El directorio `specs/001-sistema-reservas-recursos/` está nombrado en español | Política de idioma de `docs/base-standards.md`: nombres de archivos y directorios en inglés |
-| `gradlew` está versionado sin permiso de ejecución (modo `100644`): `./gradlew` falla con *permission denied* | Stack: el build corre siempre a través del *wrapper* (`./gradlew`) |
 | No hay plugin de *mutation testing* configurado en `build.gradle` | Constitución, sección "Estándares de Calidad" |
-| La única prueba es `ReservasApplicationTests`; las reglas de negocio no tienen pruebas | Test Driven Development, en `docs/engineering-standards.md` |
+| Solo la API de usuarios tiene pruebas de integración; las reglas de negocio de reservas y recursos no tienen pruebas | Test Driven Development, en `docs/engineering-standards.md` |
