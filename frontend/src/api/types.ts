@@ -4,6 +4,17 @@ export type ResourceStatus = 'DISPONIBLE' | 'MANTENIMIENTO' | 'FUERA_DE_SERVICIO
 
 export type ReservationStatus = 'ACTIVA' | 'CANCELADA' | 'FINALIZADA'
 
+export interface Administrator {
+  id: number
+  nombre: string
+  correo: string
+}
+
+export interface LoginRequest {
+  correo: string
+  password: string
+}
+
 export interface User {
   id: number
   nombre: string

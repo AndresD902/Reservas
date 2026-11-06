@@ -159,6 +159,10 @@ jobs:
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       SPRING_PROFILES_ACTIVE: local
+      ADMIN_EMAIL: admin@example.com
+      ADMIN_PASSWORD: admin123
+      E2E_ADMIN_EMAIL: admin@example.com
+      E2E_ADMIN_PASSWORD: admin123
       CI: 'true'
 
     steps:

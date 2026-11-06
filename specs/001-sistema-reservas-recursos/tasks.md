@@ -179,3 +179,37 @@
 - [x] **T-036**: Actualizar la documentación de frontend y el estado de la historia en el backlog.
   - **Archivos**: `docs/frontend-standards.md`, `backlog/backlog.md`.
   - **Dependencias**: T-035.
+
+## Fase 15: Autenticación del administrador
+
+- [ ] **T-037**: Registrar en `spec.md`, `plan.md` y `data-model.md` el requisito de autenticación del administrador, la tabla `administradores`, el alcance de la protección y la estrategia de sesión y CSRF.
+  - **Archivos**: `specs/001-sistema-reservas-recursos/spec.md`, `plan.md`, `data-model.md`, `checklists/requirements.md`.
+  - **Dependencias**: HU-25.
+
+- [ ] **T-038**: Agregar Spring Security y la migración `V2__admin_auth.sql` con la tabla `administradores`; crear entidad, repositorio, DTOs, mapper y servicio de autenticación con BCrypt.
+  - **Archivos**: `build.gradle`, `src/main/resources/db/migration/V2__admin_auth.sql`, `src/main/java/com/institucion/reservas/entity/AdministradorEntity.java`, `repository/AdministradorRepository.java`, `dto/*`, `mapper/AdministradorMapper.java`, `service/AuthService.java`, `service/impl/AuthServiceImpl.java`.
+  - **Dependencias**: T-037.
+
+- [ ] **T-039**: Implementar `POST /auth/login`, `POST /auth/logout`, `GET /auth/me` y `GET /auth/csrf`, con sesión de servidor y cuerpo de error común para 401 y 403.
+  - **Archivos**: `controller/AuthController.java`, `config/SecurityConfig.java`, `config/RestAuthenticationEntryPoint.java`, `config/RestAccessDeniedHandler.java`.
+  - **Dependencias**: T-038.
+
+- [ ] **T-040**: Crear el administrador de desarrollo en el perfil `local` con `ADMIN_EMAIL` y `ADMIN_PASSWORD`, y documentar las variables.
+  - **Archivos**: `config/LocalAdminSeeder.java`, `.env.example`, `README.md`.
+  - **Dependencias**: T-038.
+
+- [ ] **T-041**: Cubrir autenticación, autorización, CSRF y hashing con pruebas unitarias, de integración y de aceptación; actualizar `DatabaseCleaner` y la cadena permisiva del perfil `test`.
+  - **Archivos**: `src/test/java/com/institucion/reservas/service/impl/AuthServiceImplTest.java`, `controller/AuthControllerTest.java`, `controller/SecurityConfigTest.java`, `support/DatabaseCleaner.java`, `src/test/resources/application-test.yml`.
+  - **Dependencias**: T-039.
+
+- [ ] **T-042**: Implementar el cliente con credenciales y CSRF, la página `/login`, el guard de `/admin`, el cierre de sesión y las pruebas de componentes.
+  - **Archivos**: `frontend/src/api/client.ts`, `frontend/src/api/auth.ts`, `frontend/src/hooks/use-auth.ts`, `frontend/src/pages/login-page.tsx`, `frontend/src/components/require-admin.tsx`, `frontend/src/components/layout.tsx`, `frontend/src/App.tsx`, `frontend/src/test/render.tsx`.
+  - **Dependencias**: T-039.
+
+- [ ] **T-043**: Actualizar las pruebas E2E de Playwright y el job `browser-e2e` para autenticar al administrador antes de operar el panel y de crear datos por API.
+  - **Archivos**: `frontend/e2e/admin.spec.ts`, `frontend/e2e/reservation.spec.ts`, `frontend/e2e/support/auth.ts`, `.github/workflows/ci.yml`.
+  - **Dependencias**: T-042.
+
+- [ ] **T-044**: Regenerar `docs/api-spec.yml`, actualizar los estándares de backend y frontend, el README y el estado de la historia en el backlog.
+  - **Archivos**: `docs/api-spec.yml`, `docs/backend-standards.md`, `docs/frontend-standards.md`, `README.md`, `backlog/backlog.md`.
+  - **Dependencias**: T-043.

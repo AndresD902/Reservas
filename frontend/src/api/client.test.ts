@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ApiError, apiFetch } from './client'
-import { jsonResponse, stubFetch } from '../test/http'
+import { jsonResponse, requestUrl, stubFetch } from '../test/http'
 
 describe('apiFetch', () => {
   it('returns the parsed JSON body of a successful response', async () => {
@@ -54,5 +54,31 @@ describe('apiFetch', () => {
     stubFetch(() => new Response('not json', { status: 500 }))
 
     await expect(apiFetch('/recursos')).rejects.toBeInstanceOf(ApiError)
+  })
+
+  it('sends the CSRF token from the cookie on mutating requests', async () => {
+    document.cookie = 'XSRF-TOKEN=token-de-prueba'
+    const fetchMock = stubFetch(() => jsonResponse({ id: 1 }))
+
+    await apiFetch('/usuarios', { method: 'POST', body: '{}' })
+
+    const headers = fetchMock.mock.calls[0]?.[1]?.headers as Headers
+    expect(headers.get('X-XSRF-TOKEN')).toBe('token-de-prueba')
+
+    document.cookie = 'XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+  })
+
+  it('obtiene el token CSRF cuando la cookie no existe', async () => {
+    document.cookie = 'XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+    const fetchMock = stubFetch((input) =>
+      requestUrl(input).endsWith('/auth/csrf')
+        ? jsonResponse({ headerName: 'X-XSRF-TOKEN', token: 'nuevo' })
+        : jsonResponse({ id: 1 }),
+    )
+
+    await apiFetch('/usuarios', { method: 'POST', body: '{}' })
+
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(requestUrl(fetchMock.mock.calls[0]![0])).toContain('/auth/csrf')
   })
 })

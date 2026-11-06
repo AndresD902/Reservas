@@ -1,6 +1,9 @@
 import { ApiError } from '../api/client'
 
 const ERROR_MESSAGES: Record<string, string> = {
+  CREDENCIALES_INVALIDAS: 'El correo o la contraseña no son correctos.',
+  NO_AUTENTICADO: 'Debes iniciar sesión para realizar esta operación.',
+  ACCESO_DENEGADO: 'No tienes permisos para realizar esta operación.',
   USUARIO_INACTIVO: 'El usuario seleccionado no está activo y no puede reservar.',
   RECURSO_NO_DISPONIBLE:
     'El recurso ya está reservado en ese horario. Elige otro intervalo.',

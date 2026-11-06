@@ -28,6 +28,7 @@ Las versiones no se copian aquí: las fija `build.gradle`, y una copia queda des
 | Lenguaje | Java, con la versión fijada por el *toolchain* de Gradle |
 | Build | Gradle, siempre a través del *wrapper* (`./gradlew`) |
 | Framework | Spring Boot: Web MVC, Data JPA, Validation |
+| Seguridad | Spring Security: sesión por cookie `HttpOnly`, CSRF por token y contraseñas con BCrypt |
 | Contrato OpenAPI | SpringDoc OpenAPI (Swagger UI en `/swagger-ui/index.html`, YAML en `docs/api-spec.yml`) |
 | Base de datos | PostgreSQL |
 | Migraciones | Flyway |
@@ -58,9 +59,18 @@ Todo el código vive bajo `com.institucion.reservas`. La regla de dependencia en
 - **Una migración aplicada no se edita.** Cualquier corrección va en una migración nueva.
 - Un cambio de esquema dispara la actualización del modelo de datos de la funcionalidad afectada, según el catálogo de `docs/documentation-standards.md`.
 
+## Autenticación del administrador
+
+- Los administradores viven en la tabla `administradores` (`V2__admin_auth.sql`): `id`, `nombre`, `correo` único y `password_hash`. No se relacionan con `usuarios` y nunca se guarda la contraseña en claro.
+- Endpoints en `/auth`: `POST /auth/login`, `POST /auth/logout`, `GET /auth/me` y `GET /auth/csrf`.
+- La sesión es de servidor y viaja en una cookie `HttpOnly`; no se usa JWT. El CSRF usa `CookieCsrfTokenRepository` con cookie `XSRF-TOKEN` y cabecera `X-XSRF-TOKEN`, y la cookie se publica con `Path=/` y `SameSite=Lax`.
+- Solo se protegen las escrituras de usuarios y recursos. Las lecturas (`GET /usuarios`, `/recursos`, `/reservas`), la creación y cancelación de reservas, y la documentación Swagger siguen abiertas para no romper el flujo de HU-19 y HU-20.
+- `RestAuthenticationEntryPoint` y `RestAccessDeniedHandler` devuelven el cuerpo común `{status, error, message}` en 401 y 403.
+- El perfil `local` siembra un administrador de desarrollo con `ADMIN_NAME`, `ADMIN_EMAIL` y `ADMIN_PASSWORD`; el perfil `test` apaga la cadena de seguridad con `reservas.security.enabled=false`.
+
 ## Configuración local
 
-- `application.yml` activa el perfil `local` y toma las credenciales de la base de datos de las variables de entorno `DB_USERNAME` y `DB_PASSWORD`.
+- `application.yml` activa el perfil `local` y toma las credenciales de la base de datos de las variables de entorno `DB_USERNAME` y `DB_PASSWORD`. El administrador de desarrollo se configura con `ADMIN_NAME`, `ADMIN_EMAIL` y `ADMIN_PASSWORD`.
 - `src/main/resources/application-local.example.yml` es la plantilla versionada del perfil local. La copia con credenciales reales va en la raíz del repositorio como `application-local.yml`: Spring Boot la carga desde el directorio de trabajo, y `.gitignore` la excluye solo en esa ruta.
 - `.devcontainer/` es el entorno de desarrollo recomendado: JDK 21 y PostgreSQL 16, sin instalar nada en la máquina. La API usa la base `sistema_reservas`; las pruebas usan el perfil `test` de `src/test/resources/application-test.yml`, que levanta H2 en memoria en modo PostgreSQL; no necesita la base de desarrollo ni un PostgreSQL externo. Las credenciales del contenedor son solo de desarrollo y no se reutilizan fuera de él.
 - Para levantar la API dentro del contenedor hay que sobreescribir la URL, porque la base no está en `localhost`: `SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/sistema_reservas ./gradlew bootRun`.
@@ -79,6 +89,7 @@ La mecánica es la de `docs/engineering-standards.md`. Lo que se exige a la suit
 Las pruebas que necesitan un PostgreSQL real son una excepción señalada, no la regla: viven con la etiqueta `postgres`, corren solo con `./gradlew postgresTest` y el perfil `postgres` de `src/test/resources/application-postgres.yml` (que toma la URL de `TEST_DB_URL`). `./gradlew test` las excluye para seguir sin base externa. HU-17 usa este camino en `ReservaConcurrencyTest`, que verifica contra PostgreSQL los bloqueos pesimistas de `ReservaServiceImpl` porque H2 no reproduce su semántica.
 
 - Las pruebas unitarias de la capa de servicio viven en `src/test/java/com/institucion/reservas/service/impl/`. Usan JUnit 5 y Mockito, mappers reales y mocks solo de repositorios.
+- Las pruebas de seguridad viven en `controller/AuthControllerTest` y activan la cadena real con `reservas.security.enabled=true`; el resto de la suite corre con la cadena permisiva del perfil `test`. `AuthServiceImplTest` cubre el hashing, la normalización del correo y los rechazos de credenciales.
 - `build.gradle` configura JaCoCo con umbral de 90 % de líneas por clase sobre `com.institucion.reservas.service.impl.*` y PIT con `mutationThreshold = 80` y `coverageThreshold = 90` sobre las mismas clases. `check` depende de ambas verificaciones y de las tareas `acceptanceTest` y `e2eTest`, así que `./gradlew build` falla si alguna baja o si una prueba de aceptación o E2E falla.
 - PIT solo corre las pruebas de `com.institucion.reservas.service.**` (`targetTests`), para acotar la mutación a la lógica de servicios y no ejecutar la suite de integración.
 - Las pruebas de aceptación y E2E viven en `src/test/java/com/institucion/reservas/acceptance/` y `src/test/java/com/institucion/reservas/e2e/`, y se seleccionan por los tags `acceptance` y `e2e`. La suite `test` las excluye para no duplicarlas; se ejecutan con `./gradlew acceptanceTest` y `./gradlew e2eTest`. La prueba E2E de Gradle ejercita el flujo por HTTP; la prueba E2E de navegador vive en `frontend/e2e/` y la ejecuta el job `browser-e2e`, según `docs/frontend-standards.md`.

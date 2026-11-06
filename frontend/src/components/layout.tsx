@@ -1,4 +1,5 @@
-import { Link, NavLink, Outlet } from 'react-router-dom'
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { useLogout, useSession } from '../hooks/use-auth'
 import { UserSelector } from './user-selector'
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -9,6 +10,10 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   }`
 
 export function Layout() {
+  const { data: administrator } = useSession()
+  const logoutMutation = useLogout()
+  const navigate = useNavigate()
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <header className="border-b border-slate-200 bg-white">
@@ -35,6 +40,29 @@ export function Layout() {
                 Administración
               </NavLink>
             </nav>
+            {administrator ? (
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-medium text-slate-500">
+                  {administrator.nombre}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    logoutMutation.mutate(undefined, {
+                      onSuccess: () => navigate('/login', { replace: true }),
+                    })
+                  }
+                  disabled={logoutMutation.isPending}
+                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Cerrar sesión
+                </button>
+              </div>
+            ) : (
+              <NavLink to="/login" className={navLinkClass}>
+                Iniciar sesión
+              </NavLink>
+            )}
             <UserSelector />
           </div>
         </div>

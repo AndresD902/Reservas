@@ -62,6 +62,16 @@ class OpenApiContractTest {
     }
 
     @Test
+    void exponeDocumentacionDeAutenticacion() throws Exception {
+        mockMvc.perform(get("/v3/api-docs").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.paths./auth/login.post").exists())
+                .andExpect(jsonPath("$.paths./auth/logout.post").exists())
+                .andExpect(jsonPath("$.paths./auth/me.get").exists())
+                .andExpect(jsonPath("$.paths./auth/csrf.get").exists());
+    }
+
+    @Test
     void documentaEstructuraComunDeError() throws Exception {
         mockMvc.perform(get("/v3/api-docs").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())

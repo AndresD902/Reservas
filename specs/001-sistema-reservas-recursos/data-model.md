@@ -23,7 +23,18 @@
 | capacidad        |
 | estado           |
 +------------------+
+
++------------------+
+|  ADMINISTRADOR   |
++------------------+
+| id (PK)          |
+| nombre           |
+| correo (unique)  |
+| password_hash    |
++------------------+
 ```
+
+La tabla `administradores` es independiente: no tiene relación con `usuarios` ni con `reservas`. Un administrador autenticado gestiona usuarios y recursos, pero no reserva.
 
 ## Definición de Entidades
 
@@ -50,6 +61,12 @@
 - **`fecha_fin`**: `TIMESTAMP` | NOT NULL.
 - **`estado`**: `VARCHAR(20)` | NOT NULL | Valores permitidos: `'ACTIVA'`, `'CANCELADA'`, `'FINALIZADA'`.
 - **`fecha_creacion`**: `TIMESTAMP` | NOT NULL | Default `CURRENT_TIMESTAMP`.
+
+### 4. Entidad: `Administrador` (`administradores`)
+- **`id`**: `BIGINT` | Primary Key | Auto-incremental.
+- **`nombre`**: `VARCHAR(100)` | NOT NULL.
+- **`correo`**: `VARCHAR(100)` | NOT NULL | Unique Index.
+- **`password_hash`**: `VARCHAR(100)` | NOT NULL | Hash BCrypt; nunca la contraseña en claro.
 
 ## Índices y Restricciones de Integridad
 

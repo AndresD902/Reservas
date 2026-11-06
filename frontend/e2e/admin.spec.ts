@@ -1,8 +1,13 @@
 import { randomUUID } from 'node:crypto'
 import { expect, test } from '@playwright/test'
 import type { APIRequestContext, Page } from '@playwright/test'
+import { csrfHeaders, loginAsAdmin } from './support/auth.js'
 
 const API_URL = process.env.E2E_API_URL ?? 'http://localhost:8080'
+
+test.beforeEach(async ({ request, context }) => {
+  await loginAsAdmin(request, context)
+})
 
 interface CreatedEntity {
   id: number
@@ -32,6 +37,7 @@ async function createUserViaApi(
 ): Promise<CreatedEntity> {
   const nombre = `000 Usuario Admin E2E ${suffix}`
   const response = await request.post(`${API_URL}/usuarios`, {
+    headers: csrfHeaders(),
     data: {
       nombre,
       documento: `ADM${suffix}`,
@@ -50,6 +56,7 @@ async function createResourceViaApi(
 ): Promise<CreatedEntity> {
   const nombre = `000 Recurso Admin E2E ${suffix}`
   const response = await request.post(`${API_URL}/recursos`, {
+    headers: csrfHeaders(),
     data: {
       nombre,
       descripcion: 'Recurso creado por la prueba E2E de administración',
@@ -191,6 +198,7 @@ test('el mantenimiento se bloquea si el recurso tiene reservas futuras', async (
   const { start, end } = futureRange()
 
   const reservationResponse = await request.post(`${API_URL}/reservas`, {
+    headers: csrfHeaders(),
     data: {
       usuarioId: user.id,
       recursoId: resource.id,
