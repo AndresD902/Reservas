@@ -54,6 +54,8 @@ Los archivos generados quedan en `security/zap/reports/`:
 | `ui-zap.html`, `ui-zap.json` | Reporte del escaneo de la interfaz. |
 | `summary.md` | Resumen generado por `verify-findings.py`. |
 
+El script hace escribible el directorio de reportes (`chmod 0777`) porque el contenedor de ZAP se ejecuta con otro UID y necesita crear allí los archivos HTML y JSON.
+
 El análisis versionado de la ejecución de HU-26 está en `security/zap/reports/hu-26-zap-baseline.md`.
 
 ## Reglas y umbral

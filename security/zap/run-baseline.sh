@@ -14,6 +14,7 @@ FAIL_ON="${ZAP_FAIL_ON:-medium}"
 COMPOSE=("$DOCKER_BIN" compose)
 
 mkdir -p "$REPORTS_DIR"
+chmod 0777 "$REPORTS_DIR"
 rm -f "$REPORTS_DIR"/api-zap.* "$REPORTS_DIR"/ui-zap.* "$REPORTS_DIR"/summary.md
 
 to_docker_path() {
