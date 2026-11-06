@@ -1,5 +1,7 @@
 plugins {
 	id 'java'
+	id 'jacoco'
+	id 'info.solidsoft.pitest' version '1.19.0'
 	id 'org.springframework.boot' version '4.1.2'
 	id 'io.spring.dependency-management' version '1.1.7'
 }
@@ -38,3 +40,45 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+pitest {
+	targetClasses = ['com.institucion.reservas.service.impl.*']
+	targetTests = ['com.institucion.reservas.service.**']
+	pitestVersion = '1.30.2'
+	junit5PluginVersion = '1.2.3'
+	outputFormats = ['HTML', 'XML']
+	timestampedReports = false
+	mutationThreshold = 80
+	coverageThreshold = 90
+	threads = 2
+}
+
+jacoco {
+	toolVersion = '0.8.16'
+}
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required = true
+		html.required = true
+	}
+}
+
+jacocoTestCoverageVerification {
+	dependsOn test
+	violationRules {
+		rule {
+			element = 'CLASS'
+			includes = ['com.institucion.reservas.service.impl.*']
+			limit {
+				counter = 'LINE'
+				value = 'COVEREDRATIO'
+				minimum = 0.90
+			}
+		}
+	}
+}
+
+check.dependsOn jacocoTestCoverageVerification
+check.dependsOn tasks.named('pitest')
