@@ -125,3 +125,9 @@
 - [x] **T-024**: Verificar cero duplicados bajo concurrencia con una prueba de integración que lanza N hilos HTTP simultáneos contra PostgreSQL real y confirma que solo una solicitud se confirma, el resto recibe 409 `RECURSO_NO_DISPONIBLE`, y la base de datos conserva una sola reserva activa para el recurso e intervalo; incluye el escenario de límite de 3 reservas activas por usuario.
   - **Archivos**: `src/test/java/com/institucion/reservas/concurrency/ReservaConcurrencyTest.java`, `src/test/resources/application-postgres.yml`, `build.gradle`.
   - **Dependencias**: T-009, T-014.
+
+## Fase 12: Escenarios de aceptación ejecutables
+
+- [x] **T-025**: Convertir los escenarios de la especificación en pruebas de aceptación ejecutables con Cucumber-JVM sobre JUnit Platform, etiquetadas por FR para consultar la trazabilidad, con la tarea `acceptanceTest` separada de la suite rápida y los escenarios de comportamiento no implementado como omitidos.
+  - **Archivos**: `build.gradle`, `src/test/java/com/institucion/reservas/acceptance/CucumberAcceptanceSuite.java`, `src/test/java/com/institucion/reservas/acceptance/steps/*`, `src/test/java/com/institucion/reservas/acceptance/support/*`, `src/test/resources/features/*.feature`, `docs/backend-standards.md`.
+  - **Dependencias**: T-013, T-014, T-023.
