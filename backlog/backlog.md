@@ -91,7 +91,7 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 | HU-12 · Paginación y filtros en listados | EP-03 | En Revisión | 3 |
 | HU-13 · Suite de pruebas ejecutable sin base de datos externa | EP-04 | Completado | 1 |
 | HU-14 · Reglas de negocio verificadas con pruebas unitarias y de mutación | EP-04 | Backlog | 2 |
-| HU-15 · Endpoints y contrato de errores verificados con pruebas de integración | EP-04 | Backlog | 2 |
+| HU-15 · Endpoints y contrato de errores verificados con pruebas de integración | EP-04 | Completado | — |
 | HU-16 · Escenarios de la especificación ejecutables como pruebas de aceptación | EP-04 | Backlog | 2 |
 | HU-17 · Cero reservas duplicadas bajo concurrencia | EP-05 | Backlog | 2 |
 | HU-18 · Prueba de carga con 500 usuarios simultáneos | EP-05 | Backlog | 3 |

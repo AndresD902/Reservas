@@ -28,6 +28,7 @@ Las versiones no se copian aquí: las fija `build.gradle`, y una copia queda des
 | Lenguaje | Java, con la versión fijada por el *toolchain* de Gradle |
 | Build | Gradle, siempre a través del *wrapper* (`./gradlew`) |
 | Framework | Spring Boot: Web MVC, Data JPA, Validation |
+| Contrato OpenAPI | SpringDoc OpenAPI (Swagger UI en `/swagger-ui/index.html`, YAML en `docs/api-spec.yml`) |
 | Base de datos | PostgreSQL |
 | Migraciones | Flyway |
 | Reducción de *boilerplate* | Lombok |
@@ -79,6 +80,7 @@ La mecánica es la de `docs/engineering-standards.md`. Lo que se exige a la suit
 - PIT solo corre las pruebas de `com.institucion.reservas.service.**` (`targetTests`), para acotar la mutación a la lógica de servicios y no ejecutar la suite de integración.
 - Las pruebas de aceptación y E2E viven en `src/test/java/com/institucion/reservas/acceptance/` y `src/test/java/com/institucion/reservas/e2e/`, y se seleccionan por los tags `acceptance` y `e2e`. La suite `test` las excluye para no duplicarlas; se ejecutan con `./gradlew acceptanceTest` y `./gradlew e2eTest`. La prueba E2E actual ejercita el flujo por HTTP; la de navegador se agrega con HU-19.
 - `.github/workflows/ci.yml` corre en cada push y pull request la compilación, `test`, PIT, JaCoCo, `acceptanceTest` y `e2eTest`, y publica los reportes como artefactos incluso cuando una etapa falla.
+- El contrato OpenAPI se genera en runtime con SpringDoc (`/v3/api-docs`, Swagger UI en `/swagger-ui/index.html`). `docs/api-spec.yml` es el YAML exportado y versionado; se regenera tras cambiar un endpoint y `OpenApiContractTest` verifica los 19 endpoints, la paginación y la estructura de error común.
 - Queda una línea sin cubrir en `ReservaServiceImpl.validarFechas` (`if (fechaFin.isBefore(ahora))`): es inalcanzable porque `fechaInicio >= ahora` y `fechaFin > fechaInicio` ya implican `fechaFin >= ahora`. Se dejó intacta durante HU-14; eliminarla es un `refactor` aparte con test de regresión.
 
 ## Desviaciones conocidas
