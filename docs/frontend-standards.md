@@ -67,7 +67,7 @@ Los nombres de archivos y directorios van en inglés y kebab-case. Los identific
 | `npm run build` | Typecheck y build de producción con Vite |
 | `npm run test:e2e` | Playwright; arranca la API y Vite si no están corriendo |
 
-Las pruebas de componentes viven junto al código (`*.test.tsx` o `*.test.ts`) y usan Testing Library con `jsdom`. Las pruebas E2E viven en `frontend/e2e/`, crean sus propios usuarios y recursos únicos por API y cubren el flujo feliz, el conflicto 409, la validación de fechas y la consulta de disponibilidad.
+Las pruebas de componentes viven junto al código (`*.test.tsx` o `*.test.ts`) y usan Testing Library con `jsdom`. Las pruebas E2E viven en `frontend/e2e/`, crean sus propios usuarios y recursos únicos por API y cubren el flujo feliz, el conflicto 409, la validación de fechas y la consulta de disponibilidad. `tsconfig.node.json` incluye `frontend/e2e/` para que el typecheck y el editor resuelvan `process` y los módulos `node:*`.
 
 `npm run test:e2e` requiere PostgreSQL y un JDK 21 para levantar la API con `gradlew bootRun`. En local, el script `frontend/scripts/start-backend.mjs` arranca el backend con el perfil `local` y reutiliza una instancia existente si ya está en `http://localhost:8080`. En CI, el job `browser-e2e` levanta PostgreSQL como servicio y ejecuta el mismo comando.
 
