@@ -92,3 +92,13 @@ Estructura de error unificada según requerimiento:
 - **Respuesta**: `Page<T>` de Spring Data con `content`, `totalElements`, `totalPages`, `number`, `size` y los metadatos de ordenamiento.
 - **Consulta de reservas**: `ReservaRepository.buscar(estado, usuarioId, recursoId, pageable)` con filtros nulos opcionales, para no duplicar consultas por cada combinación.
 - **Compatibilidad**: los listados dejan de devolver un arreglo plano; el cambio se documenta en esta historia y el contrato OpenAPI se crea en HU-11.
+
+## Phase 6: Integración continua
+
+- **Plataforma**: GitHub Actions, porque el repositorio vive en GitHub. El workflow está en `.github/workflows/ci.yml`.
+- **Disparadores**: cada `push` y cada `pull_request`; no hay despliegue ni publicación de artefactos de la aplicación.
+- **Etapas**: compilación, pruebas unitarias e integración, mutation testing con PIT, verificación de cobertura con JaCoCo, pruebas de aceptación y pruebas E2E. Cada etapa es un paso nombrado del workflow; si una falla, el pipeline termina en rojo y el paso señala la etapa.
+- **Pruebas por etapa**: `test` ejecuta la suite unitaria y de integración sobre el perfil `test` (H2). `acceptanceTest` y `e2eTest` son tareas de Gradle separadas que seleccionan las pruebas con los tags `acceptance` y `e2e`; la suite común las excluye para no duplicarlas.
+- **Alcance de aceptación y E2E**: las pruebas actuales ejercitan la API completa por HTTP. La prueba E2E de navegador se agrega con HU-19 cuando exista la interfaz web y su stack; el stage ya queda en el pipeline para recibirla.
+- **Umbral**: PIT falla por debajo de 80 % de mutation score y JaCoCo por debajo de 90 % de líneas en los servicios, según `build.gradle`.
+- **Reportes**: cada etapa publica sus reportes como artefactos de GitHub Actions: resultados de pruebas (`build/reports/tests/*`), cobertura (`build/reports/jacoco/test/html`) y mutación (`build/reports/pitest`). La publicación usa `if: always()` para que los reportes queden disponibles incluso cuando una etapa falla.
