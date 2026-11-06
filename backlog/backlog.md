@@ -86,10 +86,10 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 | HU-07 · Consulta de reservas por usuario y recurso, y disponibilidad | EP-03 | En Revisión | — |
 | HU-08 · Resolución de las dudas abiertas de la especificación | EP-01 | Completado | 1 |
 | HU-09 · Consulta de reservas por rango de fechas | EP-03 | Completado | 3 |
-| HU-10 · Finalización automática de reservas vencidas | EP-03 | Backlog | 2 |
+| HU-10 · Finalización automática de reservas vencidas | EP-03 | Completado | 2 |
 | HU-11 · Contrato OpenAPI de la API | EP-03 | Backlog | 3 |
-| HU-12 · Paginación y filtros en listados | EP-03 | Backlog | 3 |
-| HU-13 · Suite de pruebas ejecutable sin base de datos externa | EP-04 | Backlog | 1 |
+| HU-12 · Paginación y filtros en listados | EP-03 | En Revisión | 3 |
+| HU-13 · Suite de pruebas ejecutable sin base de datos externa | EP-04 | Completado | 1 |
 | HU-14 · Reglas de negocio verificadas con pruebas unitarias y de mutación | EP-04 | Backlog | 2 |
 | HU-15 · Endpoints y contrato de errores verificados con pruebas de integración | EP-04 | Backlog | 2 |
 | HU-16 · Escenarios de la especificación ejecutables como pruebas de aceptación | EP-04 | Backlog | 2 |
@@ -98,7 +98,7 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 | HU-19 · Reservar un recurso desde la interfaz web | EP-06 | Backlog | 3 |
 | HU-20 · Consultar y cancelar mis reservas desde la interfaz web | EP-06 | Backlog | 3 |
 | HU-21 · Administrar usuarios y recursos desde la interfaz web | EP-06 | Backlog | 3 |
-| HU-22 · Entorno local con un solo comando | EP-07 | Backlog | 3 |
+| HU-22 · Entorno local con un solo comando | EP-07 | En Revisión | 3 |
 | HU-23 · Pipeline de integración continua | EP-07 | Backlog | 3 |
 | HU-24 · README operativo con arquitectura, variables y ejemplos curl | EP-07 | Backlog | 3 |
 
@@ -477,17 +477,18 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 
 - Hoy la única prueba es `ReservasApplicationTests` y necesita una base de datos real.
 - El plan de trabajo propone un perfil `application-test.yml` con H2 en modo PostgreSQL o con Testcontainers.
-- Indeterminado (bloquea el DoR): H2 o Testcontainers. Testcontainers aplica las migraciones sobre PostgreSQL real pero exige Docker; H2 no lo exige pero su dialecto puede divergir.
-- Dependencias de prueba propuestas: JUnit 5, Mockito, AssertJ, REST Assured, Cucumber-JVM, Testcontainers y PIT.
+- Resuelto: H2 2.x en modo PostgreSQL, en memoria. No exige Docker ni PostgreSQL externo; Flyway aplica la misma migración sobre la base de pruebas. Testcontainers se descartó porque exige Docker.
+- Dependencias de prueba: JUnit 5, Mockito y AssertJ ya vienen con los starters de Spring Boot; esta historia agrega H2. REST Assured, Cucumber-JVM y PIT quedan para HU-14 a HU-18; Testcontainers se descartó.
 - Incluye builders de datos y limpieza entre pruebas, y corregir `gradlew`, que está versionado sin permiso de ejecución.
 
 **Tareas**
 
-- Elegir entre H2 en modo PostgreSQL y Testcontainers
+- Elegir H2 en modo PostgreSQL como base de pruebas
 - Crear el perfil de pruebas `application-test.yml`
 - Agregar las dependencias de prueba a `build.gradle`
 - Implementar builders de datos y limpieza entre pruebas
 - Versionar `gradlew` con permiso de ejecución
+- Verificar la suite y la aplicación de Flyway sobre H2
 
 **Criterios de Aceptación**
 
@@ -737,15 +738,16 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 
 **Conversación**
 
-- El plan de trabajo propone un `docker-compose.yml` con PostgreSQL, el backend y el frontend como servicio opcional.
-- Datos semilla para el entorno local, vía Flyway o `data.sql`.
-- Supuesto: los datos semilla no llegan a producción; si van por Flyway, viven en una ubicación que solo carga el perfil local.
-- Las credenciales salen de variables de entorno, como hoy `DB_PASSWORD`: ninguna real se versiona.
+- `docker-compose.yml` levanta PostgreSQL (`db`) y la API (`api`); el frontend queda fuera hasta que HU-19 defina su stack y exista el directorio correspondiente.
+- Datos semilla con una migración repeatable de Flyway, `db/seed/R__local_seed.sql`, cargada solo por el perfil local.
+- Supuesto confirmado: los datos semilla no llegan a producción porque `application-local.yml` es el único que agrega `db/seed` a las ubicaciones de Flyway.
+- Las credenciales salen de variables de entorno (`DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`); `.env.example` es la plantilla y `.env` está ignorado. Ninguna credencial real se versiona.
 
 **Tareas**
 
+- Agregar un `Dockerfile` multi-stage para la API
 - Escribir `docker-compose.yml` con PostgreSQL y el backend
-- Agregar el frontend como servicio opcional
+- Agregar el frontend como servicio opcional (bloqueado por HU-19: falta el stack y el directorio)
 - Crear los datos semilla del entorno local
 - Documentar las variables de entorno necesarias
 

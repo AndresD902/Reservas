@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Criterios de aceptación de HU-12 contra la API y una base PostgreSQL real.
+ * Criterios de aceptación de HU-12 contra la API y el perfil de pruebas con H2 en memoria.
  * Cada prueba revierte sus datos al terminar.
  */
 @SpringBootTest

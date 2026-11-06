@@ -73,7 +73,15 @@ Estructura de error unificada según requerimiento:
 - **Consulta**: `ReservaRepository.findOverlappingInRange(fechaInicio, fechaFin)`, ordenada por `fechaInicio ASC`.
 - **Respuesta**: `List<ReservaResponse>` con el mismo DTO de las consultas existentes.
 
-## Phase 4: Paginación y filtros en listados
+## Phase 4: Entorno local reproducible
+
+- **Compose**: `docker-compose.yml` levanta `db` (PostgreSQL 16) y `api` (Spring Boot) con un solo `docker compose up --build`; el servicio de frontend queda pendiente hasta que HU-19 defina el stack y exista el directorio.
+- **Imagen de la API**: `Dockerfile` multi-stage. La etapa de build usa JDK 21 y el wrapper de Gradle para generar el `bootJar`; la etapa final usa JRE 21 y ejecuta el jar con un usuario sin privilegios.
+- **Datos semilla**: `src/main/resources/db/seed/R__local_seed.sql`, migración repeatable e idempotente. Solo se carga desde `application-local.yml`, que agrega `classpath:db/seed` a `spring.flyway.locations`; producción no incluye esa ubicación.
+- **Credenciales**: `DB_NAME`, `DB_USERNAME` y `DB_PASSWORD` se leen de variables de entorno. `.env.example` documenta los valores de desarrollo y `.env` queda fuera del repositorio.
+- **Verificación**: `docker compose config` valida la composición; con Docker corriendo, `docker compose up --build` debe dejar la API en `http://localhost:8080` y los usuarios y recursos semilla consultables.
+
+## Phase 5: Paginación y filtros en listados
 
 - **Endpoints**: `GET /usuarios`, `GET /recursos` y un nuevo `GET /reservas`. Los endpoints `/reservas/usuario/{id}`, `/reservas/recurso/{id}` y `/reservas/rango` mantienen su contrato sin paginar.
 - **Parámetros**: `page` (base 0), `size` (20 por defecto, 100 máximo) y `sort` con el formato de Spring Data (`campo,asc|desc`), resueltos por el `PageableHandlerMethodArgumentResolver`.
