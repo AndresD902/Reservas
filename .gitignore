@@ -37,3 +37,8 @@ out/
 .vscode/
 
 /application-local.yml
+
+### Entorno local con Docker Compose ###
+.env
+.env.*
+!.env.example

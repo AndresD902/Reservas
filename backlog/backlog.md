@@ -98,7 +98,7 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 | HU-19 · Reservar un recurso desde la interfaz web | EP-06 | Backlog | 3 |
 | HU-20 · Consultar y cancelar mis reservas desde la interfaz web | EP-06 | Backlog | 3 |
 | HU-21 · Administrar usuarios y recursos desde la interfaz web | EP-06 | Backlog | 3 |
-| HU-22 · Entorno local con un solo comando | EP-07 | Backlog | 3 |
+| HU-22 · Entorno local con un solo comando | EP-07 | En Revisión | 3 |
 | HU-23 · Pipeline de integración continua | EP-07 | Backlog | 3 |
 | HU-24 · README operativo con arquitectura, variables y ejemplos curl | EP-07 | Backlog | 3 |
 
@@ -736,15 +736,16 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 
 **Conversación**
 
-- El plan de trabajo propone un `docker-compose.yml` con PostgreSQL, el backend y el frontend como servicio opcional.
-- Datos semilla para el entorno local, vía Flyway o `data.sql`.
-- Supuesto: los datos semilla no llegan a producción; si van por Flyway, viven en una ubicación que solo carga el perfil local.
-- Las credenciales salen de variables de entorno, como hoy `DB_PASSWORD`: ninguna real se versiona.
+- `docker-compose.yml` levanta PostgreSQL (`db`) y la API (`api`); el frontend queda fuera hasta que HU-19 defina su stack y exista el directorio correspondiente.
+- Datos semilla con una migración repeatable de Flyway, `db/seed/R__local_seed.sql`, cargada solo por el perfil local.
+- Supuesto confirmado: los datos semilla no llegan a producción porque `application-local.yml` es el único que agrega `db/seed` a las ubicaciones de Flyway.
+- Las credenciales salen de variables de entorno (`DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`); `.env.example` es la plantilla y `.env` está ignorado. Ninguna credencial real se versiona.
 
 **Tareas**
 
+- Agregar un `Dockerfile` multi-stage para la API
 - Escribir `docker-compose.yml` con PostgreSQL y el backend
-- Agregar el frontend como servicio opcional
+- Agregar el frontend como servicio opcional (bloqueado por HU-19: falta el stack y el directorio)
 - Crear los datos semilla del entorno local
 - Documentar las variables de entorno necesarias
 
