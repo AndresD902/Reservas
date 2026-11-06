@@ -86,10 +86,10 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 | HU-07 · Consulta de reservas por usuario y recurso, y disponibilidad | EP-03 | En Revisión | — |
 | HU-08 · Resolución de las dudas abiertas de la especificación | EP-01 | Completado | 1 |
 | HU-09 · Consulta de reservas por rango de fechas | EP-03 | Completado | 3 |
-| HU-10 · Finalización automática de reservas vencidas | EP-03 | Backlog | 2 |
+| HU-10 · Finalización automática de reservas vencidas | EP-03 | Completado | 2 |
 | HU-11 · Contrato OpenAPI de la API | EP-03 | Backlog | 3 |
 | HU-12 · Paginación y filtros en listados | EP-03 | Backlog | 3 |
-| HU-13 · Suite de pruebas ejecutable sin base de datos externa | EP-04 | En Revisión | 1 |
+| HU-13 · Suite de pruebas ejecutable sin base de datos externa | EP-04 | Completado | 1 |
 | HU-14 · Reglas de negocio verificadas con pruebas unitarias y de mutación | EP-04 | Backlog | 2 |
 | HU-15 · Endpoints y contrato de errores verificados con pruebas de integración | EP-04 | Backlog | 2 |
 | HU-16 · Escenarios de la especificación ejecutables como pruebas de aceptación | EP-04 | Backlog | 2 |
