@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -118,6 +119,66 @@ class UsuarioControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.error").isNotEmpty())
+                .andExpect(jsonPath("$.message").isNotEmpty());
+    }
+
+    @Test
+    void returns200WithAllUsersWhenListing() throws Exception {
+        long id = crearUsuario("50000005", "listado@example.com");
+
+        mockMvc.perform(get("/usuarios"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[*].id", hasItem((int) id)));
+    }
+
+    @Test
+    void returns200WhenUserExists() throws Exception {
+        long id = crearUsuario("50000006", "detalle@example.com");
+
+        mockMvc.perform(get("/usuarios/{id}", id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.correo").value("detalle@example.com"));
+    }
+
+    @Test
+    void returns400WithValidacionWhenRequiredFieldsAreMissing() throws Exception {
+        mockMvc.perform(post("/usuarios")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.error").value("VALIDACION"))
+                .andExpect(jsonPath("$.message").isNotEmpty());
+    }
+
+    @Test
+    void returns400WithValidacionWhenEmailIsInvalid() throws Exception {
+        mockMvc.perform(post("/usuarios")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(usuarioJson("50000007", "correo-invalido", EstadoUsuario.ACTIVO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("VALIDACION"))
+                .andExpect(jsonPath("$.message").isNotEmpty());
+    }
+
+    @Test
+    void returns400WithSolicitudInvalidaWhenBodyIsMalformed() throws Exception {
+        mockMvc.perform(post("/usuarios")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nombre\":"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("SOLICITUD_INVALIDA"));
+    }
+
+    @Test
+    void returns404WhenChangingStateOfNonexistentUser() throws Exception {
+        mockMvc.perform(put("/usuarios/{id}/estado", 999_999_999L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(ESTADO_INACTIVO))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.error").value("USUARIO_NO_ENCONTRADO"))
                 .andExpect(jsonPath("$.message").isNotEmpty());
     }
 
