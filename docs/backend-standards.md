@@ -28,6 +28,7 @@ Las versiones no se copian aquí: las fija `build.gradle`, y una copia queda des
 | Lenguaje | Java, con la versión fijada por el *toolchain* de Gradle |
 | Build | Gradle, siempre a través del *wrapper* (`./gradlew`) |
 | Framework | Spring Boot: Web MVC, Data JPA, Validation |
+| Contrato OpenAPI | SpringDoc OpenAPI (Swagger UI en `/swagger-ui/index.html`, YAML en `docs/api-spec.yml`) |
 | Base de datos | PostgreSQL |
 | Migraciones | Flyway |
 | Reducción de *boilerplate* | Lombok |
@@ -77,6 +78,7 @@ La mecánica es la de `docs/engineering-standards.md`. Lo que se exige a la suit
 - Las pruebas unitarias de la capa de servicio viven en `src/test/java/com/institucion/reservas/service/impl/`. Usan JUnit 5 y Mockito, mappers reales y mocks solo de repositorios.
 - `build.gradle` configura JaCoCo con umbral de 90 % de líneas por clase sobre `com.institucion.reservas.service.impl.*` y PIT con `mutationThreshold = 80` y `coverageThreshold = 90` sobre las mismas clases. `check` depende de ambas verificaciones, así que `./gradlew build` falla si alguno baja.
 - PIT solo corre las pruebas de `com.institucion.reservas.service.**` (`targetTests`), para no ejecutar las de integración que necesitan PostgreSQL.
+- El contrato OpenAPI se genera en runtime con SpringDoc (`/v3/api-docs`, Swagger UI en `/swagger-ui/index.html`). `docs/api-spec.yml` es el YAML exportado y versionado; se regenera tras cambiar un endpoint y `OpenApiContractTest` verifica los 19 endpoints, la paginación y la estructura de error común.
 - Queda una línea sin cubrir en `ReservaServiceImpl.validarFechas` (`if (fechaFin.isBefore(ahora))`): es inalcanzable porque `fechaInicio >= ahora` y `fechaFin > fechaInicio` ya implican `fechaFin >= ahora`. Se dejó intacta durante HU-14; eliminarla es un `refactor` aparte con test de regresión.
 
 ## Desviaciones conocidas
