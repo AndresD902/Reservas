@@ -36,6 +36,9 @@ export function Layout() {
               <NavLink to="/reservar" className={navLinkClass}>
                 Reservar
               </NavLink>
+              <NavLink to="/mis-reservas" className={navLinkClass}>
+                Mis reservas
+              </NavLink>
               <NavLink to="/admin" className={navLinkClass}>
                 Administración
               </NavLink>

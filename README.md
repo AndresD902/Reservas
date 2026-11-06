@@ -99,7 +99,7 @@ npm install
 npm run dev
 ```
 
-Abre `http://localhost:5173`. Vite proxya `/api` hacia la API; `VITE_API_PROXY_TARGET` permite cambiar ese destino. La reserva está en `/reservar` y el panel administrativo en `/admin` (redirige a `/admin/usuarios`), que exige iniciar sesión en `/login`.
+Abre `http://localhost:5173`. Vite proxya `/api` hacia la API; `VITE_API_PROXY_TARGET` permite cambiar ese destino. La reserva está en `/reservar`, mis reservas en `/mis-reservas` y el panel administrativo en `/admin` (redirige a `/admin/usuarios`), que exige iniciar sesión en `/login`.
 
 ```bash
 npm run lint

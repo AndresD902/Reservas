@@ -4,6 +4,7 @@ import { RequireAdmin } from './components/require-admin'
 import { AdminResourcesPage } from './pages/admin-resources-page'
 import { AdminUsersPage } from './pages/admin-users-page'
 import { LoginPage } from './pages/login-page'
+import { MyReservationsPage } from './pages/my-reservations-page'
 import { NotFoundPage } from './pages/not-found-page'
 import { ReservationPage } from './pages/reservation-page'
 import { ResourceDetailPage } from './pages/resource-detail-page'
@@ -14,6 +15,7 @@ export default function App() {
       <Route element={<Layout />}>
         <Route index element={<Navigate to="/reservar" replace />} />
         <Route path="/reservar" element={<ReservationPage />} />
+        <Route path="/mis-reservas" element={<MyReservationsPage />} />
         <Route path="/recursos/:recursoId" element={<ResourceDetailPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route element={<RequireAdmin />}>
