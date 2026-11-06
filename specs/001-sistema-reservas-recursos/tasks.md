@@ -147,3 +147,9 @@
 - [x] **T-029**: Integrar la interfaz en el pipeline —lint, typecheck, pruebas y build— y agregar el job de E2E de navegador con PostgreSQL real.
   - **Archivos**: `.github/workflows/ci.yml`, `README.md`, `docs/frontend-standards.md`, `docs/backend-standards.md`, `.gitignore`, `.dockerignore`.
   - **Dependencias**: T-028.
+
+## Fase 13: Escenarios de aceptación ejecutables
+
+- [x] **T-030**: Convertir los escenarios de la especificación en pruebas de aceptación ejecutables con Cucumber-JVM sobre JUnit Platform, etiquetadas por FR para consultar la trazabilidad, con la tarea `acceptanceTest` separada de la suite rápida y los escenarios de comportamiento no implementado como omitidos.
+  - **Archivos**: `build.gradle`, `src/test/java/com/institucion/reservas/acceptance/CucumberAcceptanceSuite.java`, `src/test/java/com/institucion/reservas/acceptance/steps/*`, `src/test/java/com/institucion/reservas/acceptance/support/*`, `src/test/resources/features/*.feature`, `docs/backend-standards.md`.
+  - **Dependencias**: T-013, T-014, T-023.
