@@ -107,6 +107,14 @@ public class ReservaServiceImpl implements ReservaService {
     }
 
     @Override
+    public List<ReservaResponse> listarPorRango(LocalDateTime fechaInicio, LocalDateTime fechaFin) {
+        validarRango(fechaInicio, fechaFin);
+        return reservaRepository.findOverlappingInRange(fechaInicio, fechaFin).stream()
+                .map(reservaMapper::toResponse)
+                .toList();
+    }
+
+    @Override
     @Transactional
     public ReservaResponse cancelar(Long id) {
         ReservaEntity entity = reservaRepository.findByIdForUpdate(id)
@@ -143,6 +151,17 @@ public class ReservaServiceImpl implements ReservaService {
         return recursoRepository.findByIdForUpdate(recursoId)
                 .orElseThrow(() -> new ResourceNotFoundException("RECURSO_NO_ENCONTRADO",
                         "No existe un recurso con id: " + recursoId));
+    }
+
+    private void validarRango(LocalDateTime fechaInicio, LocalDateTime fechaFin) {
+        if (fechaInicio == null || fechaFin == null) {
+            throw new BusinessRuleException("FECHAS_INVALIDAS",
+                    "Las fechas de inicio y fin son obligatorias");
+        }
+        if (!fechaFin.isAfter(fechaInicio)) {
+            throw new BusinessRuleException("FECHAS_INVALIDAS",
+                    "La fecha de fin debe ser estrictamente posterior a la fecha de inicio");
+        }
     }
 
     private void validarFechas(LocalDateTime fechaInicio, LocalDateTime fechaFin) {

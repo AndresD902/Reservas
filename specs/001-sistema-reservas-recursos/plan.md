@@ -62,3 +62,13 @@ Estructura de error unificada según requerimiento:
 - **Decisión**: bloquear la transición si el recurso tiene reservas `ACTIVA` con `fecha_fin` posterior al momento del cambio, incluidas las que están en curso.
 - **Comportamiento**: `RecursoService.actualizarEstado` consulta las reservas vigentes o futuras antes de persistir el cambio; si existen, lanza el error de negocio `RECURSO_CON_RESERVAS_FUTURAS` (HTTP 409). El administrador debe cancelarlas primero.
 - **Alternativa descartada**: cancelar automáticamente las reservas, porque destruye reservas ya confirmadas sin intervención del usuario.
+
+## Phase 3: Consulta de reservas por rango de fechas
+
+- **Endpoint**: `GET /reservas/rango?fechaInicio=<ISO-8601>&fechaFin=<ISO-8601>`.
+- **Parámetros**: `fechaInicio` y `fechaFin` son obligatorios y se interpretan como `LocalDateTime` en formato ISO-8601. No se combinan con filtros por usuario o recurso: esos casos ya tienen endpoints específicos.
+- **Semántica**: devuelve las reservas cuyo intervalo se solapa con el rango, con la misma regla semiabierta `[inicio, fin)` de la creación: `r.fechaInicio < :fechaFin AND r.fechaFin > :fechaInicio`.
+- **Estados**: devuelve reservas en cualquier estado; el DTO incluye `estado` para que el cliente filtre.
+- **Validación**: si `fechaFin` no es estrictamente posterior a `fechaInicio`, se lanza `BusinessRuleException` con error `FECHAS_INVALIDAS` y se responde 400.
+- **Consulta**: `ReservaRepository.findOverlappingInRange(fechaInicio, fechaFin)`, ordenada por `fechaInicio ASC`.
+- **Respuesta**: `List<ReservaResponse>` con el mismo DTO de las consultas existentes.

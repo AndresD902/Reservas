@@ -84,8 +84,8 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 | HU-05 · Creación de reservas con reglas de negocio y control de concurrencia | EP-03 | En Revisión | — |
 | HU-06 · Cancelación de reservas | EP-03 | En Revisión | — |
 | HU-07 · Consulta de reservas por usuario y recurso, y disponibilidad | EP-03 | En Revisión | — |
-| HU-08 · Resolución de las dudas abiertas de la especificación | EP-01 | Backlog | 1 |
-| HU-09 · Consulta de reservas por rango de fechas | EP-03 | Backlog | 3 |
+| HU-08 · Resolución de las dudas abiertas de la especificación | EP-01 | Completado | 1 |
+| HU-09 · Consulta de reservas por rango de fechas | EP-03 | En Progreso | 3 |
 | HU-10 · Finalización automática de reservas vencidas | EP-03 | Backlog | 2 |
 | HU-11 · Contrato OpenAPI de la API | EP-03 | Backlog | 3 |
 | HU-12 · Paginación y filtros en listados | EP-03 | Backlog | 3 |
@@ -356,9 +356,11 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 **Conversación**
 
 - Cubre la parte de FR-016 que falta y la tarea T-016 de `tasks.md`.
-- El plan de trabajo pide validar el rango: el fin debe ser posterior al inicio.
-- Indeterminado (bloquea el DoR): la ruta y los parámetros del endpoint, y si el rango se combina con filtros por usuario o recurso.
-- Supuesto: una reserva entra en el resultado si se solapa con el rango, con la misma semántica semiabierta que la creación. Si es falso, cambian los criterios de los bordes.
+- Ruta y parámetros definidos: `GET /reservas/rango?fechaInicio=<ISO-8601>&fechaFin=<ISO-8601>`.
+- No se combina con filtros por usuario o recurso: esos casos ya tienen endpoints específicos.
+- Una reserva entra en el resultado si se solapa con el rango, con la misma semántica semiabierta `[inicio, fin)` que la creación.
+- Se devuelven las reservas de cualquier estado; la respuesta incluye `estado` para que el cliente filtre.
+- El fin debe ser estrictamente posterior al inicio; si no, se responde 400 con el error `FECHAS_INVALIDAS`.
 
 **Tareas**
 
@@ -366,6 +368,7 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 - Implementar la consulta por rango en `ReservaRepository`
 - Implementar la validación del rango en `ReservaService`
 - Exponer el endpoint en `ReservaController`
+- Cubrir el servicio y el endpoint con pruebas unitarias
 - Marcar T-016 en `tasks.md`
 
 **Criterios de Aceptación**

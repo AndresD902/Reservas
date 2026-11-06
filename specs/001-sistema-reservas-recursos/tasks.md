@@ -66,8 +66,8 @@
   - **Archivos**: `controller/ReservaController.java`.
   - **Dependencias**: T-009.
 
-- [ ] **T-016**: Implementar la consulta de reservas por fecha que exige FR-016. La ruta y los parámetros del endpoint están pendientes de definir.
-  - **Archivos**: `controller/ReservaController.java`, `service/ReservaService.java`, `service/impl/ReservaServiceImpl.java`, `repository/ReservaRepository.java`.
+- [x] **T-016**: Implementar la consulta de reservas por rango de fechas que exige FR-016: `GET /reservas/rango?fechaInicio=<ISO-8601>&fechaFin=<ISO-8601>`, con solapamiento semiabierto y validación de que el fin sea estrictamente posterior al inicio.
+  - **Archivos**: `controller/ReservaController.java`, `service/ReservaService.java`, `service/impl/ReservaServiceImpl.java`, `repository/ReservaRepository.java`, `src/test/java/com/institucion/reservas/service/impl/ReservaServiceImplTest.java`, `src/test/java/com/institucion/reservas/controller/ReservaControllerTest.java`.
   - **Dependencias**: T-012.
 
 ## Fase 6: Pruebas y Calidad de Software
