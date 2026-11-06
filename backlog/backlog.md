@@ -95,7 +95,7 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 | HU-16 · Escenarios de la especificación ejecutables como pruebas de aceptación | EP-04 | Backlog | 2 |
 | HU-17 · Cero reservas duplicadas bajo concurrencia | EP-05 | Backlog | 2 |
 | HU-18 · Prueba de carga con 500 usuarios simultáneos | EP-05 | Backlog | 3 |
-| HU-19 · Reservar un recurso desde la interfaz web | EP-06 | Backlog | 3 |
+| HU-19 · Reservar un recurso desde la interfaz web | EP-06 | En Revisión | 3 |
 | HU-20 · Consultar y cancelar mis reservas desde la interfaz web | EP-06 | Backlog | 3 |
 | HU-21 · Administrar usuarios y recursos desde la interfaz web | EP-06 | Backlog | 3 |
 | HU-22 · Entorno local con un solo comando | EP-07 | En Revisión | 3 |
@@ -652,10 +652,11 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 
 **Conversación**
 
-- Indeterminado (bloquea el DoR): el stack de la interfaz. El plan de trabajo recomienda React, Vite, TypeScript, React Router, TanStack Query y Tailwind, y pide preguntar antes si se prefiere Thymeleaf.
+- Resuelto el 2026-11-06 con el usuario: React, Vite, TypeScript, React Router, TanStack Query y Tailwind CSS, con pruebas E2E en Playwright. La interfaz vive en `frontend/` y consume la API por `/api` mediante el proxy de Vite.
 - Sin autenticación en esta fase, como deja `spec.md`: el usuario se elige con un selector.
 - Los errores 400, 404 y 409 se muestran con mensajes claros, y hay estados de carga, vacío y error.
 - Las pruebas E2E se escriben con Playwright.
+- Verificado el 2026-11-06: lint, typecheck, 32 pruebas de Vitest, build y 4 pruebas E2E de Playwright contra PostgreSQL y la API reales en Docker; todas pasan.
 
 **Tareas**
 
