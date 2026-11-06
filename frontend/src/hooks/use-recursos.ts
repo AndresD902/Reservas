@@ -4,7 +4,7 @@ import { listResources } from '../api/resources'
 export function useRecursos() {
   return useQuery({
     queryKey: ['recursos'],
-    queryFn: listResources,
+    queryFn: () => listResources(),
     retry: false,
   })
 }

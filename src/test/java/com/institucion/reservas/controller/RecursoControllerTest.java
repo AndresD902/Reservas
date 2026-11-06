@@ -163,6 +163,35 @@ class RecursoControllerTest {
     }
 
     @Test
+    void returns409WhenChangingToMaintenanceWithFutureActiveReservation() throws Exception {
+        UsuarioEntity usuario = persistirUsuario();
+        RecursoEntity recurso = persistirRecurso(RecursoTestBuilder.aRecurso());
+        LocalDateTime inicio = futureStart();
+        persistirReserva(usuario, recurso, inicio, inicio.plusHours(1));
+
+        mockMvc.perform(patch("/recursos/{id}/estado", recurso.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"estado\":\"MANTENIMIENTO\"}"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.error").value("RECURSO_CON_RESERVAS_FUTURAS"));
+    }
+
+    @Test
+    void returns409WhenUpdatingToMaintenanceWithFutureActiveReservation() throws Exception {
+        UsuarioEntity usuario = persistirUsuario();
+        RecursoEntity recurso = persistirRecurso(RecursoTestBuilder.aRecurso());
+        LocalDateTime inicio = futureStart();
+        persistirReserva(usuario, recurso, inicio, inicio.plusHours(1));
+
+        mockMvc.perform(put("/recursos/{id}", recurso.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(recursoJson("Sala en mantenimiento", "Descripción", "SALA", 10, "MANTENIMIENTO")))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error").value("RECURSO_CON_RESERVAS_FUTURAS"));
+    }
+
+    @Test
     void returns200WithAvailabilityWhenRangeIsFree() throws Exception {
         RecursoEntity recurso = persistirRecurso(RecursoTestBuilder.aRecurso());
         LocalDateTime inicio = futureStart();

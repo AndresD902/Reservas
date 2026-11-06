@@ -23,6 +23,27 @@ describe('describeApiError', () => {
     )
   })
 
+  it('translates duplicate user data into clear messages', () => {
+    expect(
+      describeApiError(new ApiError(400, 'DOCUMENTO_DUPLICADO', 'Duplicado')),
+    ).toBe('Ya existe un usuario con ese documento.')
+    expect(
+      describeApiError(new ApiError(400, 'CORREO_DUPLICADO', 'Duplicado')),
+    ).toBe('Ya existe un usuario con ese correo electrónico.')
+  })
+
+  it('translates a resource maintenance conflict', () => {
+    const error = new ApiError(
+      409,
+      'RECURSO_CON_RESERVAS_FUTURAS',
+      'El recurso tiene reservas activas',
+    )
+
+    expect(describeApiError(error)).toBe(
+      'No se puede poner el recurso en mantenimiento porque tiene reservas activas futuras.',
+    )
+  })
+
   it('falls back to the API message for unknown codes', () => {
     const error = new ApiError(500, 'ALGO_NUEVO', 'Mensaje de la API')
 

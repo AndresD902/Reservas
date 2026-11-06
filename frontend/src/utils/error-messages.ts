@@ -11,6 +11,10 @@ const ERROR_MESSAGES: Record<string, string> = {
   USUARIO_NO_ENCONTRADO:
     'El usuario seleccionado no existe. Actualiza la página y vuelve a intentarlo.',
   RECURSO_NO_ENCONTRADO: 'El recurso no existe o fue eliminado.',
+  DOCUMENTO_DUPLICADO: 'Ya existe un usuario con ese documento.',
+  CORREO_DUPLICADO: 'Ya existe un usuario con ese correo electrónico.',
+  RECURSO_CON_RESERVAS_FUTURAS:
+    'No se puede poner el recurso en mantenimiento porque tiene reservas activas futuras.',
   VALIDACION: 'Revisa los datos del formulario e inténtalo de nuevo.',
   NETWORK_ERROR:
     'No se pudo conectar con la API. Verifica que el backend esté en ejecución.',

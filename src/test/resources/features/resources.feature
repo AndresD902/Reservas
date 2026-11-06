@@ -3,9 +3,8 @@
 Característica: Gestión de recursos
 
   Los escenarios cubren el registro, la consulta y el cambio de estado de
-  recursos descritos en FR-004, FR-005 y FR-006. El bloqueo de la transición a
-  MANTENIMIENTO con reservas futuras (FR-005) todavía no está implementado y
-  queda como escenario pendiente.
+  recursos descritos en FR-004, FR-005 y FR-006, incluido el bloqueo de la
+  transición a MANTENIMIENTO cuando existen reservas futuras.
 
   @FR-004
   Escenario: Registrar un recurso disponible
@@ -20,7 +19,7 @@ Característica: Gestión de recursos
     Entonces la respuesta tiene estado HTTP 200
     Y el recurso devuelto tiene estado "MANTENIMIENTO"
 
-  @FR-005 @pending
+  @FR-005
   Escenario: Rechazar mantenimiento cuando el recurso tiene reservas activas futuras
     Dado un usuario activo registrado
     Y un recurso disponible registrado

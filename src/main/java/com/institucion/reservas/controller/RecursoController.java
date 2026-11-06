@@ -71,6 +71,7 @@ public class RecursoController {
     @ApiResponse(responseCode = "200", description = "Recurso actualizado", content = @Content(schema = @Schema(implementation = RecursoResponse.class)))
     @ApiResponse(responseCode = "400", description = "VALIDACION", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))
     @ApiResponse(responseCode = "404", description = "RECURSO_NO_ENCONTRADO", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))
+    @ApiResponse(responseCode = "409", description = "RECURSO_CON_RESERVAS_FUTURAS", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))
     @ApiResponse(responseCode = "500", description = "Error interno", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))
     @PutMapping("/{id}")
     public RecursoResponse actualizar(@PathVariable Long id,
@@ -82,6 +83,7 @@ public class RecursoController {
     @ApiResponse(responseCode = "200", description = "Estado actualizado", content = @Content(schema = @Schema(implementation = RecursoResponse.class)))
     @ApiResponse(responseCode = "400", description = "VALIDACION: el estado es obligatorio", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))
     @ApiResponse(responseCode = "404", description = "RECURSO_NO_ENCONTRADO", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))
+    @ApiResponse(responseCode = "409", description = "RECURSO_CON_RESERVAS_FUTURAS", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))
     @ApiResponse(responseCode = "500", description = "Error interno", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))
     @RequestMapping(value = "/{id}/estado", method = {RequestMethod.PUT, RequestMethod.PATCH})
     public RecursoResponse actualizarEstado(@PathVariable Long id,

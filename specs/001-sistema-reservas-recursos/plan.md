@@ -60,7 +60,7 @@ Estructura de error unificada según requerimiento:
 ### Cambio de un recurso a `MANTENIMIENTO`
 
 - **Decisión**: bloquear la transición si el recurso tiene reservas `ACTIVA` con `fecha_fin` posterior al momento del cambio, incluidas las que están en curso.
-- **Comportamiento**: `RecursoService.actualizarEstado` consulta las reservas vigentes o futuras antes de persistir el cambio; si existen, lanza el error de negocio `RECURSO_CON_RESERVAS_FUTURAS` (HTTP 409). El administrador debe cancelarlas primero.
+- **Comportamiento**: `RecursoService.actualizarEstado` y `RecursoService.actualizar` consultan las reservas vigentes o futuras antes de persistir el cambio a `MANTENIMIENTO`; si existen, lanzan el error de negocio `RECURSO_CON_RESERVAS_FUTURAS` (HTTP 409). El administrador debe cancelarlas primero.
 - **Alternativa descartada**: cancelar automáticamente las reservas, porque destruye reservas ya confirmadas sin intervención del usuario.
 
 ## Phase 3: Consulta de reservas por rango de fechas
@@ -121,6 +121,7 @@ Estructura de error unificada según requerimiento:
 - **Stack**: React + Vite + TypeScript, React Router para la navegación, TanStack Query para el estado del servidor y Tailwind CSS para los estilos. Se descartó Thymeleaf porque el plan recomendaba una SPA y el equipo lo confirmó.
 - **Ubicación**: `frontend/`, una aplicación independiente de la API. En desarrollo y en las pruebas E2E, Vite proxya `/api` hacia `http://localhost:8080`; `VITE_API_BASE_URL` permite apuntar a otro backend sin recompilar la lógica de la interfaz.
 - **Flujo de HU-19**: selector de usuario activo —sin autenticación en esta fase—, listado y búsqueda de recursos, detalle con disponibilidad y formulario de reserva con validación de fechas en el cliente.
+- **Flujo de HU-21**: panel `/admin` sin autenticación en esta fase, con rutas `/admin/usuarios` y `/admin/recursos`. Usuarios: listado, detalle, alta y cambio de estado. Recursos: listado, detalle, alta, edición y cambio de estado. La API sigue siendo la autoridad sobre duplicados, validaciones y transiciones de estado.
 - **Errores**: el cliente lee la estructura `{status, error, message}` de la API y traduce los códigos 400, 404 y 409 a mensajes claros. Los estados de carga, vacío y error son explícitos en cada pantalla.
 - **Pruebas**: Vitest y Testing Library para la lógica y los componentes; Playwright en `frontend/e2e` para el flujo real contra el backend. El job `browser-e2e` del workflow levanta PostgreSQL, arranca la API y Vite, y publica el reporte de Playwright.
 - **Convenciones**: identificadores en inglés, textos de interfaz en español y archivos en kebab-case, según la política de idioma de `docs/base-standards.md`. El detalle vive en `docs/frontend-standards.md`.

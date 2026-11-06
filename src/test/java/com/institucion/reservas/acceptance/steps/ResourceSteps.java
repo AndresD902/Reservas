@@ -5,7 +5,6 @@ import com.institucion.reservas.acceptance.support.AcceptanceWorld;
 import io.cucumber.java.es.Cuando;
 import io.cucumber.java.es.Dado;
 import io.cucumber.java.es.Entonces;
-import org.opentest4j.TestAbortedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MvcResult;
 import tools.jackson.databind.JsonNode;
@@ -62,12 +61,9 @@ public class ResourceSteps {
     }
 
     @Cuando("intento cambiar el estado del recurso registrado a {string}")
-    public void intentoCambiarElEstadoDelRecursoRegistrado(String estado) {
-        // HU-16: el comportamiento no existe todavía (T-018). Abortar el
-        // escenario lo deja como pendiente y no como fallo de la suite.
-        throw new TestAbortedException(
-                "Pendiente de T-018: bloquear el paso a " + estado
-                        + " cuando el recurso tiene reservas activas futuras");
+    public void intentoCambiarElEstadoDelRecursoRegistrado(String estado) throws Exception {
+        world.setLastResponse(api.put("/recursos/{id}/estado", Map.of("estado", estado),
+                world.getRecursoId()));
     }
 
     @Cuando("consulto el recurso registrado")

@@ -15,7 +15,7 @@ La interfaz de esta fase es una SPA sin autenticación: el usuario activo se eli
 |---|---|
 | React 19 + TypeScript | Componentes y tipado estricto |
 | Vite 8 | Servidor de desarrollo, build y proxy hacia la API |
-| React Router 7 | Navegación entre el listado y el detalle del recurso |
+| React Router 7 | Navegación entre la reserva, el detalle del recurso y el panel administrativo |
 | TanStack Query 5 | Estado del servidor, caché, reintentos y mutaciones |
 | Tailwind CSS 4 | Estilos utilitarios y diseño responsive |
 | Vitest 5 + Testing Library | Pruebas unitarias y de componentes |
@@ -31,7 +31,7 @@ La interfaz de esta fase es una SPA sin autenticación: el usuario activo se eli
 | `frontend/src/api/` | Cliente HTTP, tipos del contrato y funciones por recurso (`users`, `resources`, `reservations`) |
 | `frontend/src/hooks/` | Hooks de TanStack Query y hooks de contexto |
 | `frontend/src/context/` | Contexto y provider de selección de usuario |
-| `frontend/src/components/` | Componentes reutilizables y componentes de la pantalla de reserva |
+| `frontend/src/components/` | Componentes reutilizables, componentes de la pantalla de reserva y componentes del panel administrativo |
 | `frontend/src/pages/` | Páginas asociadas a rutas |
 | `frontend/src/utils/` | Funciones puras de fechas y mensajes de error |
 | `frontend/src/test/` | Setup de Vitest, fixtures, helpers de render y de `fetch` |
@@ -45,8 +45,9 @@ Los nombres de archivos y directorios van en inglés y kebab-case. Los identific
 - `src/api/client.ts` centraliza `fetch`, el parseo del error común `{status,error,message}` y la clase `ApiError`.
 - La URL base es `import.meta.env.VITE_API_BASE_URL ?? '/api'`. En desarrollo y E2E, Vite proxya `/api` hacia `http://localhost:8080` y elimina el prefijo antes de reenviar. `VITE_API_PROXY_TARGET` permite cambiar el destino del proxy sin tocar el código.
 - Los componentes no llaman a `fetch` directamente: usan hooks de TanStack Query, que concentran `queryKey`, `staleTime`, reintentos y mutaciones.
-- Los errores de negocio se traducen con `describeApiError` usando el código del backend (`RECURSO_NO_DISPONIBLE`, `FECHAS_INVALIDAS`, `USUARIO_INACTIVO`, etc.). No se muestran mensajes técnicos crudos.
-- Los códigos 400, 404 y 409 deben producir un mensaje claro y accionable; el 409 por solapamiento nunca se trata como un error genérico.
+- Los errores de negocio se traducen con `describeApiError` usando el código del backend (`RECURSO_NO_DISPONIBLE`, `FECHAS_INVALIDAS`, `USUARIO_INACTIVO`, `DOCUMENTO_DUPLICADO`, `CORREO_DUPLICADO`, `RECURSO_CON_RESERVAS_FUTURAS`, etc.). No se muestran mensajes técnicos crudos.
+- Los códigos 400, 404 y 409 deben producir un mensaje claro y accionable; el 409 por solapamiento o por mantenimiento con reservas activas nunca se trata como un error genérico.
+- El panel administrativo usa los endpoints de usuarios y recursos: listados paginados, detalle, alta, edición y cambio de estado. La API sigue validando duplicados y transiciones; el cliente solo presenta el resultado.
 
 ## Empaquetado y entorno local
 
@@ -58,6 +59,9 @@ Los nombres de archivos y directorios van en inglés y kebab-case. Los identific
 ## Interfaz y accesibilidad
 
 - La pantalla principal vive en `/reservar`; el detalle de un recurso, en `/recursos/:recursoId`.
+- El panel administrativo vive en `/admin`, redirige a `/admin/usuarios` y expone `/admin/usuarios` y `/admin/recursos`. Sin autenticación en esta fase, se asume que quien accede actúa como administrador; la limitación es explícita en la interfaz y no se agrega un rol al backend.
+- Los listados administrativos tienen búsqueda local y filtro por estado; el detalle y los formularios conviven en la misma página. Los usuarios se pueden crear y activar o inactivar. Los recursos se pueden crear, editar y cambiar a `DISPONIBLE`, `MANTENIMIENTO` o `FUERA_DE_SERVICIO`.
+- La API rechaza el cambio a `MANTENIMIENTO` cuando el recurso tiene reservas `ACTIVA` con fin posterior; la interfaz muestra el error y no oculta ni cancela esas reservas.
 - El selector de usuario solo lista usuarios activos y conserva la selección en `localStorage` (`reservas.selectedUserId`). Si el usuario guardado deja de estar activo, se limpia.
 - Toda pantalla que espera datos muestra un estado de carga; un listado vacío muestra un estado vacío con una explicación; un fallo muestra un mensaje y una acción de reintento.
 - Los formularios usan `label` asociado al campo, `aria-invalid` cuando hay error, `aria-describedby` para el mensaje y `role="alert"` para los errores. Las confirmaciones usan `role="status"`.
@@ -74,7 +78,7 @@ Los nombres de archivos y directorios van en inglés y kebab-case. Los identific
 | `npm run build` | Typecheck y build de producción con Vite |
 | `npm run test:e2e` | Playwright; arranca la API y Vite si no están corriendo |
 
-Las pruebas de componentes viven junto al código (`*.test.tsx` o `*.test.ts`) y usan Testing Library con `jsdom`. Las pruebas E2E viven en `frontend/e2e/`, crean sus propios usuarios y recursos únicos por API y cubren el flujo feliz, el conflicto 409, la validación de fechas y la consulta de disponibilidad. `tsconfig.node.json` incluye `frontend/e2e/` para que el typecheck y el editor resuelvan `process` y los módulos `node:*`.
+Las pruebas de componentes viven junto al código (`*.test.tsx` o `*.test.ts`) y usan Testing Library con `jsdom`. Cubren la reserva, la administración de usuarios y la administración de recursos, incluidos los errores de duplicados y de mantenimiento. Las pruebas E2E viven en `frontend/e2e/`, crean sus propios usuarios y recursos únicos por API y cubren el flujo feliz de reserva, el conflicto 409, la validación de fechas, la consulta de disponibilidad, el alta y cambio de estado de usuarios, el alta y edición de recursos y el bloqueo de mantenimiento con reservas futuras. `tsconfig.node.json` incluye `frontend/e2e/` para que el typecheck y el editor resuelvan `process` y los módulos `node:*`.
 
 `npm run test:e2e` requiere PostgreSQL y un JDK 21 para levantar la API con `gradlew bootRun`. En local, el script `frontend/scripts/start-backend.mjs` arranca el backend con el perfil `local` y reutiliza una instancia existente si ya está en `http://localhost:8080`. En CI, el job `browser-e2e` levanta PostgreSQL como servicio y ejecuta el mismo comando.
 
@@ -92,5 +96,5 @@ Los reportes de Playwright se publican como artefacto aunque la ejecución falle
 
 ## Limitaciones conocidas
 
-- No hay autenticación ni autorización en esta fase; el usuario se elige manualmente.
-- La interfaz cubre solo la reserva. Consultar/cancelar reservas y administrar usuarios y recursos corresponden a HU-20 y HU-21.
+- No hay autenticación ni autorización en esta fase; el usuario se elige manualmente y el panel `/admin` se considera una superficie administrativa sin control de rol.
+- Consultar y cancelar reservas desde la interfaz corresponde a HU-20; la administración de usuarios y recursos ya está cubierta por HU-21.

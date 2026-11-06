@@ -10,6 +10,7 @@ import com.institucion.reservas.entity.RecursoEntity;
 import com.institucion.reservas.entity.ReservaEntity;
 import com.institucion.reservas.entity.UsuarioEntity;
 import com.institucion.reservas.exception.BusinessRuleException;
+import com.institucion.reservas.exception.ReservationConflictException;
 import com.institucion.reservas.exception.ResourceNotFoundException;
 import com.institucion.reservas.mapper.RecursoMapper;
 import com.institucion.reservas.mapper.ReservaMapper;
@@ -30,6 +31,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -147,6 +149,48 @@ class RecursoServiceTest {
 
         assertThat(response.estado()).isEqualTo(EstadoRecurso.MANTENIMIENTO);
         assertThat(entity.getEstado()).isEqualTo(EstadoRecurso.MANTENIMIENTO);
+    }
+
+    @Test
+    void rechazaCambioAMantenimientoConReservasActivasFuturas() {
+        when(recursoRepository.findById(1L)).thenReturn(Optional.of(entity));
+        when(reservaRepository.countByRecursoIdAndEstadoAndFechaFinAfter(
+                eq(1L), eq(EstadoReserva.ACTIVA), any(LocalDateTime.class)))
+                .thenReturn(1L);
+
+        assertThatThrownBy(() -> service.actualizarEstado(1L, EstadoRecurso.MANTENIMIENTO))
+                .isInstanceOf(ReservationConflictException.class)
+                .extracting("error")
+                .isEqualTo("RECURSO_CON_RESERVAS_FUTURAS");
+        verify(recursoRepository, never()).save(any());
+    }
+
+    @Test
+    void rechazaActualizacionAMantenimientoConReservasActivasFuturas() {
+        RecursoRequest update = new RecursoRequest(
+                "Sala 1", "Piso 2", "Sala", 10, EstadoRecurso.MANTENIMIENTO);
+        when(recursoRepository.findById(1L)).thenReturn(Optional.of(entity));
+        when(reservaRepository.countByRecursoIdAndEstadoAndFechaFinAfter(
+                eq(1L), eq(EstadoReserva.ACTIVA), any(LocalDateTime.class)))
+                .thenReturn(1L);
+
+        assertThatThrownBy(() -> service.actualizar(1L, update))
+                .isInstanceOf(ReservationConflictException.class)
+                .extracting("error")
+                .isEqualTo("RECURSO_CON_RESERVAS_FUTURAS");
+        verify(recursoRepository, never()).save(any());
+    }
+
+    @Test
+    void noValidaReservasFuturasSiElRecursoYaEstaEnMantenimiento() {
+        entity.setEstado(EstadoRecurso.MANTENIMIENTO);
+        when(recursoRepository.findById(1L)).thenReturn(Optional.of(entity));
+        when(recursoRepository.save(entity)).thenReturn(entity);
+
+        service.actualizarEstado(1L, EstadoRecurso.MANTENIMIENTO);
+
+        verify(reservaRepository, never())
+                .countByRecursoIdAndEstadoAndFechaFinAfter(any(), any(), any());
     }
 
     @Test

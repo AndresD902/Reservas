@@ -8,6 +8,7 @@ import com.institucion.reservas.entity.EstadoReserva;
 import com.institucion.reservas.entity.RecursoEntity;
 import com.institucion.reservas.entity.ReservaEntity;
 import com.institucion.reservas.exception.BusinessRuleException;
+import com.institucion.reservas.exception.ReservationConflictException;
 import com.institucion.reservas.exception.ResourceNotFoundException;
 import com.institucion.reservas.mapper.RecursoMapper;
 import com.institucion.reservas.mapper.ReservaMapper;
@@ -67,6 +68,7 @@ public class RecursoServiceImpl implements RecursoService {
     @Transactional
     public RecursoResponse actualizar(Long id, RecursoRequest request) {
         RecursoEntity entity = obtenerEntidad(id);
+        validarMantenimientoSinReservasFuturas(id, request.estado(), entity.getEstado());
         recursoMapper.updateEntity(entity, request);
         return recursoMapper.toResponse(recursoRepository.save(entity));
     }
@@ -79,6 +81,7 @@ public class RecursoServiceImpl implements RecursoService {
         }
 
         RecursoEntity entity = obtenerEntidad(id);
+        validarMantenimientoSinReservasFuturas(id, estado, entity.getEstado());
         entity.setEstado(estado);
         return recursoMapper.toResponse(recursoRepository.save(entity));
     }
@@ -108,6 +111,23 @@ public class RecursoServiceImpl implements RecursoService {
         return recursoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("RECURSO_NO_ENCONTRADO",
                         "No existe un recurso con id: " + id));
+    }
+
+    private void validarMantenimientoSinReservasFuturas(Long recursoId,
+                                                        EstadoRecurso estadoNuevo,
+                                                        EstadoRecurso estadoActual) {
+        if (estadoNuevo != EstadoRecurso.MANTENIMIENTO
+                || estadoActual == EstadoRecurso.MANTENIMIENTO) {
+            return;
+        }
+
+        long reservasFuturas = reservaRepository
+                .countByRecursoIdAndEstadoAndFechaFinAfter(
+                        recursoId, EstadoReserva.ACTIVA, LocalDateTime.now());
+        if (reservasFuturas > 0) {
+            throw new ReservationConflictException("RECURSO_CON_RESERVAS_FUTURAS",
+                    "El recurso tiene reservas activas futuras que deben cancelarse antes");
+        }
     }
 
     private void validarRangoFechas(LocalDateTime fechaInicio, LocalDateTime fechaFin) {
