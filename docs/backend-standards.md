@@ -32,6 +32,7 @@ Las versiones no se copian aquí: las fija `build.gradle`, y una copia queda des
 | Migraciones | Flyway |
 | Reducción de *boilerplate* | Lombok |
 | Pruebas | JUnit Platform, con los *starters* de prueba de Spring Boot |
+| Base de datos de pruebas | H2 en modo PostgreSQL, en memoria |
 
 ## Estructura de paquetes
 
@@ -59,12 +60,12 @@ Todo el código vive bajo `com.institucion.reservas`. La regla de dependencia en
 
 - `application.yml` activa el perfil `local` y toma las credenciales de la base de datos de las variables de entorno `DB_USERNAME` y `DB_PASSWORD`.
 - `src/main/resources/application-local.example.yml` es la plantilla versionada del perfil local. La copia con credenciales reales va en la raíz del repositorio como `application-local.yml`: Spring Boot la carga desde el directorio de trabajo, y `.gitignore` la excluye solo en esa ruta.
-- `.devcontainer/` es el entorno de desarrollo recomendado: JDK 21 y PostgreSQL 16, sin instalar nada en la máquina. La API usa la base `sistema_reservas`; las pruebas usan el perfil `test` de `src/test/resources/application-test.yml`, que apunta a `sistema_reservas_test` para no compartir datos con desarrollo. Las credenciales del contenedor son solo de desarrollo y no se reutilizan fuera de él.
+- `.devcontainer/` es el entorno de desarrollo recomendado: JDK 21 y PostgreSQL 16, sin instalar nada en la máquina. La API usa la base `sistema_reservas`; las pruebas usan el perfil `test` de `src/test/resources/application-test.yml`, que levanta H2 en memoria en modo PostgreSQL; no necesita la base de desarrollo ni un PostgreSQL externo. Las credenciales del contenedor son solo de desarrollo y no se reutilizan fuera de él.
 - Para levantar la API dentro del contenedor hay que sobreescribir la URL, porque la base no está en `localhost`: `SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/sistema_reservas ./gradlew bootRun`.
 
 ## Pruebas
 
-La mecánica es la de `docs/engineering-standards.md`. Lo que se exige a la suite —aislamiento de la lógica de negocio, pruebas unitarias y de integración, *mutation testing* sobre los servicios— lo fija la constitución, en su principio 4 y en la sección "Estándares de Calidad". Las pruebas de integración corren con el perfil `test` y no comparten la base de datos de desarrollo.
+La mecánica es la de `docs/engineering-standards.md`. Lo que se exige a la suite —aislamiento de la lógica de negocio, pruebas unitarias y de integración, *mutation testing* sobre los servicios— lo fija la constitución, en su principio 4 y en la sección "Estándares de Calidad". Las pruebas de integración corren con el perfil `test` sobre H2 en memoria; Flyway aplica las migraciones y no se comparte la base de datos de desarrollo. Los builders de datos y la limpieza entre pruebas viven en `src/test/java/.../support/`.
 
 ## Desviaciones conocidas
 

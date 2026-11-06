@@ -15,6 +15,11 @@
 - **Decisión**: Crear un controlador global de excepciones con `@RestControllerAdvice` que retorne objetos DTO homogéneos con código HTTP, clave de error y mensaje descriptivo.
 - **Justificación**: Cumple estrictamente con el requerimiento de manejo global de excepciones y facilita las validaciones automatizadas desde herramientas como Postman, JMeter o pruebas de integración.
 
+### 4. Base de Datos para las Pruebas Automatizadas
+- **Decisión**: usar **H2 2.x en modo PostgreSQL**, en memoria, con Flyway aplicando las mismas migraciones que en desarrollo.
+- **Justificación**: la suite debe correr en cualquier máquina y en CI sin un PostgreSQL externo ni Docker. El esquema actual (`BIGSERIAL`, `CURRENT_TIMESTAMP`, `CHECK` e índices) es compatible con el modo PostgreSQL de H2, y `ddl-auto: validate` sigue verificando las entidades contra el esquema migrado.
+- **Alternativa descartada**: Testcontainers. Aplica las migraciones sobre un PostgreSQL real, pero exige Docker y hace más lento el ciclo de pruebas.
+
 ## Alternativas Consideradas
 
 - **Bloqueo Optimista (`@Version`)**:
