@@ -79,6 +79,20 @@ cp src/main/resources/application-local.example.yml application-local.yml
 ./gradlew test
 ```
 
+## Integración continua
+
+Cada push y pull request ejecuta [`.github/workflows/ci.yml`](.github/workflows/ci.yml) en GitHub Actions. El pipeline corre, en orden, compilación, pruebas unitarias e integración, mutation testing con PIT, cobertura con JaCoCo, pruebas de aceptación y E2E. Si una etapa falla, el pipeline termina en rojo y el paso indica cuál falló.
+
+Las tareas locales equivalentes son:
+
+```bash
+./gradlew test
+./gradlew acceptanceTest
+./gradlew e2eTest
+```
+
+Los reportes de cada etapa quedan como artefactos de la ejecución del workflow. La prueba E2E de navegador se sumará con HU-19; la actual ejercita el flujo completo por HTTP contra el servidor embebido.
+
 Antes de cambiar código o documentación, lee **[`docs/base-standards.md`](docs/base-standards.md)**: es el punto de entrada de las reglas del proyecto, para las personas del equipo y para los agentes de IA, y el índice del resto de los estándares.
 
 ## Qué hay adentro

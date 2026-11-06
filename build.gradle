@@ -39,7 +39,31 @@ dependencies {
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+	useJUnitPlatform {
+		excludeTags 'acceptance', 'e2e'
+	}
+}
+
+def acceptanceTest = tasks.register('acceptanceTest', Test) {
+	description = 'Ejecuta las pruebas de aceptación etiquetadas con acceptance.'
+	group = 'verification'
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = sourceSets.test.runtimeClasspath
+	useJUnitPlatform {
+		includeTags 'acceptance'
+	}
+	shouldRunAfter tasks.named('test')
+}
+
+def e2eTest = tasks.register('e2eTest', Test) {
+	description = 'Ejecuta las pruebas E2E etiquetadas con e2e.'
+	group = 'verification'
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = sourceSets.test.runtimeClasspath
+	useJUnitPlatform {
+		includeTags 'e2e'
+	}
+	shouldRunAfter tasks.named('test')
 }
 
 pitest {
@@ -83,3 +107,5 @@ jacocoTestCoverageVerification {
 
 check.dependsOn jacocoTestCoverageVerification
 check.dependsOn tasks.named('pitest')
+check.dependsOn acceptanceTest
+check.dependsOn e2eTest
