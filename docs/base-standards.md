@@ -31,7 +31,8 @@ necesario —quien lee un estándar de dominio necesita el contexto sin salir a 
 | Comentarios y docstrings en el código | Español |
 | Código, identificadores, nombres de funciones y variables | Inglés |
 | Nombres de archivos y directorios | Inglés (kebab-case) |
-| Mensajes de commit | Inglés |
+| Mensajes de commit: tipo y ámbito | Inglés |
+| Mensajes de commit: descripción | Español |
 
 **La terminología de ingeniería de software se mantiene en inglés dentro de la prosa en español.** Se escribe *skills*, no "habilidades"; *Test Driven Development*, no "desarrollo orientado a pruebas"; *RED-GREEN-REFACTOR*, no "ROJO-VERDE-REFACTORIZACIÓN". La regla del español cubre la prosa —explicaciones, descripciones, notas—, no los nombres propios de la disciplina.
 
@@ -127,6 +128,7 @@ Orden de resolución, sin excepción:
 
 ## Convenciones de control de versiones
 
-- **Conventional Commits** para los mensajes: `feat:`, `fix:`, `refactor:`, `chore:`, `docs:`.
+- **Conventional Commits** para los mensajes: el tipo y el ámbito van en inglés y la descripción en español, según la política de idioma. El ámbito es opcional y, cuando va, se escribe en kebab-case.
+- Los tipos en uso son `feat:`, `fix:`, `refactor:`, `chore:` y `docs:`. Ejemplos: `feat(service): agregar cancelación con reembolso`, `docs: aclarar el clonado con WSL`.
 - **Antes de cualquier commit o push**, revisa qué documentación quedó desactualizada por los cambios e invoca la skill `updating-docs`.
 - **Si cambió algo bajo `ai-specs/`**, corre la skill `syncing-agent-symlinks` antes de considerar el cambio terminado.
