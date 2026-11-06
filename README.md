@@ -31,9 +31,17 @@ curl http://localhost:8080/recursos
 
 La interfaz del contrato OpenAPI está en `http://localhost:8080/swagger-ui/index.html`. La raíz `/usuarios` y `/recursos` devuelven ahora `Page` (paginación de HU-12); las consultas de reservas por usuario, recurso y rango siguen devolviendo un listado plano.
 
-`docker compose down` detiene los servicios; `docker compose down -v` elimina también el volumen de PostgreSQL y vuelve a sembrar los datos en el siguiente arranque.
+La interfaz web es un servicio opcional que se activa con el perfil `frontend`:
 
-`.env` no se versiona. `.env.example` solo contiene valores de desarrollo. El servicio de frontend en Compose queda para la tarea T-021; por ahora la interfaz se ejecuta con Vite, como se explica en «Interfaz web».
+```bash
+docker compose --profile frontend up --build
+```
+
+Queda en `http://localhost:5173` (configurable con `FRONTEND_PORT`) y reenvía `/api` hacia la API dentro de la red de Compose. Sin el perfil, `docker compose up --build` levanta solo la base y la API, para quien trabaja únicamente con el backend.
+
+`docker compose down` detiene los servicios; `docker compose down -v` elimina también el volumen de PostgreSQL y vuelve a sembrar los datos en el siguiente arranque. Con el perfil activo, usa `docker compose --profile frontend down`.
+
+`.env` no se versiona. `.env.example` solo contiene valores de desarrollo. Las variables `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`, `POSTGRES_PORT`, `API_PORT` y `FRONTEND_PORT` se leen del entorno.
 
 ### Entorno con devcontainer (recomendado)
 
@@ -83,7 +91,7 @@ cp src/main/resources/application-local.example.yml application-local.yml
 
 ## Interfaz web
 
-La SPA vive en `frontend/` y sigue [`docs/frontend-standards.md`](docs/frontend-standards.md). Requiere Node 24 y la API en `http://localhost:8080` (por ejemplo, con `docker compose up --build`).
+La SPA vive en `frontend/` y sigue [`docs/frontend-standards.md`](docs/frontend-standards.md). Se puede levantar con Docker Compose (`docker compose --profile frontend up --build`, en `http://localhost:5173`) o con Vite en modo desarrollo, que requiere Node 24 y la API en `http://localhost:8080` (por ejemplo, con `docker compose up --build`).
 
 ```bash
 cd frontend
@@ -133,7 +141,7 @@ Antes de cambiar código o documentación, lee **[`docs/base-standards.md`](docs
 |---|---|
 | `src/` | Código de la API y migraciones de base de datos |
 | `frontend/` | Interfaz web en React, Vite y TypeScript |
-| `Dockerfile`, `docker-compose.yml` | Entorno local completo: API y PostgreSQL con datos semilla |
+| `Dockerfile`, `docker-compose.yml` | Entorno local completo: API, PostgreSQL con datos semilla y frontend opcional (`--profile frontend`) |
 | `.devcontainer/` | Entorno de desarrollo con JDK 21 y PostgreSQL 16 |
 | `specs/` | Especificación, plan, investigación, modelo de datos y tareas de cada funcionalidad |
 | `.specify/memory/constitution.md` | Principios de arquitectura y calidad que todo el código cumple |

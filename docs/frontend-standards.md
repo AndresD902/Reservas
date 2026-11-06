@@ -49,6 +49,13 @@ Los nombres de archivos y directorios van en inglés y kebab-case. Los identific
 - Los códigos 400, 404 y 409 deben producir un mensaje claro y accionable; el 409 por solapamiento o por mantenimiento con reservas activas nunca se trata como un error genérico.
 - El panel administrativo usa los endpoints de usuarios y recursos: listados paginados, detalle, alta, edición y cambio de estado. La API sigue validando duplicados y transiciones; el cliente solo presenta el resultado.
 
+## Empaquetado y entorno local
+
+- `frontend/Dockerfile` es multi-stage: compila con Node 24 y `npm ci`, y sirve el `dist` con Nginx.
+- `frontend/nginx.conf` sirve la SPA con *fallback* a `index.html` y reenvía `/api/` a `http://api:8080/`, eliminando el prefijo igual que el proxy de Vite. No requiere configuración en tiempo de ejecución.
+- En `docker-compose.yml` el servicio `frontend` está detrás del perfil `frontend`: `docker compose --profile frontend up --build` levanta la interfaz en `http://localhost:5173` (`FRONTEND_PORT`). Sin el perfil, Compose levanta solo la base y la API.
+- `frontend/.dockerignore` deja fuera `node_modules`, `dist`, reportes y archivos `.env`.
+
 ## Interfaz y accesibilidad
 
 - La pantalla principal vive en `/reservar`; el detalle de un recurso, en `/recursos/:recursoId`.
@@ -90,5 +97,4 @@ Los reportes de Playwright se publican como artefacto aunque la ejecución falle
 ## Limitaciones conocidas
 
 - No hay autenticación ni autorización en esta fase; el usuario se elige manualmente y el panel `/admin` se considera una superficie administrativa sin control de rol.
-- El servicio de frontend todavía no forma parte de `docker-compose.yml`; agregarlo es la tarea T-021.
 - Consultar y cancelar reservas desde la interfaz corresponde a HU-20; la administración de usuarios y recursos ya está cubierta por HU-21.

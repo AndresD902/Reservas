@@ -75,11 +75,12 @@ Estructura de error unificada según requerimiento:
 
 ## Phase 4: Entorno local reproducible
 
-- **Compose**: `docker-compose.yml` levanta `db` (PostgreSQL 16) y `api` (Spring Boot) con un solo `docker compose up --build`; el servicio de frontend queda para T-021, ya con el stack definido en la Fase 8 y el directorio `frontend/` existente.
+- **Compose**: `docker-compose.yml` levanta `db` (PostgreSQL 16) y `api` (Spring Boot) con un solo `docker compose up --build`. El servicio `frontend` es opcional y se activa con el perfil `frontend` (`docker compose --profile frontend up --build`), detrás de Nginx en `http://localhost:5173`.
 - **Imagen de la API**: `Dockerfile` multi-stage. La etapa de build usa JDK 21 y el wrapper de Gradle para generar el `bootJar`; la etapa final usa JRE 21 y ejecuta el jar con un usuario sin privilegios.
+- **Imagen del frontend**: `frontend/Dockerfile` multi-stage. Compila con Node 24 y `npm ci`, y sirve el `dist` con Nginx; `frontend/nginx.conf` resuelve el *fallback* de la SPA y reenvía `/api` a `api:8080`.
 - **Datos semilla**: `src/main/resources/db/seed/R__local_seed.sql`, migración repeatable e idempotente. Solo se carga desde `application-local.yml`, que agrega `classpath:db/seed` a `spring.flyway.locations`; producción no incluye esa ubicación.
 - **Credenciales**: `DB_NAME`, `DB_USERNAME` y `DB_PASSWORD` se leen de variables de entorno. `.env.example` documenta los valores de desarrollo y `.env` queda fuera del repositorio.
-- **Verificación**: `docker compose config` valida la composición; con Docker corriendo, `docker compose up --build` debe dejar la API en `http://localhost:8080` y los usuarios y recursos semilla consultables.
+- **Verificación**: `docker compose config` y `docker compose --profile frontend config` validan la composición; con Docker corriendo, `docker compose up --build` debe dejar la API en `http://localhost:8080` y los usuarios y recursos semilla consultables, y el perfil `frontend` debe servir la SPA en `http://localhost:5173`.
 
 ## Phase 5: Paginación y filtros en listados
 

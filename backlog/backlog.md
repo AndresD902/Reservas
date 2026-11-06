@@ -742,7 +742,7 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 
 **Conversación**
 
-- `docker-compose.yml` levanta PostgreSQL (`db`) y la API (`api`); el frontend queda fuera hasta que HU-19 defina su stack y exista el directorio correspondiente.
+- `docker-compose.yml` levanta PostgreSQL (`db`) y la API (`api`) con `docker compose up --build`; el frontend es un servicio opcional detrás del perfil `frontend` (`docker compose --profile frontend up --build`), servido por Nginx en `http://localhost:5173` con `/api` proxificado hacia la API.
 - Datos semilla con una migración repeatable de Flyway, `db/seed/R__local_seed.sql`, cargada solo por el perfil local.
 - Supuesto confirmado: los datos semilla no llegan a producción porque `application-local.yml` es el único que agrega `db/seed` a las ubicaciones de Flyway.
 - Las credenciales salen de variables de entorno (`DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`); `.env.example` es la plantilla y `.env` está ignorado. Ninguna credencial real se versiona.
@@ -751,7 +751,7 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 
 - Agregar un `Dockerfile` multi-stage para la API
 - Escribir `docker-compose.yml` con PostgreSQL y el backend
-- Agregar el frontend como servicio opcional (bloqueado por HU-19: falta el stack y el directorio)
+- Agregar el frontend como servicio opcional de Compose (perfil `frontend`, imagen Node 24 + Nginx)
 - Crear los datos semilla del entorno local
 - Documentar las variables de entorno necesarias
 
