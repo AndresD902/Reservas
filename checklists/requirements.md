@@ -16,3 +16,4 @@
 - [x] **Intervalos Semiabiertos**: El solapamiento usa `[fechaInicio, fechaFin)`; una reserva que empieza justo cuando termina otra se permite. Registrado en `spec.md` y `research.md`.
 - [x] **Finalización Automática**: Una reserva `ACTIVA` vencida pasa a `FINALIZADA` mediante un proceso programado con frecuencia configurable (5 minutos por defecto). Especificado en `spec.md`; su implementación corresponde a T-017.
 - [x] **Bloqueo de Mantenimiento con Reservas Vigentes**: El cambio de un recurso a `MANTENIMIENTO` se rechaza con `RECURSO_CON_RESERVAS_FUTURAS` mientras tenga reservas `ACTIVA` cuya `fecha_fin` sea posterior al cambio. Especificado en `spec.md`; su implementación corresponde a T-018.
+- [x] **Consulta por Rango de Fechas**: FR-016 se cubre con `GET /reservas/rango`; el solapamiento usa `[inicio, fin)` y el fin debe ser estrictamente posterior al inicio.

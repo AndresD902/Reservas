@@ -43,7 +43,7 @@ El propósito de esta función es automatizar y gestionar centralizadamente la r
 - **FR-013**: El sistema debe limitar a un máximo de **3 reservas activas simultáneas** por cada usuario. Si el usuario ya posee 3 reservas en estado `ACTIVA`, la creación debe ser rechazada.
 - **FR-014**: El sistema debe permitir cancelar reservas que se encuentren en estado `ACTIVA`.
 - **FR-015**: El sistema debe rechazar la cancelación de reservas que se encuentren en estado `FINALIZADA` o ya `CANCELADA`.
-- **FR-016**: El sistema debe permitir la consulta de reservas por usuario, por recurso, por fecha y la verificación de disponibilidad de un recurso en un rango especificado.
+- **FR-016**: El sistema debe permitir la consulta de reservas por usuario, por recurso, por fecha y la verificación de disponibilidad de un recurso en un rango especificado. La consulta por fecha devuelve las reservas cuyo intervalo se solapa con el rango solicitado, con la misma semántica semiabierta de FR-012, y rechaza un rango cuyo fin no sea estrictamente posterior al inicio.
 
 ### Ciclo de vida de la reserva
 - **Finalización automática**: Una reserva en estado `ACTIVA` pasa a `FINALIZADA` cuando su `fecha_fin` es anterior al momento de la ejecución de un proceso programado con frecuencia configurable; el valor por defecto es de 5 minutos. Las reservas en estado `CANCELADA` o `FINALIZADA` no cambian.

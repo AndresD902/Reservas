@@ -52,4 +52,13 @@ public interface ReservaRepository extends JpaRepository<ReservaEntity, Long> {
                                                 @Param("fechaInicio") LocalDateTime fechaInicio,
                                                 @Param("fechaFin") LocalDateTime fechaFin,
                                                 @Param("estado") EstadoReserva estado);
+
+    @Query("""
+            SELECT r FROM ReservaEntity r
+            WHERE r.fechaInicio < :fechaFin
+              AND r.fechaFin > :fechaInicio
+            ORDER BY r.fechaInicio ASC
+            """)
+    List<ReservaEntity> findOverlappingInRange(@Param("fechaInicio") LocalDateTime fechaInicio,
+                                               @Param("fechaFin") LocalDateTime fechaFin);
 }
