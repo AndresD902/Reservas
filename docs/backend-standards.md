@@ -62,6 +62,13 @@ Todo el código vive bajo `com.institucion.reservas`. La regla de dependencia en
 - `.devcontainer/` es el entorno de desarrollo recomendado: JDK 21 y PostgreSQL 16, sin instalar nada en la máquina. La API usa la base `sistema_reservas`; las pruebas usan el perfil `test` de `src/test/resources/application-test.yml`, que apunta a `sistema_reservas_test` para no compartir datos con desarrollo. Las credenciales del contenedor son solo de desarrollo y no se reutilizan fuera de él.
 - Para levantar la API dentro del contenedor hay que sobreescribir la URL, porque la base no está en `localhost`: `SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/sistema_reservas ./gradlew bootRun`.
 
+## Entorno local con Docker Compose
+
+- `docker-compose.yml` levanta PostgreSQL (`db`) y la API (`api`) con `docker compose up --build`. El `Dockerfile` es multi-stage: compila con JDK 21 y el wrapper de Gradle, y ejecuta el `bootJar` con JRE 21 y un usuario sin privilegios.
+- Los datos semilla viven en `src/main/resources/db/seed/R__local_seed.sql`, una migración repeatable e idempotente. `application-local.yml` agrega `classpath:db/seed` a `spring.flyway.locations`; los perfiles que no son `local` no cargan esa ubicación.
+- Las variables `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`, `POSTGRES_PORT` y `API_PORT` se leen del entorno. `.env.example` documenta valores de desarrollo y `.env` está ignorado por Git.
+- El frontend no se define en el compose hasta que HU-19 elija el stack y exista el directorio de la interfaz. No se agrega un servicio vacío.
+
 ## Pruebas
 
 La mecánica es la de `docs/engineering-standards.md`. Lo que se exige a la suite —aislamiento de la lógica de negocio, pruebas unitarias y de integración, *mutation testing* sobre los servicios— lo fija la constitución, en su principio 4 y en la sección "Estándares de Calidad". Las pruebas de integración corren con el perfil `test` y no comparten la base de datos de desarrollo.

@@ -1,0 +1,17 @@
+.git
+.gradle
+build
+out
+.idea
+.vscode
+.opencode
+.claude
+.devcontainer
+docs
+specs
+backlog
+checklists
+ai-specs
+*.md
+.env
+application-local.yml

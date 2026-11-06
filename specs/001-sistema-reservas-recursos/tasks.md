@@ -97,3 +97,13 @@
 - [ ] **T-019**: Agregar la migración Flyway del índice que soporta la finalización automática.
   - **Archivos**: `src/main/resources/db/migration/V2__add_index_reservas_estado_fin.sql`.
   - **Dependencias**: T-002.
+
+## Fase 8: Entorno local
+
+- [x] **T-020**: Levantar la base, la API y los datos semilla con `docker compose up --build`: `Dockerfile` multi-stage, `docker-compose.yml`, migración repeatable local y documentación de variables.
+  - **Archivos**: `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `.env.example`, `src/main/resources/application-local.yml`, `src/main/resources/db/seed/R__local_seed.sql`, `README.md`, `docs/backend-standards.md`.
+  - **Dependencias**: T-002, T-017.
+
+- [ ] **T-021**: Agregar el frontend como servicio opcional de Compose cuando HU-19 defina el stack y exista el directorio de la interfaz.
+  - **Archivos**: `docker-compose.yml`, documentación del entorno local.
+  - **Dependencias**: T-020, HU-19.

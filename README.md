@@ -13,6 +13,26 @@ El alcance funcional completo, con sus reglas de negocio, está en [`specs/001-s
 
 ## Empezar
 
+### Entorno completo con Docker Compose
+
+Requisito: Docker con Compose v2.
+
+```bash
+cp .env.example .env   # opcional: ajusta puertos o credenciales locales
+docker compose up --build
+```
+
+La API queda en `http://localhost:8080`. Flyway aplica `V1__init_schema.sql` y la migración repeatable `db/seed/R__local_seed.sql`, que carga usuarios y recursos de ejemplo solo con el perfil local. Para comprobar:
+
+```bash
+curl http://localhost:8080/usuarios
+curl http://localhost:8080/recursos
+```
+
+`docker compose down` detiene los servicios; `docker compose down -v` elimina también el volumen de PostgreSQL y vuelve a sembrar los datos en el siguiente arranque.
+
+`.env` no se versiona. `.env.example` solo contiene valores de desarrollo. El servicio de frontend se agregará cuando HU-19 defina su stack y exista el directorio de la interfaz.
+
 ### Entorno con devcontainer (recomendado)
 
 El repositorio incluye `.devcontainer/` con un JDK 21 y un PostgreSQL 16. Aísla las herramientas del proyecto de las de tu máquina y evita instalar Java o PostgreSQL a mano.
@@ -74,6 +94,7 @@ Antes de cambiar código o documentación, lee **[`docs/base-standards.md`](docs
 | Ruta | Qué es |
 |---|---|
 | `src/` | Código de la API y migraciones de base de datos |
+| `Dockerfile`, `docker-compose.yml` | Entorno local completo: API y PostgreSQL con datos semilla |
 | `.devcontainer/` | Entorno de desarrollo con JDK 21 y PostgreSQL 16 |
 | `specs/` | Especificación, plan, investigación, modelo de datos y tareas de cada funcionalidad |
 | `.specify/memory/constitution.md` | Principios de arquitectura y calidad que todo el código cumple |
