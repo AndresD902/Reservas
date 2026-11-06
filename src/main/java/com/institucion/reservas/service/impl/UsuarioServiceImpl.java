@@ -10,10 +10,10 @@ import com.institucion.reservas.mapper.UsuarioMapper;
 import com.institucion.reservas.repository.UsuarioRepository;
 import com.institucion.reservas.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -45,10 +45,11 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public List<UsuarioResponse> listar() {
-        return usuarioRepository.findAll().stream()
-                .map(usuarioMapper::toResponse)
-                .toList();
+    public Page<UsuarioResponse> listar(EstadoUsuario estado, Pageable pageable) {
+        Page<UsuarioEntity> page = estado == null
+                ? usuarioRepository.findAll(pageable)
+                : usuarioRepository.findByEstado(estado, pageable);
+        return page.map(usuarioMapper::toResponse);
     }
 
     @Override

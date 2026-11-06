@@ -4,9 +4,12 @@ import com.institucion.reservas.dto.DisponibilidadResponse;
 import com.institucion.reservas.dto.RecursoEstadoRequest;
 import com.institucion.reservas.dto.RecursoRequest;
 import com.institucion.reservas.dto.RecursoResponse;
+import com.institucion.reservas.entity.EstadoRecurso;
 import com.institucion.reservas.service.RecursoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +24,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @RestController
 @RequestMapping("/recursos")
@@ -36,8 +38,10 @@ public class RecursoController {
     }
 
     @GetMapping
-    public List<RecursoResponse> listar() {
-        return recursoService.listar();
+    public Page<RecursoResponse> listar(@RequestParam(required = false) EstadoRecurso estado,
+                                        @RequestParam(required = false) String tipo,
+                                        Pageable pageable) {
+        return recursoService.listar(estado, tipo, pageable);
     }
 
     @GetMapping("/{id}")

@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 import java.util.Optional;
@@ -123,16 +125,20 @@ class UsuarioServiceTest {
 
     @Test
     void listaUsuarios() {
-        when(usuarioRepository.findAll()).thenReturn(List.of(entity));
+        PageRequest pageable = PageRequest.of(0, 20);
+        when(usuarioRepository.findAll(pageable))
+                .thenReturn(new PageImpl<>(List.of(entity), pageable, 1));
 
-        assertThat(service.listar()).hasSize(1);
+        assertThat(service.listar(null, pageable).getContent()).hasSize(1);
     }
 
     @Test
     void listaUsuariosVaciaCuandoNoHayRegistros() {
-        when(usuarioRepository.findAll()).thenReturn(List.of());
+        PageRequest pageable = PageRequest.of(0, 20);
+        when(usuarioRepository.findAll(pageable))
+                .thenReturn(new PageImpl<>(List.of(), pageable, 0));
 
-        assertThat(service.listar()).isEmpty();
+        assertThat(service.listar(null, pageable).getContent()).isEmpty();
     }
 
     @Test

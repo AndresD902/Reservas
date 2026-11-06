@@ -87,3 +87,4 @@ Brechas entre el código actual y los estándares, detectadas al adoptar el harn
 |---|---|
 | Los identificadores del código están en español (`RecursoController`, `fechaInicio`, `EstadoReserva`) | Política de idioma de `docs/base-standards.md`: código e identificadores en inglés |
 | El directorio `specs/001-sistema-reservas-recursos/` está nombrado en español | Política de idioma de `docs/base-standards.md`: nombres de archivos y directorios en inglés |
+

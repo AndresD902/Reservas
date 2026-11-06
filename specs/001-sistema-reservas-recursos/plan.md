@@ -80,3 +80,15 @@ Estructura de error unificada según requerimiento:
 - **Datos semilla**: `src/main/resources/db/seed/R__local_seed.sql`, migración repeatable e idempotente. Solo se carga desde `application-local.yml`, que agrega `classpath:db/seed` a `spring.flyway.locations`; producción no incluye esa ubicación.
 - **Credenciales**: `DB_NAME`, `DB_USERNAME` y `DB_PASSWORD` se leen de variables de entorno. `.env.example` documenta los valores de desarrollo y `.env` queda fuera del repositorio.
 - **Verificación**: `docker compose config` valida la composición; con Docker corriendo, `docker compose up --build` debe dejar la API en `http://localhost:8080` y los usuarios y recursos semilla consultables.
+
+## Phase 5: Paginación y filtros en listados
+
+- **Endpoints**: `GET /usuarios`, `GET /recursos` y un nuevo `GET /reservas`. Los endpoints `/reservas/usuario/{id}`, `/reservas/recurso/{id}` y `/reservas/rango` mantienen su contrato sin paginar.
+- **Parámetros**: `page` (base 0), `size` (20 por defecto, 100 máximo) y `sort` con el formato de Spring Data (`campo,asc|desc`), resueltos por el `PageableHandlerMethodArgumentResolver`.
+- **Filtros**:
+  - Usuarios: `estado`.
+  - Recursos: `estado` y `tipo`; el tipo se compara sin distinguir mayúsculas y se ignora si viene en blanco.
+  - Reservas: `estado`, `usuarioId` y `recursoId`; los tres son opcionales y se combinan con AND.
+- **Respuesta**: `Page<T>` de Spring Data con `content`, `totalElements`, `totalPages`, `number`, `size` y los metadatos de ordenamiento.
+- **Consulta de reservas**: `ReservaRepository.buscar(estado, usuarioId, recursoId, pageable)` con filtros nulos opcionales, para no duplicar consultas por cada combinación.
+- **Compatibilidad**: los listados dejan de devolver un arreglo plano; el cambio se documenta en esta historia y el contrato OpenAPI se crea en HU-11.

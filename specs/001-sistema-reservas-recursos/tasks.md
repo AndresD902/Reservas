@@ -107,3 +107,9 @@
 - [ ] **T-021**: Agregar el frontend como servicio opcional de Compose cuando HU-19 defina el stack y exista el directorio de la interfaz.
   - **Archivos**: `docker-compose.yml`, documentación del entorno local.
   - **Dependencias**: T-020, HU-19.
+
+## Fase 9: Paginación y filtros en listados
+
+- [x] **T-022**: Paginar y filtrar los listados de usuarios, recursos y reservas con `page`, `size`, `sort`, 20 elementos por defecto y 100 como máximo; usuarios por `estado`, recursos por `estado` y `tipo`, y reservas por `estado`, `usuarioId` y `recursoId`.
+  - **Archivos**: `controller/UsuarioController.java`, `controller/RecursoController.java`, `controller/ReservaController.java`, `service/UsuarioService.java`, `service/RecursoService.java`, `service/ReservaService.java`, `service/impl/UsuarioServiceImpl.java`, `service/impl/RecursoServiceImpl.java`, `service/impl/ReservaServiceImpl.java`, `repository/UsuarioRepository.java`, `repository/RecursoRepository.java`, `repository/ReservaRepository.java`, `src/main/resources/application.yml`, `src/test/java/com/institucion/reservas/service/impl/*ServiceImplTest.java`, `src/test/java/com/institucion/reservas/controller/PaginationControllerTest.java`.
+  - **Dependencias**: T-010, T-011, T-012.

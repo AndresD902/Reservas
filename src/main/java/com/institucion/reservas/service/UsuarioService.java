@@ -3,8 +3,8 @@ package com.institucion.reservas.service;
 import com.institucion.reservas.dto.UsuarioRequest;
 import com.institucion.reservas.dto.UsuarioResponse;
 import com.institucion.reservas.entity.EstadoUsuario;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface UsuarioService {
 
@@ -12,7 +12,7 @@ public interface UsuarioService {
 
     UsuarioResponse obtenerPorId(Long id);
 
-    List<UsuarioResponse> listar();
+    Page<UsuarioResponse> listar(EstadoUsuario estado, Pageable pageable);
 
     UsuarioResponse actualizarEstado(Long id, EstadoUsuario estado);
 }
