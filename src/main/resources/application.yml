@@ -12,3 +12,7 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+
+reservas:
+  finalizacion:
+    frecuencia: PT5M

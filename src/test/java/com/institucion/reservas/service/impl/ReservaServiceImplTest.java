@@ -101,4 +101,15 @@ class ReservaServiceImplTest {
 
         verifyNoInteractions(reservaRepository);
     }
+
+    @Test
+    void finalizarVencidasUsaElInstanteRecibidoYDevuelveElTotalActualizado() {
+        LocalDateTime ahora = LocalDateTime.of(2026, 11, 5, 12, 0);
+        when(reservaRepository.finalizarVencidas(ahora)).thenReturn(3);
+
+        int finalizadas = reservaService.finalizarVencidas(ahora);
+
+        assertThat(finalizadas).isEqualTo(3);
+        verify(reservaRepository).finalizarVencidas(ahora);
+    }
 }

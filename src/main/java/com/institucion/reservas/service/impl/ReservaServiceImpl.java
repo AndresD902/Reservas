@@ -134,6 +134,12 @@ public class ReservaServiceImpl implements ReservaService {
         return reservaMapper.toResponse(reservaRepository.save(entity));
     }
 
+    @Override
+    @Transactional
+    public int finalizarVencidas(LocalDateTime ahora) {
+        return reservaRepository.finalizarVencidas(ahora);
+    }
+
     private void validarSolicitud(ReservaRequest request) {
         if (request == null || request.usuarioId() == null || request.recursoId() == null
                 || request.fechaInicio() == null || request.fechaFin() == null) {

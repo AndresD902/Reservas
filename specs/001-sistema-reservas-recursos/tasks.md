@@ -86,7 +86,7 @@
 
 ## Fase 7: Ciclo de vida de la reserva y mantenimiento
 
-- [ ] **T-017**: Implementar la finalización automática de reservas vencidas: proceso `@Scheduled` con frecuencia configurable (`reservas.finalizacion.frecuencia`, por defecto `PT5M`) que pasa a `FINALIZADA` las reservas `ACTIVA` con `fecha_fin` anterior al instante de ejecución.
+- [x] **T-017**: Implementar la finalización automática de reservas vencidas: proceso `@Scheduled` con frecuencia configurable (`reservas.finalizacion.frecuencia`, por defecto `PT5M`) que pasa a `FINALIZADA` las reservas `ACTIVA` con `fecha_fin` anterior al instante de ejecución.
   - **Archivos**: `ReservasApplication.java`, `service/ReservaService.java`, `service/impl/ReservaServiceImpl.java` (o un componente de finalización), `repository/ReservaRepository.java`, `src/main/resources/application.yml`.
   - **Dependencias**: T-009.
 
