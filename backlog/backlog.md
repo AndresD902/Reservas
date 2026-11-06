@@ -89,7 +89,7 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 | HU-10 · Finalización automática de reservas vencidas | EP-03 | Backlog | 2 |
 | HU-11 · Contrato OpenAPI de la API | EP-03 | Backlog | 3 |
 | HU-12 · Paginación y filtros en listados | EP-03 | Backlog | 3 |
-| HU-13 · Suite de pruebas ejecutable sin base de datos externa | EP-04 | Backlog | 1 |
+| HU-13 · Suite de pruebas ejecutable sin base de datos externa | EP-04 | En Revisión | 1 |
 | HU-14 · Reglas de negocio verificadas con pruebas unitarias y de mutación | EP-04 | Backlog | 2 |
 | HU-15 · Endpoints y contrato de errores verificados con pruebas de integración | EP-04 | Backlog | 2 |
 | HU-16 · Escenarios de la especificación ejecutables como pruebas de aceptación | EP-04 | Backlog | 2 |
@@ -475,17 +475,18 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 
 - Hoy la única prueba es `ReservasApplicationTests` y necesita una base de datos real.
 - El plan de trabajo propone un perfil `application-test.yml` con H2 en modo PostgreSQL o con Testcontainers.
-- Indeterminado (bloquea el DoR): H2 o Testcontainers. Testcontainers aplica las migraciones sobre PostgreSQL real pero exige Docker; H2 no lo exige pero su dialecto puede divergir.
-- Dependencias de prueba propuestas: JUnit 5, Mockito, AssertJ, REST Assured, Cucumber-JVM, Testcontainers y PIT.
+- Resuelto: H2 2.x en modo PostgreSQL, en memoria. No exige Docker ni PostgreSQL externo; Flyway aplica la misma migración sobre la base de pruebas. Testcontainers se descartó porque exige Docker.
+- Dependencias de prueba: JUnit 5, Mockito y AssertJ ya vienen con los starters de Spring Boot; esta historia agrega H2. REST Assured, Cucumber-JVM y PIT quedan para HU-14 a HU-18; Testcontainers se descartó.
 - Incluye builders de datos y limpieza entre pruebas, y corregir `gradlew`, que está versionado sin permiso de ejecución.
 
 **Tareas**
 
-- Elegir entre H2 en modo PostgreSQL y Testcontainers
+- Elegir H2 en modo PostgreSQL como base de pruebas
 - Crear el perfil de pruebas `application-test.yml`
 - Agregar las dependencias de prueba a `build.gradle`
 - Implementar builders de datos y limpieza entre pruebas
 - Versionar `gradlew` con permiso de ejecución
+- Verificar la suite y la aplicación de Flyway sobre H2
 
 **Criterios de Aceptación**
 

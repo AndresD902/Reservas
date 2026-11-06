@@ -19,7 +19,7 @@ El repositorio incluye `.devcontainer/` con un JDK 21 y un PostgreSQL 16. Aísla
 
 Requisito: Docker disponible en el host. En WSL 2 se habilita desde Docker Desktop, en *Settings* → *Resources* → *WSL Integration*, para la distribución que uses.
 
-Con VS Code y la extensión *Dev Containers*, usa **Dev Containers: Reopen in Container**. Al crear el contenedor, `postCreateCommand` compila las clases de prueba. La API usa la base `sistema_reservas` y las pruebas usan `sistema_reservas_test`, que crea el servicio `db`.
+Con VS Code y la extensión *Dev Containers*, usa **Dev Containers: Reopen in Container**. Al crear el contenedor, `postCreateCommand` compila las clases de prueba. La API usa la base `sistema_reservas`; las pruebas levantan H2 en memoria y no tocan la base de desarrollo.
 
 ```bash
 # pruebas de integración de usuarios (HU-03)
@@ -29,12 +29,7 @@ Con VS Code y la extensión *Dev Containers*, usa **Dev Containers: Reopen in Co
 ./gradlew test
 ```
 
-Si el volumen de PostgreSQL ya existía antes de agregar el script de inicialización, la base `sistema_reservas_test` no se habrá creado. Créala desde el host:
-
-```bash
-docker compose -p reservas_devcontainer -f .devcontainer/docker-compose.yml exec db \
-  psql -U postgres -c "CREATE DATABASE sistema_reservas_test;"
-```
+Las pruebas de integración levantan H2 en memoria y aplican las migraciones de Flyway; no necesitan `sistema_reservas_test` ni un PostgreSQL externo.
 
 Para recrear la base desde cero, desde el host, elimina el volumen y vuelve a abrir el contenedor:
 
@@ -50,20 +45,17 @@ SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/sistema_reservas ./gradlew bootR
 
 ### Entorno local sin contenedor
 
-Requisitos: un JDK en la versión que fija el *toolchain* de `build.gradle`, y PostgreSQL con las bases `sistema_reservas` y `sistema_reservas_test`.
+Requisitos: un JDK en la versión que fija el *toolchain* de `build.gradle`, y PostgreSQL con la base `sistema_reservas` para levantar la API. Las pruebas usan H2 en memoria.
 
 ```bash
 # 1. credenciales locales: la copia en la raíz no se versiona
 cp src/main/resources/application-local.example.yml application-local.yml
 #    y reemplaza la contraseña de ejemplo por la de tu PostgreSQL
 
-# 2. base de datos para las pruebas de integración
-createdb sistema_reservas_test
-
-# 3. levantar la API: Flyway aplica las migraciones al arrancar
+# 2. levantar la API: Flyway aplica las migraciones al arrancar
 ./gradlew bootRun
 
-# 4. correr las pruebas
+# 3. correr las pruebas: usan H2 en memoria
 ./gradlew test
 ```
 
