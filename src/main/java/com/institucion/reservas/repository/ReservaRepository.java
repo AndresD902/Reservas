@@ -25,6 +25,10 @@ public interface ReservaRepository extends JpaRepository<ReservaEntity, Long> {
 
     long countByUsuarioIdAndEstado(Long usuarioId, EstadoReserva estado);
 
+    long countByRecursoIdAndEstadoAndFechaFinAfter(Long recursoId,
+                                                   EstadoReserva estado,
+                                                   LocalDateTime fechaFin);
+
     List<ReservaEntity> findByUsuarioIdOrderByFechaInicioAsc(Long usuarioId);
 
     List<ReservaEntity> findByRecursoIdOrderByFechaInicioAsc(Long recursoId);

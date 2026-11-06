@@ -90,7 +90,7 @@
   - **Archivos**: `ReservasApplication.java`, `service/ReservaService.java`, `service/impl/ReservaServiceImpl.java` (o un componente de finalización), `repository/ReservaRepository.java`, `src/main/resources/application.yml`.
   - **Dependencias**: T-009.
 
-- [ ] **T-018**: Bloquear el cambio de estado de un recurso a `MANTENIMIENTO` cuando tenga reservas `ACTIVA` con `fecha_fin` posterior al momento del cambio, con el error `RECURSO_CON_RESERVAS_FUTURAS` (409).
+- [x] **T-018**: Bloquear el cambio de estado de un recurso a `MANTENIMIENTO` cuando tenga reservas `ACTIVA` con `fecha_fin` posterior al momento del cambio, con el error `RECURSO_CON_RESERVAS_FUTURAS` (409).
   - **Archivos**: `service/impl/RecursoServiceImpl.java`, `repository/ReservaRepository.java`, `exception/GlobalExceptionHandler.java`.
   - **Dependencias**: T-008.
 
@@ -147,3 +147,29 @@
 - [x] **T-029**: Integrar la interfaz en el pipeline —lint, typecheck, pruebas y build— y agregar el job de E2E de navegador con PostgreSQL real.
   - **Archivos**: `.github/workflows/ci.yml`, `README.md`, `docs/frontend-standards.md`, `docs/backend-standards.md`, `.gitignore`, `.dockerignore`.
   - **Dependencias**: T-028.
+
+## Fase 13: Administración web
+
+- [x] **T-030**: Extender el cliente de la API y los tipos para listar, consultar, crear y cambiar el estado de usuarios, y listar, consultar, crear, editar y cambiar el estado de recursos desde el panel administrativo.
+  - **Archivos**: `frontend/src/api/types.ts`, `frontend/src/api/users.ts`, `frontend/src/api/resources.ts`, `frontend/src/utils/error-messages.ts`, `frontend/src/hooks/use-admin-users.ts`, `frontend/src/hooks/use-admin-resources.ts`.
+  - **Dependencias**: T-025.
+
+- [x] **T-031**: Implementar la página `/admin/usuarios` con listado, búsqueda, detalle, alta y cambio de estado, con validación en el cliente y mensajes claros para datos duplicados o inválidos.
+  - **Archivos**: `frontend/src/pages/admin-users-page.tsx`, `frontend/src/components/admin/user-form.tsx`, `frontend/src/components/admin/user-detail.tsx`.
+  - **Dependencias**: T-030.
+
+- [x] **T-032**: Implementar la página `/admin/recursos` con listado, búsqueda, detalle, alta, edición y cambio de estado, incluido el error de recurso con reservas futuras.
+  - **Archivos**: `frontend/src/pages/admin-resources-page.tsx`, `frontend/src/components/admin/resource-form.tsx`, `frontend/src/components/admin/resource-detail.tsx`.
+  - **Dependencias**: T-030.
+
+- [x] **T-033**: Agregar navegación al panel administrativo y pruebas de componentes para los flujos de usuarios y recursos.
+  - **Archivos**: `frontend/src/App.tsx`, `frontend/src/components/layout.tsx`, `frontend/src/pages/admin-users-page.test.tsx`, `frontend/src/pages/admin-resources-page.test.tsx`.
+  - **Dependencias**: T-031, T-032.
+
+- [x] **T-034**: Escribir las pruebas E2E del panel administrativo con Playwright contra el backend real: alta de usuario, documento duplicado, alta de recurso, edición, cambio de estado a `MANTENIMIENTO` y bloqueo del mantenimiento con reservas futuras.
+  - **Archivos**: `frontend/e2e/admin.spec.ts`.
+  - **Dependencias**: T-033.
+
+- [x] **T-035**: Actualizar la documentación de frontend y el estado de la historia en el backlog.
+  - **Archivos**: `docs/frontend-standards.md`, `backlog/backlog.md`.
+  - **Dependencias**: T-034.

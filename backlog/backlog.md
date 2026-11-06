@@ -97,7 +97,7 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 | HU-18 · Prueba de carga con 500 usuarios simultáneos | EP-05 | Backlog | 3 |
 | HU-19 · Reservar un recurso desde la interfaz web | EP-06 | En Revisión | 3 |
 | HU-20 · Consultar y cancelar mis reservas desde la interfaz web | EP-06 | Backlog | 3 |
-| HU-21 · Administrar usuarios y recursos desde la interfaz web | EP-06 | Backlog | 3 |
+| HU-21 · Administrar usuarios y recursos desde la interfaz web | EP-06 | En Revisión | 3 |
 | HU-22 · Entorno local con un solo comando | EP-07 | En Revisión | 3 |
 | HU-23 · Pipeline de integración continua | EP-07 | En Revisión | 3 |
 | HU-24 · README operativo con arquitectura, variables y ejemplos curl | EP-07 | Backlog | 3 |
@@ -711,9 +711,12 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 
 **Conversación**
 
-- Indeterminado (bloquea el DoR): el stack de la interfaz. El plan de trabajo recomienda React, Vite, TypeScript, React Router, TanStack Query y Tailwind, y pide preguntar antes si se prefiere Thymeleaf.
-- Indeterminado (bloquea el DoR): cómo se distingue al administrador sin autenticación en esta fase.
+- Resuelto el 2026-11-06: el stack es React, Vite, TypeScript, React Router, TanStack Query y Tailwind CSS, ya implementado en HU-19.
+- Resuelto el 2026-11-06: sin autenticación en esta fase, el panel `/admin` es la superficie de administración y se asume que quien lo usa actúa como administrador. La limitación se documenta; no se agrega un rol al backend.
 - Las pruebas E2E se escriben con Playwright.
+- Implementado: `/admin` redirige a `/admin/usuarios`; usuarios con listado, búsqueda, detalle, alta y cambio de estado; recursos con listado, búsqueda, detalle, alta, edición y cambio de estado.
+- Se completó T-018 para que el cambio a `MANTENIMIENTO` devuelva 409 `RECURSO_CON_RESERVAS_FUTURAS` cuando existan reservas `ACTIVA` con fin posterior; aplica al cambio de estado y a la edición del recurso.
+- Verificado el 2026-11-06: lint, typecheck, 41 pruebas de Vitest, build y 8 pruebas E2E de Playwright contra PostgreSQL y la API reales en Docker; la suite del backend, PIT con 100 % de mutaciones eliminadas y JaCoCo pasan.
 
 **Tareas**
 

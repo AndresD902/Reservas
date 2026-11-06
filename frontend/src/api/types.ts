@@ -61,3 +61,18 @@ export interface CreateReservationRequest {
   fechaInicio: string
   fechaFin: string
 }
+
+export interface CreateUserRequest {
+  nombre: string
+  documento: string
+  correo: string
+  estado: UserStatus
+}
+
+export interface CreateResourceRequest {
+  nombre: string
+  descripcion: string | null
+  tipo: string
+  capacidad: number
+  estado: ResourceStatus
+}
