@@ -74,6 +74,11 @@ Todo el código vive bajo `com.institucion.reservas`. La regla de dependencia en
 
 La mecánica es la de `docs/engineering-standards.md`. Lo que se exige a la suite —aislamiento de la lógica de negocio, pruebas unitarias y de integración, *mutation testing* sobre los servicios— lo fija la constitución, en su principio 4 y en la sección "Estándares de Calidad". Las pruebas de integración corren con el perfil `test` sobre H2 en memoria; Flyway aplica las migraciones y no se comparte la base de datos de desarrollo. Los builders de datos y la limpieza entre pruebas viven en `src/test/java/.../support/`.
 
+- Las pruebas unitarias de la capa de servicio viven en `src/test/java/com/institucion/reservas/service/impl/`. Usan JUnit 5 y Mockito, mappers reales y mocks solo de repositorios.
+- `build.gradle` configura JaCoCo con umbral de 90 % de líneas por clase sobre `com.institucion.reservas.service.impl.*` y PIT con `mutationThreshold = 80` y `coverageThreshold = 90` sobre las mismas clases. `check` depende de ambas verificaciones, así que `./gradlew build` falla si alguno baja.
+- PIT solo corre las pruebas de `com.institucion.reservas.service.**` (`targetTests`), para no ejecutar las de integración que necesitan PostgreSQL.
+- Queda una línea sin cubrir en `ReservaServiceImpl.validarFechas` (`if (fechaFin.isBefore(ahora))`): es inalcanzable porque `fechaInicio >= ahora` y `fechaFin > fechaInicio` ya implican `fechaFin >= ahora`. Se dejó intacta durante HU-14; eliminarla es un `refactor` aparte con test de regresión.
+
 ## Desviaciones conocidas
 
 Brechas entre el código actual y los estándares, detectadas al adoptar el harness. Cada una es trabajo pendiente, no una excepción aceptada: se resuelve con su propia historia en el backlog y se quita de esta tabla cuando se cierra.
@@ -82,5 +87,3 @@ Brechas entre el código actual y los estándares, detectadas al adoptar el harn
 |---|---|
 | Los identificadores del código están en español (`RecursoController`, `fechaInicio`, `EstadoReserva`) | Política de idioma de `docs/base-standards.md`: código e identificadores en inglés |
 | El directorio `specs/001-sistema-reservas-recursos/` está nombrado en español | Política de idioma de `docs/base-standards.md`: nombres de archivos y directorios en inglés |
-| No hay plugin de *mutation testing* configurado en `build.gradle` | Constitución, sección "Estándares de Calidad" |
-| Solo la API de usuarios tiene pruebas de integración; la finalización automática de reservas tiene pruebas unitarias, pero las demás reglas de negocio de reservas y recursos no tienen pruebas | Test Driven Development, en `docs/engineering-standards.md` |

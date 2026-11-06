@@ -72,16 +72,16 @@
 
 ## Fase 6: Pruebas y Calidad de Software
 
-- [ ] **T-013**: Crear suite de pruebas unitarias con JUnit 5 y Mockito para `ReservaService` probando cada regla de negocio y caso borde.
-  - **Archivos**: `src/test/java/.../service/ReservaServiceTest.java`.
+- [x] **T-013**: Crear suite de pruebas unitarias con JUnit 5 y Mockito para `ReservaService` probando cada regla de negocio y caso borde.
+  - **Archivos**: `src/test/java/.../service/ReservaServiceTest.java`, `src/test/java/.../service/UsuarioServiceTest.java`, `src/test/java/.../service/RecursoServiceTest.java`.
   - **Dependencias**: T-009.
 
 - [ ] **T-014**: Crear pruebas de integración para los controladores REST y el manejador de excepciones.
   - **Archivos**: `src/test/java/.../controller/*ControllerTest.java`.
   - **Dependencias**: T-012.
 
-- [ ] **T-015**: Configurar plugin PIT Mutation Testing y verificar cobertura de mutación en la capa de servicios.
-  - **Archivos**: `build.gradle`.
+- [x] **T-015**: Configurar plugin PIT Mutation Testing y verificar cobertura de mutación en la capa de servicios.
+  - **Archivos**: `build.gradle`, `src/test/java/.../service/ReservaServiceTest.java`, `src/test/java/.../service/UsuarioServiceTest.java`, `src/test/java/.../service/RecursoServiceTest.java`.
   - **Dependencias**: T-013.
 
 ## Fase 7: Ciclo de vida de la reserva y mantenimiento
