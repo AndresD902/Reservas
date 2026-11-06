@@ -42,3 +42,9 @@ out/
 .env
 .env.*
 !.env.example
+### Resultados de pruebas de carga (HU-18) ###
+perf/results/
+perf/html-report/
+perf/results.jtl
+perf/results2.jtl
+jmeter.log
