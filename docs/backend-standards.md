@@ -75,4 +75,4 @@ Brechas entre el código actual y los estándares, detectadas al adoptar el harn
 | Los identificadores del código están en español (`RecursoController`, `fechaInicio`, `EstadoReserva`) | Política de idioma de `docs/base-standards.md`: código e identificadores en inglés |
 | El directorio `specs/001-sistema-reservas-recursos/` está nombrado en español | Política de idioma de `docs/base-standards.md`: nombres de archivos y directorios en inglés |
 | No hay plugin de *mutation testing* configurado en `build.gradle` | Constitución, sección "Estándares de Calidad" |
-| Solo la API de usuarios tiene pruebas de integración; las reglas de negocio de reservas y recursos no tienen pruebas | Test Driven Development, en `docs/engineering-standards.md` |
+| Solo la API de usuarios tiene pruebas de integración; la finalización automática de reservas tiene pruebas unitarias, pero las demás reglas de negocio de reservas y recursos no tienen pruebas | Test Driven Development, en `docs/engineering-standards.md` |

@@ -19,4 +19,6 @@ public interface ReservaService {
     List<ReservaResponse> listarPorRango(LocalDateTime fechaInicio, LocalDateTime fechaFin);
 
     ReservaResponse cancelar(Long id);
+
+    int finalizarVencidas(LocalDateTime ahora);
 }

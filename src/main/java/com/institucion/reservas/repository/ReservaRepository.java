@@ -5,6 +5,7 @@ import com.institucion.reservas.entity.ReservaEntity;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -61,4 +62,13 @@ public interface ReservaRepository extends JpaRepository<ReservaEntity, Long> {
             """)
     List<ReservaEntity> findOverlappingInRange(@Param("fechaInicio") LocalDateTime fechaInicio,
                                                @Param("fechaFin") LocalDateTime fechaFin);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+            UPDATE ReservaEntity r
+            SET r.estado = com.institucion.reservas.entity.EstadoReserva.FINALIZADA
+            WHERE r.estado = com.institucion.reservas.entity.EstadoReserva.ACTIVA
+              AND r.fechaFin < :ahora
+            """)
+    int finalizarVencidas(@Param("ahora") LocalDateTime ahora);
 }
