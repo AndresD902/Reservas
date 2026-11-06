@@ -41,7 +41,7 @@ Queda en `http://localhost:5173` (configurable con `FRONTEND_PORT`) y reenvía `
 
 `docker compose down` detiene los servicios; `docker compose down -v` elimina también el volumen de PostgreSQL y vuelve a sembrar los datos en el siguiente arranque. Con el perfil activo, usa `docker compose --profile frontend down`.
 
-`.env` no se versiona. `.env.example` solo contiene valores de desarrollo. Las variables `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`, `POSTGRES_PORT`, `API_PORT` y `FRONTEND_PORT` se leen del entorno.
+`.env` no se versiona. `.env.example` solo contiene valores de desarrollo. Las variables `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`, `POSTGRES_PORT`, `API_PORT`, `FRONTEND_PORT`, `ADMIN_NAME`, `ADMIN_EMAIL` y `ADMIN_PASSWORD` se leen del entorno. En el perfil `local` se crea el administrador de desarrollo con esos valores; las lecturas de usuarios, recursos y reservas siguen siendo públicas, pero las escrituras de usuarios y recursos exigen la sesión de administrador.
 
 ### Entorno con devcontainer (recomendado)
 
@@ -99,7 +99,7 @@ npm install
 npm run dev
 ```
 
-Abre `http://localhost:5173`. Vite proxya `/api` hacia la API; `VITE_API_PROXY_TARGET` permite cambiar ese destino. La reserva está en `/reservar` y el panel administrativo en `/admin` (redirige a `/admin/usuarios`), sin autenticación en esta fase.
+Abre `http://localhost:5173`. Vite proxya `/api` hacia la API; `VITE_API_PROXY_TARGET` permite cambiar ese destino. La reserva está en `/reservar` y el panel administrativo en `/admin` (redirige a `/admin/usuarios`), que exige iniciar sesión en `/login`.
 
 ```bash
 npm run lint
@@ -117,6 +117,27 @@ npm run test:e2e
 ```
 
 Si la API ya está corriendo en `http://localhost:8080`, el script la reutiliza.
+
+## Autenticación del administrador
+
+El panel `/admin` exige una sesión de administrador. En el perfil `local`, la API siembra un administrador de desarrollo al arrancar:
+
+| Variable | Valor de desarrollo |
+|---|---|
+| `ADMIN_EMAIL` | `admin@example.com` |
+| `ADMIN_PASSWORD` | `admin123` |
+| `ADMIN_NAME` | `Administrador local` |
+
+Esos valores son solo para desarrollo: cámbialos en `.env` o en el entorno. Las contraseñas se guardan con hash BCrypt.
+
+Endpoints:
+
+- `POST /auth/login` recibe `{"correo","password"}` y abre la sesión.
+- `POST /auth/logout` invalida la sesión.
+- `GET /auth/me` devuelve el administrador autenticado.
+- `GET /auth/csrf` entrega el token CSRF y la cookie `XSRF-TOKEN`.
+
+Las escrituras de usuarios y recursos requieren la sesión y la cabecera `X-XSRF-TOKEN`; el cliente web las gestiona automáticamente. Las lecturas y el flujo de reserva siguen abiertos.
 
 ## Integración continua
 

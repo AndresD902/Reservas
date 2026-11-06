@@ -7,7 +7,7 @@ description: "Stack, estructura, contrato con la API, convenciones de componente
 
 Este documento gobierna la aplicación web que vive en `frontend/`: el stack, la organización del código, la comunicación con la API, las convenciones de interfaz y las pruebas. Es un documento delegado de `docs/base-standards.md`, que rige las reglas transversales, incluida la política de idioma.
 
-La interfaz de esta fase es una SPA sin autenticación: el usuario activo se elige en un selector y la API sigue siendo la autoridad sobre las reglas de negocio.
+La interfaz de esta fase es una SPA con login de administrador: el usuario activo del flujo de reserva se elige en un selector, mientras que el panel `/admin` exige una sesión autenticada. La API sigue siendo la autoridad sobre las reglas de negocio.
 
 ## Stack
 
@@ -28,8 +28,8 @@ La interfaz de esta fase es una SPA sin autenticación: el usuario activo se eli
 
 | Ruta | Contenido |
 |---|---|
-| `frontend/src/api/` | Cliente HTTP, tipos del contrato y funciones por recurso (`users`, `resources`, `reservations`) |
-| `frontend/src/hooks/` | Hooks de TanStack Query y hooks de contexto |
+| `frontend/src/api/` | Cliente HTTP, tipos del contrato y funciones por recurso (`auth`, `users`, `resources`, `reservations`) |
+| `frontend/src/hooks/` | Hooks de TanStack Query y hooks de contexto, incluido `use-auth` |
 | `frontend/src/context/` | Contexto y provider de selección de usuario |
 | `frontend/src/components/` | Componentes reutilizables, componentes de la pantalla de reserva y componentes del panel administrativo |
 | `frontend/src/pages/` | Páginas asociadas a rutas |
@@ -42,10 +42,10 @@ Los nombres de archivos y directorios van en inglés y kebab-case. Los identific
 
 ## Comunicación con la API
 
-- `src/api/client.ts` centraliza `fetch`, el parseo del error común `{status,error,message}` y la clase `ApiError`.
+- `src/api/client.ts` centraliza `fetch`, el parseo del error común `{status,error,message}`, la clase `ApiError`, el envío de credenciales (`credentials: 'include'`) y el token CSRF en la cabecera `X-XSRF-TOKEN`. Si la cookie `XSRF-TOKEN` no existe, el cliente la obtiene de `GET /auth/csrf` antes de la primera mutación.
 - La URL base es `import.meta.env.VITE_API_BASE_URL ?? '/api'`. En desarrollo y E2E, Vite proxya `/api` hacia `http://localhost:8080` y elimina el prefijo antes de reenviar. `VITE_API_PROXY_TARGET` permite cambiar el destino del proxy sin tocar el código.
 - Los componentes no llaman a `fetch` directamente: usan hooks de TanStack Query, que concentran `queryKey`, `staleTime`, reintentos y mutaciones.
-- Los errores de negocio se traducen con `describeApiError` usando el código del backend (`RECURSO_NO_DISPONIBLE`, `FECHAS_INVALIDAS`, `USUARIO_INACTIVO`, `DOCUMENTO_DUPLICADO`, `CORREO_DUPLICADO`, `RECURSO_CON_RESERVAS_FUTURAS`, etc.). No se muestran mensajes técnicos crudos.
+- Los errores de negocio se traducen con `describeApiError` usando el código del backend (`RECURSO_NO_DISPONIBLE`, `FECHAS_INVALIDAS`, `USUARIO_INACTIVO`, `DOCUMENTO_DUPLICADO`, `CORREO_DUPLICADO`, `RECURSO_CON_RESERVAS_FUTURAS`, `CREDENCIALES_INVALIDAS`, `NO_AUTENTICADO`, `ACCESO_DENEGADO`, etc.). No se muestran mensajes técnicos crudos.
 - Los códigos 400, 404 y 409 deben producir un mensaje claro y accionable; el 409 por solapamiento o por mantenimiento con reservas activas nunca se trata como un error genérico.
 - El panel administrativo usa los endpoints de usuarios y recursos: listados paginados, detalle, alta, edición y cambio de estado. La API sigue validando duplicados y transiciones; el cliente solo presenta el resultado.
 
@@ -59,7 +59,7 @@ Los nombres de archivos y directorios van en inglés y kebab-case. Los identific
 ## Interfaz y accesibilidad
 
 - La pantalla principal vive en `/reservar`; el detalle de un recurso, en `/recursos/:recursoId`.
-- El panel administrativo vive en `/admin`, redirige a `/admin/usuarios` y expone `/admin/usuarios` y `/admin/recursos`. Sin autenticación en esta fase, se asume que quien accede actúa como administrador; la limitación es explícita en la interfaz y no se agrega un rol al backend.
+- El panel administrativo vive en `/admin`, redirige a `/admin/usuarios` y expone `/admin/usuarios` y `/admin/recursos`. Desde HU-25 exige una sesión de administrador: `RequireAdmin` consulta `GET /auth/me` y redirige a `/login` cuando no hay sesión. El login está en `/login`; el cierre de sesión vive en el encabezado. Los usuarios del flujo de reserva siguen eligiéndose con el selector y no se autentican.
 - Los listados administrativos tienen búsqueda local y filtro por estado; el detalle y los formularios conviven en la misma página. Los usuarios se pueden crear y activar o inactivar. Los recursos se pueden crear, editar y cambiar a `DISPONIBLE`, `MANTENIMIENTO` o `FUERA_DE_SERVICIO`.
 - La API rechaza el cambio a `MANTENIMIENTO` cuando el recurso tiene reservas `ACTIVA` con fin posterior; la interfaz muestra el error y no oculta ni cancela esas reservas.
 - El selector de usuario solo lista usuarios activos y conserva la selección en `localStorage` (`reservas.selectedUserId`). Si el usuario guardado deja de estar activo, se limpia.
@@ -78,7 +78,7 @@ Los nombres de archivos y directorios van en inglés y kebab-case. Los identific
 | `npm run build` | Typecheck y build de producción con Vite |
 | `npm run test:e2e` | Playwright; arranca la API y Vite si no están corriendo |
 
-Las pruebas de componentes viven junto al código (`*.test.tsx` o `*.test.ts`) y usan Testing Library con `jsdom`. Cubren la reserva, la administración de usuarios y la administración de recursos, incluidos los errores de duplicados y de mantenimiento. Las pruebas E2E viven en `frontend/e2e/`, crean sus propios usuarios y recursos únicos por API y cubren el flujo feliz de reserva, el conflicto 409, la validación de fechas, la consulta de disponibilidad, el alta y cambio de estado de usuarios, el alta y edición de recursos y el bloqueo de mantenimiento con reservas futuras. `tsconfig.node.json` incluye `frontend/e2e/` para que el typecheck y el editor resuelvan `process` y los módulos `node:*`.
+Las pruebas de componentes viven junto al código (`*.test.tsx` o `*.test.ts`) y usan Testing Library con `jsdom`. Cubren la reserva, la administración de usuarios, la administración de recursos y el login, incluidos los errores de duplicados, de mantenimiento y de credenciales inválidas. Las pruebas E2E viven en `frontend/e2e/`, crean sus propios usuarios y recursos únicos por API y cubren el flujo feliz de reserva, el conflicto 409, la validación de fechas, la consulta de disponibilidad, el alta y cambio de estado de usuarios, el alta y edición de recursos y el bloqueo de mantenimiento con reservas futuras. `tsconfig.node.json` incluye `frontend/e2e/` para que el typecheck y el editor resuelvan `process` y los módulos `node:*`.
 
 `npm run test:e2e` requiere PostgreSQL y un JDK 21 para levantar la API con `gradlew bootRun`. En local, el script `frontend/scripts/start-backend.mjs` arranca el backend con el perfil `local` y reutiliza una instancia existente si ya está en `http://localhost:8080`. En CI, el job `browser-e2e` levanta PostgreSQL como servicio y ejecuta el mismo comando.
 
@@ -96,5 +96,5 @@ Los reportes de Playwright se publican como artefacto aunque la ejecución falle
 
 ## Limitaciones conocidas
 
-- No hay autenticación ni autorización en esta fase; el usuario se elige manualmente y el panel `/admin` se considera una superficie administrativa sin control de rol.
+- Los usuarios del flujo de reserva no se autentican: se eligen manualmente con el selector. El panel `/admin` sí exige la sesión de administrador implementada en HU-25.
 - Consultar y cancelar reservas desde la interfaz corresponde a HU-20; la administración de usuarios y recursos ya está cubierta por HU-21.

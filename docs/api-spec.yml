@@ -1,37 +1,39 @@
+description: Contrato OpenAPI de los endpoints expuestos. Se mantiene generado desde el código con SpringDoc.
 ---
-description: Contrato OpenAPI de los endpoints expuestos. Se mantiene generado desde el código con SpringDoc. ---
----
-openapi: "3.1.0"
+openapi: 3.1.0
 info:
-  title: "Sistema de reservas"
-  description: "API REST para gestionar la reserva de espacios físicos y recursos.\n\
-    Los errores se devuelven con la estructura común status, error y message.\n"
-  version: "0.0.1-SNAPSHOT"
+  title: Sistema de reservas
+  description: |
+    API REST para gestionar la reserva de espacios físicos y recursos.
+    Los errores se devuelven con la estructura común status, error y message.
+  version: 0.0.1-SNAPSHOT
 servers:
-- url: "http://localhost"
-  description: "Generated server url"
+- url: http://localhost
+  description: Generated server url
 tags:
-- name: "Recursos"
+- name: Recursos
   description: "Registro, consulta, estado y disponibilidad de recursos"
-- name: "Usuarios"
+- name: Autenticación
+  description: Inicio y cierre de sesión del administrador
+- name: Usuarios
   description: "Registro, consulta y gestión de estado de usuarios"
-- name: "Reservas"
+- name: Reservas
   description: "Creación, cancelación y consulta de reservas"
 paths:
   /usuarios/{id}/estado:
     put:
       tags:
-      - "Usuarios"
-      summary: "Cambiar estado de usuario"
-      description: "Activa o inactiva un usuario."
-      operationId: "actualizarEstado"
+      - Usuarios
+      summary: Cambiar estado de usuario
+      description: Activa o inactiva un usuario.
+      operationId: actualizarEstado
       parameters:
-      - name: "id"
-        in: "path"
+      - name: id
+        in: path
         required: true
         schema:
-          type: "integer"
-          format: "int64"
+          type: integer
+          format: int64
       requestBody:
         content:
           application/json:
@@ -40,7 +42,7 @@ paths:
         required: true
       responses:
         "200":
-          description: "Estado actualizado"
+          description: Estado actualizado
           content:
             '*/*':
               schema:
@@ -52,30 +54,30 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
         "404":
-          description: "USUARIO_NO_ENCONTRADO"
+          description: USUARIO_NO_ENCONTRADO
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
         "500":
-          description: "Error interno"
+          description: Error interno
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
     patch:
       tags:
-      - "Usuarios"
-      summary: "Cambiar estado de usuario"
-      description: "Activa o inactiva un usuario."
-      operationId: "actualizarEstado_1"
+      - Usuarios
+      summary: Cambiar estado de usuario
+      description: Activa o inactiva un usuario.
+      operationId: actualizarEstado_1
       parameters:
-      - name: "id"
-        in: "path"
+      - name: id
+        in: path
         required: true
         schema:
-          type: "integer"
-          format: "int64"
+          type: integer
+          format: int64
       requestBody:
         content:
           application/json:
@@ -84,7 +86,7 @@ paths:
         required: true
       responses:
         "200":
-          description: "Estado actualizado"
+          description: Estado actualizado
           content:
             '*/*':
               schema:
@@ -96,13 +98,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
         "404":
-          description: "USUARIO_NO_ENCONTRADO"
+          description: USUARIO_NO_ENCONTRADO
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
         "500":
-          description: "Error interno"
+          description: Error interno
           content:
             '*/*':
               schema:
@@ -110,17 +112,17 @@ paths:
   /recursos/{id}/estado:
     put:
       tags:
-      - "Recursos"
-      summary: "Cambiar estado de recurso"
+      - Recursos
+      summary: Cambiar estado de recurso
       description: "Cambia un recurso a DISPONIBLE, MANTENIMIENTO o FUERA_DE_SERVICIO."
-      operationId: "actualizarEstado_2"
+      operationId: actualizarEstado_2
       parameters:
-      - name: "id"
-        in: "path"
+      - name: id
+        in: path
         required: true
         schema:
-          type: "integer"
-          format: "int64"
+          type: integer
+          format: int64
       requestBody:
         content:
           application/json:
@@ -129,7 +131,7 @@ paths:
         required: true
       responses:
         "200":
-          description: "Estado actualizado"
+          description: Estado actualizado
           content:
             '*/*':
               schema:
@@ -141,36 +143,36 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
         "404":
-          description: "RECURSO_NO_ENCONTRADO"
+          description: RECURSO_NO_ENCONTRADO
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
         "409":
-          description: "RECURSO_CON_RESERVAS_FUTURAS"
+          description: RECURSO_CON_RESERVAS_FUTURAS
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
         "500":
-          description: "Error interno"
+          description: Error interno
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
     patch:
       tags:
-      - "Recursos"
-      summary: "Cambiar estado de recurso"
+      - Recursos
+      summary: Cambiar estado de recurso
       description: "Cambia un recurso a DISPONIBLE, MANTENIMIENTO o FUERA_DE_SERVICIO."
-      operationId: "actualizarEstado_3"
+      operationId: actualizarEstado_3
       parameters:
-      - name: "id"
-        in: "path"
+      - name: id
+        in: path
         required: true
         schema:
-          type: "integer"
-          format: "int64"
+          type: integer
+          format: int64
       requestBody:
         content:
           application/json:
@@ -179,7 +181,7 @@ paths:
         required: true
       responses:
         "200":
-          description: "Estado actualizado"
+          description: Estado actualizado
           content:
             '*/*':
               schema:
@@ -191,19 +193,19 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
         "404":
-          description: "RECURSO_NO_ENCONTRADO"
+          description: RECURSO_NO_ENCONTRADO
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
         "409":
-          description: "RECURSO_CON_RESERVAS_FUTURAS"
+          description: RECURSO_CON_RESERVAS_FUTURAS
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
         "500":
-          description: "Error interno"
+          description: Error interno
           content:
             '*/*':
               schema:
@@ -211,49 +213,49 @@ paths:
   /recursos/{id}:
     get:
       tags:
-      - "Recursos"
-      summary: "Consultar recurso"
-      description: "Devuelve un recurso por su identificador."
-      operationId: "obtenerPorId"
+      - Recursos
+      summary: Consultar recurso
+      description: Devuelve un recurso por su identificador.
+      operationId: obtenerPorId
       parameters:
-      - name: "id"
-        in: "path"
+      - name: id
+        in: path
         required: true
         schema:
-          type: "integer"
-          format: "int64"
+          type: integer
+          format: int64
       responses:
         "200":
-          description: "Recurso encontrado"
+          description: Recurso encontrado
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RecursoResponse"
         "404":
-          description: "RECURSO_NO_ENCONTRADO"
+          description: RECURSO_NO_ENCONTRADO
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
         "500":
-          description: "Error interno"
+          description: Error interno
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
     put:
       tags:
-      - "Recursos"
-      summary: "Actualizar recurso"
-      description: "Actualiza todos los datos de un recurso."
-      operationId: "actualizar"
+      - Recursos
+      summary: Actualizar recurso
+      description: Actualiza todos los datos de un recurso.
+      operationId: actualizar
       parameters:
-      - name: "id"
-        in: "path"
+      - name: id
+        in: path
         required: true
         schema:
-          type: "integer"
-          format: "int64"
+          type: integer
+          format: int64
       requestBody:
         content:
           application/json:
@@ -262,31 +264,31 @@ paths:
         required: true
       responses:
         "200":
-          description: "Recurso actualizado"
+          description: Recurso actualizado
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RecursoResponse"
         "400":
-          description: "VALIDACION"
+          description: VALIDACION
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
         "404":
-          description: "RECURSO_NO_ENCONTRADO"
+          description: RECURSO_NO_ENCONTRADO
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
         "409":
-          description: "RECURSO_CON_RESERVAS_FUTURAS"
+          description: RECURSO_CON_RESERVAS_FUTURAS
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
         "500":
-          description: "Error interno"
+          description: Error interno
           content:
             '*/*':
               schema:
@@ -294,44 +296,43 @@ paths:
   /usuarios:
     get:
       tags:
-      - "Usuarios"
-      summary: "Listar usuarios"
-      description: "Devuelve una página de usuarios con filtro opcional por estado."
-      operationId: "listar"
+      - Usuarios
+      summary: Listar usuarios
+      description: Devuelve una página de usuarios con filtro opcional por estado.
+      operationId: listar
       parameters:
-      - name: "estado"
-        in: "query"
+      - name: estado
+        in: query
         required: false
         schema:
-          type: "string"
+          type: string
           enum:
-          - "ACTIVO"
-          - "INACTIVO"
-      - name: "pageable"
-        in: "query"
+          - ACTIVO
+          - INACTIVO
+      - name: pageable
+        in: query
         required: true
         schema:
           $ref: "#/components/schemas/Pageable"
       responses:
         "200":
-          description: "Página de usuarios"
+          description: Página de usuarios
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/PageUsuarioResponse"
         "500":
-          description: "Error interno"
+          description: Error interno
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
     post:
       tags:
-      - "Usuarios"
-      summary: "Registrar usuario"
-      description: "Crea un usuario. Falla con 400 si el documento o el correo ya\
-        \ existen."
-      operationId: "crear"
+      - Usuarios
+      summary: Registrar usuario
+      description: Crea un usuario. Falla con 400 si el documento o el correo ya existen.
+      operationId: crear
       requestBody:
         content:
           application/json:
@@ -340,7 +341,7 @@ paths:
         required: true
       responses:
         "201":
-          description: "Usuario creado"
+          description: Usuario creado
           content:
             '*/*':
               schema:
@@ -353,7 +354,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
         "500":
-          description: "Error interno"
+          description: Error interno
           content:
             '*/*':
               schema:
@@ -361,58 +362,58 @@ paths:
   /reservas:
     get:
       tags:
-      - "Reservas"
-      summary: "Listar reservas"
+      - Reservas
+      summary: Listar reservas
       description: "Devuelve una página de reservas con filtros opcionales por estado,\
         \ usuario y recurso."
-      operationId: "listar_1"
+      operationId: listar_1
       parameters:
-      - name: "estado"
-        in: "query"
+      - name: estado
+        in: query
         required: false
         schema:
-          type: "string"
+          type: string
           enum:
-          - "ACTIVA"
-          - "CANCELADA"
-          - "FINALIZADA"
-      - name: "usuarioId"
-        in: "query"
+          - ACTIVA
+          - CANCELADA
+          - FINALIZADA
+      - name: usuarioId
+        in: query
         required: false
         schema:
-          type: "integer"
-          format: "int64"
-      - name: "recursoId"
-        in: "query"
+          type: integer
+          format: int64
+      - name: recursoId
+        in: query
         required: false
         schema:
-          type: "integer"
-          format: "int64"
-      - name: "pageable"
-        in: "query"
+          type: integer
+          format: int64
+      - name: pageable
+        in: query
         required: true
         schema:
           $ref: "#/components/schemas/Pageable"
       responses:
         "200":
-          description: "Página de reservas"
+          description: Página de reservas
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/PageReservaResponse"
         "500":
-          description: "Error interno"
+          description: Error interno
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
     post:
       tags:
-      - "Reservas"
-      summary: "Crear reserva"
+      - Reservas
+      summary: Crear reserva
       description: "Crea una reserva tras validar usuario activo, recurso disponible,\
         \ fechas, solapamiento y límite de 3 activas."
-      operationId: "crear_1"
+      operationId: crear_1
       requestBody:
         content:
           application/json:
@@ -421,7 +422,7 @@ paths:
         required: true
       responses:
         "201":
-          description: "Reserva creada"
+          description: Reserva creada
           content:
             '*/*':
               schema:
@@ -440,13 +441,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
         "409":
-          description: "RECURSO_NO_DISPONIBLE"
+          description: RECURSO_NO_DISPONIBLE
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
         "500":
-          description: "Error interno"
+          description: Error interno
           content:
             '*/*':
               schema:
@@ -454,50 +455,50 @@ paths:
   /recursos:
     get:
       tags:
-      - "Recursos"
-      summary: "Listar recursos"
-      description: "Devuelve una página de recursos con filtros opcionales por estado\
-        \ y tipo."
-      operationId: "listar_2"
+      - Recursos
+      summary: Listar recursos
+      description: Devuelve una página de recursos con filtros opcionales por estado
+        y tipo.
+      operationId: listar_2
       parameters:
-      - name: "estado"
-        in: "query"
+      - name: estado
+        in: query
         required: false
         schema:
-          type: "string"
+          type: string
           enum:
-          - "DISPONIBLE"
-          - "MANTENIMIENTO"
-          - "FUERA_DE_SERVICIO"
-      - name: "tipo"
-        in: "query"
+          - DISPONIBLE
+          - MANTENIMIENTO
+          - FUERA_DE_SERVICIO
+      - name: tipo
+        in: query
         required: false
         schema:
-          type: "string"
-      - name: "pageable"
-        in: "query"
+          type: string
+      - name: pageable
+        in: query
         required: true
         schema:
           $ref: "#/components/schemas/Pageable"
       responses:
         "200":
-          description: "Página de recursos"
+          description: Página de recursos
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/PageRecursoResponse"
         "500":
-          description: "Error interno"
+          description: Error interno
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
     post:
       tags:
-      - "Recursos"
-      summary: "Registrar recurso"
-      description: "Crea un recurso."
-      operationId: "crear_2"
+      - Recursos
+      summary: Registrar recurso
+      description: Crea un recurso.
+      operationId: crear_2
       requestBody:
         content:
           application/json:
@@ -506,19 +507,55 @@ paths:
         required: true
       responses:
         "201":
-          description: "Recurso creado"
+          description: Recurso creado
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RecursoResponse"
         "400":
-          description: "VALIDACION"
+          description: VALIDACION
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
         "500":
-          description: "Error interno"
+          description: Error interno
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+  /auth/logout:
+    post:
+      tags:
+      - Autenticación
+      summary: Cerrar sesión
+      description: Invalida la sesión actual.
+      operationId: logout
+      responses:
+        "204":
+          description: Sesión cerrada
+  /auth/login:
+    post:
+      tags:
+      - Autenticación
+      summary: Iniciar sesión
+      description: Autentica al administrador y guarda la sesión en una cookie HttpOnly.
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+        required: true
+      responses:
+        "200":
+          description: Sesión iniciada
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AdministradorResponse"
+        "401":
+          description: CREDENCIALES_INVALIDAS
           content:
             '*/*':
               schema:
@@ -526,32 +563,32 @@ paths:
   /usuarios/{id}:
     get:
       tags:
-      - "Usuarios"
-      summary: "Consultar usuario"
-      description: "Devuelve un usuario por su identificador."
-      operationId: "obtenerPorId_1"
+      - Usuarios
+      summary: Consultar usuario
+      description: Devuelve un usuario por su identificador.
+      operationId: obtenerPorId_1
       parameters:
-      - name: "id"
-        in: "path"
+      - name: id
+        in: path
         required: true
         schema:
-          type: "integer"
-          format: "int64"
+          type: integer
+          format: int64
       responses:
         "200":
-          description: "Usuario encontrado"
+          description: Usuario encontrado
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/UsuarioResponse"
         "404":
-          description: "USUARIO_NO_ENCONTRADO"
+          description: USUARIO_NO_ENCONTRADO
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
         "500":
-          description: "Error interno"
+          description: Error interno
           content:
             '*/*':
               schema:
@@ -559,52 +596,52 @@ paths:
   /reservas/{id}:
     get:
       tags:
-      - "Reservas"
-      summary: "Consultar reserva"
-      description: "Devuelve una reserva por su identificador."
-      operationId: "obtenerPorId_2"
+      - Reservas
+      summary: Consultar reserva
+      description: Devuelve una reserva por su identificador.
+      operationId: obtenerPorId_2
       parameters:
-      - name: "id"
-        in: "path"
+      - name: id
+        in: path
         required: true
         schema:
-          type: "integer"
-          format: "int64"
+          type: integer
+          format: int64
       responses:
         "200":
-          description: "Reserva encontrada"
+          description: Reserva encontrada
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ReservaResponse"
         "404":
-          description: "RESERVA_NO_ENCONTRADA"
+          description: RESERVA_NO_ENCONTRADA
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
         "500":
-          description: "Error interno"
+          description: Error interno
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
     delete:
       tags:
-      - "Reservas"
-      summary: "Cancelar reserva"
-      description: "Cancela una reserva ACTIVA. Rechaza las FINALIZADA y las ya CANCELADA."
-      operationId: "cancelar"
+      - Reservas
+      summary: Cancelar reserva
+      description: Cancela una reserva ACTIVA. Rechaza las FINALIZADA y las ya CANCELADA.
+      operationId: cancelar
       parameters:
-      - name: "id"
-        in: "path"
+      - name: id
+        in: path
         required: true
         schema:
-          type: "integer"
-          format: "int64"
+          type: integer
+          format: int64
       responses:
         "200":
-          description: "Reserva cancelada"
+          description: Reserva cancelada
           content:
             '*/*':
               schema:
@@ -616,13 +653,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
         "404":
-          description: "RESERVA_NO_ENCONTRADA"
+          description: RESERVA_NO_ENCONTRADA
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
         "500":
-          description: "Error interno"
+          description: Error interno
           content:
             '*/*':
               schema:
@@ -630,34 +667,34 @@ paths:
   /reservas/usuario/{usuarioId}:
     get:
       tags:
-      - "Reservas"
-      summary: "Consultar reservas de un usuario"
-      description: "Devuelve las reservas de un usuario ordenadas por fecha de inicio."
-      operationId: "listarPorUsuario"
+      - Reservas
+      summary: Consultar reservas de un usuario
+      description: Devuelve las reservas de un usuario ordenadas por fecha de inicio.
+      operationId: listarPorUsuario
       parameters:
-      - name: "usuarioId"
-        in: "path"
+      - name: usuarioId
+        in: path
         required: true
         schema:
-          type: "integer"
-          format: "int64"
+          type: integer
+          format: int64
       responses:
         "200":
-          description: "Reservas del usuario"
+          description: Reservas del usuario
           content:
             '*/*':
               schema:
-                type: "array"
+                type: array
                 items:
                   $ref: "#/components/schemas/ReservaResponse"
         "404":
-          description: "USUARIO_NO_ENCONTRADO"
+          description: USUARIO_NO_ENCONTRADO
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
         "500":
-          description: "Error interno"
+          description: Error interno
           content:
             '*/*':
               schema:
@@ -665,34 +702,34 @@ paths:
   /reservas/recurso/{recursoId}:
     get:
       tags:
-      - "Reservas"
-      summary: "Consultar reservas de un recurso"
-      description: "Devuelve las reservas de un recurso ordenadas por fecha de inicio."
-      operationId: "listarPorRecurso"
+      - Reservas
+      summary: Consultar reservas de un recurso
+      description: Devuelve las reservas de un recurso ordenadas por fecha de inicio.
+      operationId: listarPorRecurso
       parameters:
-      - name: "recursoId"
-        in: "path"
+      - name: recursoId
+        in: path
         required: true
         schema:
-          type: "integer"
-          format: "int64"
+          type: integer
+          format: int64
       responses:
         "200":
-          description: "Reservas del recurso"
+          description: Reservas del recurso
           content:
             '*/*':
               schema:
-                type: "array"
+                type: array
                 items:
                   $ref: "#/components/schemas/ReservaResponse"
         "404":
-          description: "RECURSO_NO_ENCONTRADO"
+          description: RECURSO_NO_ENCONTRADO
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
         "500":
-          description: "Error interno"
+          description: Error interno
           content:
             '*/*':
               schema:
@@ -700,41 +737,41 @@ paths:
   /reservas/rango:
     get:
       tags:
-      - "Reservas"
-      summary: "Consultar reservas por rango"
-      description: "Devuelve las reservas cuyo intervalo se solapa con el rango solicitado\
-        \ (semántica semiabierta) y exige fin posterior a inicio."
-      operationId: "listarPorRango"
+      - Reservas
+      summary: Consultar reservas por rango
+      description: Devuelve las reservas cuyo intervalo se solapa con el rango solicitado
+        (semántica semiabierta) y exige fin posterior a inicio.
+      operationId: listarPorRango
       parameters:
-      - name: "fechaInicio"
-        in: "query"
+      - name: fechaInicio
+        in: query
         required: true
         schema:
-          type: "string"
-          format: "date-time"
-      - name: "fechaFin"
-        in: "query"
+          type: string
+          format: date-time
+      - name: fechaFin
+        in: query
         required: true
         schema:
-          type: "string"
-          format: "date-time"
+          type: string
+          format: date-time
       responses:
         "200":
-          description: "Reservas solapadas"
+          description: Reservas solapadas
           content:
             '*/*':
               schema:
-                type: "array"
+                type: array
                 items:
                   $ref: "#/components/schemas/ReservaResponse"
         "400":
-          description: "FECHAS_INVALIDAS"
+          description: FECHAS_INVALIDAS
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
         "500":
-          description: "Error interno"
+          description: Error interno
           content:
             '*/*':
               schema:
@@ -742,386 +779,446 @@ paths:
   /recursos/{id}/disponibilidad:
     get:
       tags:
-      - "Recursos"
-      summary: "Consultar disponibilidad"
-      description: "Indica si un recurso está disponible en un rango y lista las reservas\
-        \ solapadas."
-      operationId: "consultarDisponibilidad"
+      - Recursos
+      summary: Consultar disponibilidad
+      description: Indica si un recurso está disponible en un rango y lista las reservas
+        solapadas.
+      operationId: consultarDisponibilidad
       parameters:
-      - name: "id"
-        in: "path"
+      - name: id
+        in: path
         required: true
         schema:
-          type: "integer"
-          format: "int64"
-      - name: "fechaInicio"
-        in: "query"
+          type: integer
+          format: int64
+      - name: fechaInicio
+        in: query
         required: true
         schema:
-          type: "string"
-          format: "date-time"
-      - name: "fechaFin"
-        in: "query"
+          type: string
+          format: date-time
+      - name: fechaFin
+        in: query
         required: true
         schema:
-          type: "string"
-          format: "date-time"
+          type: string
+          format: date-time
       responses:
         "200":
-          description: "Disponibilidad calculada"
+          description: Disponibilidad calculada
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/DisponibilidadResponse"
         "400":
-          description: "Fechas obligatorias y rango válido"
+          description: Fechas obligatorias y rango válido
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
         "404":
-          description: "RECURSO_NO_ENCONTRADO"
+          description: RECURSO_NO_ENCONTRADO
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
         "500":
-          description: "Error interno"
+          description: Error interno
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
+  /auth/me:
+    get:
+      tags:
+      - Autenticación
+      summary: Consultar sesión
+      description: Devuelve el administrador autenticado.
+      operationId: me
+      responses:
+        "200":
+          description: Administrador autenticado
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AdministradorResponse"
+        "401":
+          description: CREDENCIALES_INVALIDAS
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+  /auth/csrf:
+    get:
+      tags:
+      - Autenticación
+      summary: Obtener token CSRF
+      description: Devuelve el token CSRF que el cliente debe enviar en las operaciones
+        de escritura.
+      operationId: csrf
+      responses:
+        "200":
+          description: Token CSRF
+          content:
+            '*/*':
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
 components:
   schemas:
     UsuarioEstadoRequest:
-      type: "object"
+      type: object
       properties:
         estado:
-          type: "string"
+          type: string
           enum:
-          - "ACTIVO"
-          - "INACTIVO"
+          - ACTIVO
+          - INACTIVO
       required:
-      - "estado"
+      - estado
     UsuarioResponse:
-      type: "object"
+      type: object
       properties:
         id:
-          type: "integer"
-          format: "int64"
+          type: integer
+          format: int64
         nombre:
-          type: "string"
+          type: string
         documento:
-          type: "string"
+          type: string
         correo:
-          type: "string"
+          type: string
         estado:
-          type: "string"
+          type: string
           enum:
-          - "ACTIVO"
-          - "INACTIVO"
+          - ACTIVO
+          - INACTIVO
     ErrorResponseDto:
-      type: "object"
+      type: object
       properties:
         status:
-          type: "integer"
-          format: "int32"
+          type: integer
+          format: int32
         error:
-          type: "string"
+          type: string
         message:
-          type: "string"
+          type: string
     RecursoEstadoRequest:
-      type: "object"
+      type: object
       properties:
         estado:
-          type: "string"
+          type: string
           enum:
-          - "DISPONIBLE"
-          - "MANTENIMIENTO"
-          - "FUERA_DE_SERVICIO"
+          - DISPONIBLE
+          - MANTENIMIENTO
+          - FUERA_DE_SERVICIO
       required:
-      - "estado"
+      - estado
     RecursoResponse:
-      type: "object"
+      type: object
       properties:
         id:
-          type: "integer"
-          format: "int64"
+          type: integer
+          format: int64
         nombre:
-          type: "string"
+          type: string
         descripcion:
-          type: "string"
+          type: string
         tipo:
-          type: "string"
+          type: string
         capacidad:
-          type: "integer"
-          format: "int32"
+          type: integer
+          format: int32
         estado:
-          type: "string"
+          type: string
           enum:
-          - "DISPONIBLE"
-          - "MANTENIMIENTO"
-          - "FUERA_DE_SERVICIO"
+          - DISPONIBLE
+          - MANTENIMIENTO
+          - FUERA_DE_SERVICIO
     RecursoRequest:
-      type: "object"
+      type: object
       properties:
         nombre:
-          type: "string"
+          type: string
           maxLength: 100
           minLength: 0
         descripcion:
-          type: "string"
+          type: string
           maxLength: 255
           minLength: 0
         tipo:
-          type: "string"
+          type: string
           maxLength: 50
           minLength: 0
         capacidad:
-          type: "integer"
-          format: "int32"
+          type: integer
+          format: int32
           minimum: 1
         estado:
-          type: "string"
+          type: string
           enum:
-          - "DISPONIBLE"
-          - "MANTENIMIENTO"
-          - "FUERA_DE_SERVICIO"
+          - DISPONIBLE
+          - MANTENIMIENTO
+          - FUERA_DE_SERVICIO
       required:
-      - "capacidad"
-      - "estado"
-      - "nombre"
-      - "tipo"
+      - capacidad
+      - estado
+      - nombre
+      - tipo
     UsuarioRequest:
-      type: "object"
+      type: object
       properties:
         nombre:
-          type: "string"
+          type: string
           maxLength: 100
           minLength: 0
         documento:
-          type: "string"
+          type: string
           maxLength: 20
           minLength: 0
         correo:
-          type: "string"
-          format: "email"
+          type: string
+          format: email
           maxLength: 100
           minLength: 0
         estado:
-          type: "string"
+          type: string
           enum:
-          - "ACTIVO"
-          - "INACTIVO"
+          - ACTIVO
+          - INACTIVO
       required:
-      - "correo"
-      - "documento"
-      - "estado"
-      - "nombre"
+      - correo
+      - documento
+      - estado
+      - nombre
     ReservaRequest:
-      type: "object"
+      type: object
       properties:
         usuarioId:
-          type: "integer"
-          format: "int64"
+          type: integer
+          format: int64
         recursoId:
-          type: "integer"
-          format: "int64"
+          type: integer
+          format: int64
         fechaInicio:
-          type: "string"
-          format: "date-time"
+          type: string
+          format: date-time
         fechaFin:
-          type: "string"
-          format: "date-time"
+          type: string
+          format: date-time
       required:
-      - "fechaFin"
-      - "fechaInicio"
-      - "recursoId"
-      - "usuarioId"
+      - fechaFin
+      - fechaInicio
+      - recursoId
+      - usuarioId
     ReservaResponse:
-      type: "object"
+      type: object
       properties:
         id:
-          type: "integer"
-          format: "int64"
+          type: integer
+          format: int64
         usuarioId:
-          type: "integer"
-          format: "int64"
+          type: integer
+          format: int64
         usuarioNombre:
-          type: "string"
+          type: string
         recursoId:
-          type: "integer"
-          format: "int64"
+          type: integer
+          format: int64
         recursoNombre:
-          type: "string"
+          type: string
         fechaInicio:
-          type: "string"
-          format: "date-time"
+          type: string
+          format: date-time
         fechaFin:
-          type: "string"
-          format: "date-time"
+          type: string
+          format: date-time
         estado:
-          type: "string"
+          type: string
           enum:
-          - "ACTIVA"
-          - "CANCELADA"
-          - "FINALIZADA"
+          - ACTIVA
+          - CANCELADA
+          - FINALIZADA
         fechaCreacion:
-          type: "string"
-          format: "date-time"
+          type: string
+          format: date-time
+    LoginRequest:
+      type: object
+      properties:
+        correo:
+          type: string
+          format: email
+          minLength: 1
+        password:
+          type: string
+          minLength: 1
+      required:
+      - correo
+      - password
+    AdministradorResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        nombre:
+          type: string
+        correo:
+          type: string
     Pageable:
-      type: "object"
+      type: object
       properties:
         page:
-          type: "integer"
-          format: "int32"
+          type: integer
+          format: int32
           minimum: 0
         size:
-          type: "integer"
-          format: "int32"
+          type: integer
+          format: int32
           minimum: 1
         sort:
-          type: "array"
+          type: array
           items:
-            type: "string"
+            type: string
     PageUsuarioResponse:
-      type: "object"
+      type: object
       properties:
         totalPages:
-          type: "integer"
-          format: "int32"
+          type: integer
+          format: int32
         totalElements:
-          type: "integer"
-          format: "int64"
+          type: integer
+          format: int64
         size:
-          type: "integer"
-          format: "int32"
+          type: integer
+          format: int32
         content:
-          type: "array"
+          type: array
           items:
             $ref: "#/components/schemas/UsuarioResponse"
         number:
-          type: "integer"
-          format: "int32"
+          type: integer
+          format: int32
         sort:
           $ref: "#/components/schemas/SortObject"
         pageable:
           $ref: "#/components/schemas/PageableObject"
         numberOfElements:
-          type: "integer"
-          format: "int32"
+          type: integer
+          format: int32
         first:
-          type: "boolean"
+          type: boolean
         last:
-          type: "boolean"
+          type: boolean
         empty:
-          type: "boolean"
+          type: boolean
     PageableObject:
-      type: "object"
+      type: object
       properties:
         offset:
-          type: "integer"
-          format: "int64"
+          type: integer
+          format: int64
         paged:
-          type: "boolean"
+          type: boolean
         pageNumber:
-          type: "integer"
-          format: "int32"
+          type: integer
+          format: int32
         pageSize:
-          type: "integer"
-          format: "int32"
+          type: integer
+          format: int32
         sort:
           $ref: "#/components/schemas/SortObject"
         unpaged:
-          type: "boolean"
+          type: boolean
     SortObject:
-      type: "object"
+      type: object
       properties:
         empty:
-          type: "boolean"
+          type: boolean
         sorted:
-          type: "boolean"
+          type: boolean
         unsorted:
-          type: "boolean"
+          type: boolean
     PageReservaResponse:
-      type: "object"
+      type: object
       properties:
         totalPages:
-          type: "integer"
-          format: "int32"
+          type: integer
+          format: int32
         totalElements:
-          type: "integer"
-          format: "int64"
+          type: integer
+          format: int64
         size:
-          type: "integer"
-          format: "int32"
+          type: integer
+          format: int32
         content:
-          type: "array"
+          type: array
           items:
             $ref: "#/components/schemas/ReservaResponse"
         number:
-          type: "integer"
-          format: "int32"
+          type: integer
+          format: int32
         sort:
           $ref: "#/components/schemas/SortObject"
         pageable:
           $ref: "#/components/schemas/PageableObject"
         numberOfElements:
-          type: "integer"
-          format: "int32"
+          type: integer
+          format: int32
         first:
-          type: "boolean"
+          type: boolean
         last:
-          type: "boolean"
+          type: boolean
         empty:
-          type: "boolean"
+          type: boolean
     PageRecursoResponse:
-      type: "object"
+      type: object
       properties:
         totalPages:
-          type: "integer"
-          format: "int32"
+          type: integer
+          format: int32
         totalElements:
-          type: "integer"
-          format: "int64"
+          type: integer
+          format: int64
         size:
-          type: "integer"
-          format: "int32"
+          type: integer
+          format: int32
         content:
-          type: "array"
+          type: array
           items:
             $ref: "#/components/schemas/RecursoResponse"
         number:
-          type: "integer"
-          format: "int32"
+          type: integer
+          format: int32
         sort:
           $ref: "#/components/schemas/SortObject"
         pageable:
           $ref: "#/components/schemas/PageableObject"
         numberOfElements:
-          type: "integer"
-          format: "int32"
+          type: integer
+          format: int32
         first:
-          type: "boolean"
+          type: boolean
         last:
-          type: "boolean"
+          type: boolean
         empty:
-          type: "boolean"
+          type: boolean
     DisponibilidadResponse:
-      type: "object"
+      type: object
       properties:
         recursoId:
-          type: "integer"
-          format: "int64"
+          type: integer
+          format: int64
         fechaInicio:
-          type: "string"
-          format: "date-time"
+          type: string
+          format: date-time
         fechaFin:
-          type: "string"
-          format: "date-time"
+          type: string
+          format: date-time
         disponible:
-          type: "boolean"
+          type: boolean
         reservasSolapadas:
-          type: "array"
+          type: array
           items:
             $ref: "#/components/schemas/ReservaResponse"

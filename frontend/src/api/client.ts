@@ -1,6 +1,36 @@
 import type { ApiErrorBody } from './types'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api'
+const CSRF_COOKIE = 'XSRF-TOKEN'
+const CSRF_HEADER = 'X-XSRF-TOKEN'
+
+function getCookie(name: string): string | null {
+  const prefix = `${name}=`
+  const entry = document.cookie.split('; ').find((row) => row.startsWith(prefix))
+  return entry ? decodeURIComponent(entry.slice(prefix.length)) : null
+}
+
+let csrfRequest: Promise<void> | null = null
+
+async function ensureCsrfToken(): Promise<void> {
+  if (getCookie(CSRF_COOKIE)) {
+    return
+  }
+
+  if (!csrfRequest) {
+    csrfRequest = (async () => {
+      await fetch(`${API_BASE_URL}/auth/csrf`, { credentials: 'include' })
+    })().finally(() => {
+      csrfRequest = null
+    })
+  }
+
+  await csrfRequest
+}
+
+function isMutating(method: string): boolean {
+  return !['GET', 'HEAD', 'OPTIONS'].includes(method.toUpperCase())
+}
 
 export class ApiError extends Error {
   readonly status: number
@@ -46,7 +76,19 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
       headers.set('Content-Type', 'application/json')
     }
 
-    response = await fetch(`${API_BASE_URL}${path}`, { ...init, headers })
+    if (isMutating(init.method ?? 'GET')) {
+      await ensureCsrfToken()
+      const csrfToken = getCookie(CSRF_COOKIE)
+      if (csrfToken) {
+        headers.set(CSRF_HEADER, csrfToken)
+      }
+    }
+
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...init,
+      headers,
+      credentials: 'include',
+    })
   } catch {
     throw new ApiError(
       0,

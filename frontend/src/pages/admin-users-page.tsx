@@ -57,8 +57,7 @@ export function AdminUsersPage() {
         </div>
         <AdminNav />
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          Sin autenticación en esta fase: este panel se considera de administración.
-        </div>
+          Sesión de administrador requerida para gestionar este panel.</div>
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,0.85fr)]">

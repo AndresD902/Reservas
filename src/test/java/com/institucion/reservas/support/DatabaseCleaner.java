@@ -18,5 +18,6 @@ public class DatabaseCleaner {
         jdbcTemplate.update("DELETE FROM reservas");
         jdbcTemplate.update("DELETE FROM recursos");
         jdbcTemplate.update("DELETE FROM usuarios");
+        jdbcTemplate.update("DELETE FROM administradores");
     }
 }

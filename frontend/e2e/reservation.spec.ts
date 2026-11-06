@@ -1,8 +1,13 @@
 import { randomUUID } from 'node:crypto'
 import { expect, test } from '@playwright/test'
 import type { APIRequestContext, Page } from '@playwright/test'
+import { csrfHeaders, loginAsAdmin } from './support/auth.js'
 
 const API_URL = process.env.E2E_API_URL ?? 'http://localhost:8080'
+
+test.beforeEach(async ({ request, context }) => {
+  await loginAsAdmin(request, context)
+})
 
 interface CreatedUser {
   id: number
@@ -48,6 +53,7 @@ async function createUser(
 ): Promise<CreatedUser> {
   const nombre = `000 Usuario E2E ${suffix}`
   const response = await request.post(`${API_URL}/usuarios`, {
+    headers: csrfHeaders(),
     data: {
       nombre,
       documento: `E2E${suffix}`.slice(0, 20),
@@ -66,6 +72,7 @@ async function createResource(
 ): Promise<CreatedResource> {
   const nombre = `000 E2E ${suffix}`
   const response = await request.post(`${API_URL}/recursos`, {
+    headers: csrfHeaders(),
     data: {
       nombre,
       descripcion: 'Recurso creado por la prueba E2E de la interfaz',
@@ -124,6 +131,7 @@ test('un intervalo ocupado muestra el conflicto en la interfaz', async ({
   const { start, end } = futureRange()
 
   const reservationResponse = await request.post(`${API_URL}/reservas`, {
+    headers: csrfHeaders(),
     data: {
       usuarioId: owner.id,
       recursoId: resource.id,

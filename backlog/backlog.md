@@ -24,7 +24,7 @@ La columna "Estado en el tablero" de la tabla de seguimiento es una foto de la f
 
 **Fuera de alcance:**
 
-- Autenticación y autorización: `spec.md` la excluye de esta fase.
+- Autenticación de los usuarios finales: el flujo de reserva sigue eligiendo el usuario con un selector. La autenticación del administrador se incorpora en HU-25.
 - El despliegue a un entorno productivo: el plan de trabajo llega hasta el entorno local y la integración continua.
 
 ## Definición de listo (DoR)
@@ -101,6 +101,7 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 | HU-22 · Entorno local con un solo comando | EP-07 | En Revisión | 3 |
 | HU-23 · Pipeline de integración continua | EP-07 | En Revisión | 3 |
 | HU-24 · README operativo con arquitectura, variables y ejemplos curl | EP-07 | Backlog | 3 |
+| HU-25 · Login del administrador | EP-02 | En Progreso | 1 |
 
 ## Historias
 
@@ -815,3 +816,41 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 - Dado el README, cuando una persona nueva lo sigue, entonces levanta el sistema y hace una reserva sin ayuda.
 - Dado cada ejemplo `curl`, cuando se ejecuta contra el entorno local, entonces funciona tal como está escrito.
 - Dado el README, cuando se ejecuta `check-references.sh`, entonces no reporta referencias rotas.
+
+### HU-25 · Login del administrador
+
+Épica: `EP-02: Gestión de usuarios y recursos`
+
+**Card**
+
+> Como administrador del sistema, quiero autenticarme con mis credenciales en un módulo de login, para acceder a la gestión de reservas, usuarios y recursos solo con identidad verificada.
+
+**Conversación**
+
+- Pedido del propietario del sistema. `spec.md` excluía autenticación "a menos que se especifique formalmente": esta historia la especifica y los artefactos de spec-kit ya se actualizaron antes de implementar.
+- Hoy no hay Spring Security, campo de contraseña ni rol: `usuarios` solo tiene nombre, documento, correo y estado, y el panel `/admin` se asume administrativo sin control (HU-21).
+- Alcance: login solo para el administrador. El flujo de reserva y el selector de usuario de HU-19 no cambian.
+- Supuesto confirmado: contraseñas con hash BCrypt y ninguna credencial real versionada. Ruta propuesta: `POST /auth/login`.
+- Decidido: sesión por cookie `HttpOnly` con Spring Security, no JWT; CSRF con token (`XSRF-TOKEN` y cabecera `X-XSRF-TOKEN`).
+- Decidido: tabla `administradores` separada de `usuarios`, alta por operación; el perfil local siembra un administrador de desarrollo con `ADMIN_EMAIL` y `ADMIN_PASSWORD`.
+- Decidido: se protegen solo las escrituras de usuarios y recursos; las lecturas y el flujo de reserva siguen abiertos.
+- Fuera de alcance: recuperación de contraseña, MFA, bloqueo por intentos y registro público de administradores.
+
+**Tareas**
+
+- Actualizar `spec.md` y los artefactos de spec-kit afectados con el requisito de autenticación del administrador
+- Confirmar las tres decisiones indeterminadas y registrarlas en `plan.md`
+- Agregar Spring Security y la configuración de seguridad
+- Persistir las credenciales del administrador con hash BCrypt
+- Implementar el inicio y el cierre de sesión
+- Proteger el panel `/admin` y redirigir al login sin sesión
+- Cubrir el flujo con pruebas unitarias, de integración y de aceptación
+- Regenerar `docs/api-spec.yml` y documentar el flujo en el README
+
+**Criterios de Aceptación**
+
+- Dado un administrador con credenciales válidas, cuando inicia sesión, entonces se autentica y accede al panel de administración.
+- Dadas credenciales inválidas, cuando intenta iniciar sesión, entonces se responde 401 con el cuerpo de error estándar y no accede.
+- Dado un visitante sin sesión, cuando abre una ruta de `/admin`, entonces se le redirige al login.
+- Dado un administrador autenticado, cuando cierra sesión, entonces debe autenticarse de nuevo para volver al panel.
+- Dada la base de datos tras el alta, cuando se inspecciona la contraseña, entonces está almacenada con hash y no en texto plano.
