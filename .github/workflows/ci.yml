@@ -135,35 +135,14 @@ jobs:
         working-directory: frontend
         run: npm run build
 
-  browser-e2e:
-    name: E2E de navegador
+  serenity-e2e:
+    name: E2E de navegador con Serenity
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_DB: sistema_reservas
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        ports:
-          - '5432:5432'
-        options: >-
-          --health-cmd "pg_isready -U postgres -d sistema_reservas"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-
     env:
-      DB_USERNAME: postgres
-      DB_PASSWORD: postgres
-      SPRING_PROFILES_ACTIVE: local
-      ADMIN_EMAIL: admin@example.com
-      ADMIN_PASSWORD: admin123
       E2E_ADMIN_EMAIL: admin@example.com
       E2E_ADMIN_PASSWORD: admin123
-      CI: 'true'
 
     steps:
       - name: Checkout
@@ -181,31 +160,41 @@ jobs:
       - name: Dar permiso de ejecución al wrapper
         run: chmod +x gradlew
 
-      - name: Configurar Node 24
-        uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
+      - name: Levantar el stack con Docker Compose
+        run: docker compose --profile frontend up -d --build
 
-      - name: Instalar dependencias de la interfaz
-        working-directory: frontend
-        run: npm ci
+      - name: Esperar a que la interfaz y la API respondan
+        run: |
+          for i in $(seq 1 60); do
+            frontend=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5173/login || true)
+            api=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/recursos || true)
+            if [ "$frontend" = "200" ] && [ "$api" = "200" ]; then
+              echo "Stack listo (frontend=$frontend api=$api)"
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "El stack no respondió a tiempo"
+          docker compose logs --tail 50
+          exit 1
+
+      - name: Instalar dependencias del sistema para Chromium
+        run: sudo npx -y playwright@1.64.0 install-deps chromium
 
       - name: Instalar Chromium de Playwright
-        working-directory: frontend
-        run: npx playwright install --with-deps chromium
+        run: ./gradlew installPlaywrightBrowsers --console=plain
 
-      - name: Pruebas E2E de navegador
-        working-directory: frontend
-        run: npm run test:e2e
+      - name: Pruebas E2E de navegador con Serenity
+        run: ./gradlew serenityE2ETest --console=plain
 
-      - name: Publicar reporte de Playwright
+      - name: Publicar reporte de Serenity
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
-          path: |
-            frontend/playwright-report
-            frontend/test-results
+          name: serenity-report
+          path: target/site/serenity
           if-no-files-found: warn
+
+      - name: Bajar el stack
+        if: always()
+        run: docker compose --profile frontend down

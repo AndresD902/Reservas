@@ -166,13 +166,10 @@ cp src/main/resources/application-local.example.yml application-local.yml
 | `VITE_API_BASE_URL` | SPA | `/api` | Prefijo de las llamadas del navegador |
 | `VITE_API_PROXY_TARGET` | Vite en desarrollo | `http://localhost:8080` | Destino del proxy `/api` |
 | `TEST_DB_URL` | `./gradlew postgresTest` | sin valor | URL de PostgreSQL para las pruebas de concurrencia |
-| `E2E_API_URL` | Playwright | `http://localhost:8080` | API usada por las pruebas E2E |
-| `E2E_FRONTEND_PORT` | Playwright | `5173` | Puerto de Vite para las pruebas E2E |
-| `E2E_ADMIN_EMAIL` | Playwright | `admin@example.com` | Administrador con el que operan las pruebas |
-| `E2E_ADMIN_PASSWORD` | Playwright | `admin123` | Contraseña del administrador de pruebas |
-| `CI` | Playwright | sin valor | Activa reintentos y workers del pipeline |
+| `E2E_ADMIN_EMAIL` | Serenity E2E | `admin@example.com` | Administrador con el que operan las pruebas |
+| `E2E_ADMIN_PASSWORD` | Serenity E2E | `admin123` | Contraseña del administrador de pruebas |
 
-Los valores `ADMIN_*` y `E2E_ADMIN_*` son solo de desarrollo. Si cambias las credenciales del administrador en `.env`, cambia también las de E2E o exporta las variables antes de correr Playwright.
+Los valores `ADMIN_*` y `E2E_ADMIN_*` son solo de desarrollo. Si cambias las credenciales del administrador en `.env`, cambia también las de E2E o exporta las variables antes de correr Serenity.
 
 ## Interfaz web
 
@@ -193,15 +190,21 @@ npm test
 npm run build
 ```
 
-Las pruebas E2E usan Playwright, levantan la API y Vite automáticamente y necesitan PostgreSQL y un JDK 21 para el backend:
+Las pruebas E2E de navegador usan Serenity + Playwright (Java) y corren contra el stack de Docker Compose (`http://localhost:5173` y `http://localhost:8080`), con JDK 21:
 
 ```bash
-cd frontend
-npx playwright install chromium
-npm run test:e2e
+docker compose --profile frontend up -d --build
+./gradlew installPlaywrightBrowsers   # una sola vez por máquina
+./gradlew serenityE2ETest
 ```
 
-Si la API ya está corriendo en `http://localhost:8080`, el script la reutiliza.
+El reporte narrado con capturas por paso queda en `target/site/serenity/index.html`. Para ver el navegador en vivo en tu pantalla (útil para grabar):
+
+```bash
+./gradlew serenityE2ETest -Pplaywright.headless=false -Pplaywright.slowmo=800 -Pserenity.take.screenshots=FOR_FAILURES
+```
+
+En WSL el navegador se ve desde Windows gracias a WSLg; en Windows nativo se ve directamente. En Linux puede hacer falta instalar las librerías del sistema de Chromium (`playwright install --with-deps chromium`).
 
 ## Autenticación del administrador
 
@@ -442,7 +445,7 @@ rm -f "$COOKIE_JAR"
 
 ## Integración continua
 
-Cada push y pull request ejecuta [`.github/workflows/ci.yml`](.github/workflows/ci.yml) en GitHub Actions. El workflow tiene tres jobs: `pipeline` corre, en orden, compilación, pruebas unitarias e integración, mutation testing con PIT, cobertura con JaCoCo, pruebas de aceptación y E2E por HTTP; `frontend` corre lint, typecheck, pruebas de componentes y build de la SPA; y `browser-e2e` ejecuta Playwright contra PostgreSQL real, la API y Vite. Si una etapa falla, el job termina en rojo y el paso indica cuál falló.
+Cada push y pull request ejecuta [`.github/workflows/ci.yml`](.github/workflows/ci.yml) en GitHub Actions. El workflow tiene tres jobs: `pipeline` corre, en orden, compilación, pruebas unitarias e integración, mutation testing con PIT, cobertura con JaCoCo, pruebas de aceptación y E2E por HTTP; `frontend` corre lint, typecheck, pruebas de componentes y build de la SPA; y `serenity-e2e` levanta el stack con Docker Compose y ejecuta las pruebas E2E de navegador con Serenity en modo headless. Si una etapa falla, el job termina en rojo y el paso indica cuál falló.
 
 Las tareas locales equivalentes son:
 
@@ -450,10 +453,11 @@ Las tareas locales equivalentes son:
 ./gradlew test
 ./gradlew acceptanceTest
 ./gradlew e2eTest
-cd frontend && npm test && npm run test:e2e
+./gradlew serenityE2ETest
+cd frontend && npm test
 ```
 
-Los reportes de cada etapa quedan como artefactos de la ejecución del workflow, incluidos el reporte HTML de Playwright y las trazas de las pruebas de navegador que fallan.
+Los reportes de cada etapa quedan como artefactos de la ejecución del workflow, incluido el reporte HTML de Serenity (`target/site/serenity`).
 
 El workflow [`zap-baseline.yml`](.github/workflows/zap-baseline.yml) ejecuta además el análisis DAST con OWASP ZAP sobre la API y la interfaz, y publica los reportes HTML y JSON como el artefacto `reporte-seguridad-zap`. El procedimiento reproducible vive en [`security/zap`](security/zap/README.md).
 
@@ -477,8 +481,8 @@ El workflow [`zap-baseline.yml`](.github/workflows/zap-baseline.yml) ejecuta ade
 | Instalar dependencias de la SPA | `cd frontend && npm install` |
 | Levantar Vite en desarrollo | `cd frontend && npm run dev` |
 | Lint, tipos, pruebas y build de la SPA | `cd frontend && npm run lint && npm run typecheck && npm test && npm run build` |
-| Instalar Chromium para Playwright | `cd frontend && npx playwright install chromium` |
-| Pruebas E2E de navegador | `cd frontend && npm run test:e2e` |
+| Instalar Chromium para Playwright | `./gradlew installPlaywrightBrowsers` |
+| Pruebas E2E de navegador | `./gradlew serenityE2ETest` |
 | Verificar referencias y symlinks | `bash ai-specs/scripts/check-references.sh` |
 
 `./gradlew build` ejecuta `check`, que a su vez corre PIT, JaCoCo, aceptación y E2E; por eso tarda más que `./gradlew test`. Para el ciclo de desarrollo usa las tareas acotadas y reserva `build` para antes de cerrar el cambio.
@@ -494,7 +498,7 @@ El workflow [`zap-baseline.yml`](.github/workflows/zap-baseline.yml) ejecuta ade
 | `409 RECURSO_NO_DISPONIBLE` | El intervalo se solapa con otra reserva o el recurso no está disponible | Consulta la disponibilidad y elige otro intervalo |
 | `409 RECURSO_CON_RESERVAS_FUTURAS` | Intentas poner en mantenimiento un recurso con reservas vigentes | Cancela primero las reservas activas o futuras |
 | `check-references.sh` falla con `\r` | El checkout de Windows convirtió el script a CRLF | Ejecútalo desde WSL o Git Bash, o normaliza el archivo a LF |
-| Playwright no encuentra Chromium | Falta el navegador de pruebas | Ejecuta `cd frontend && npx playwright install chromium` |
+| Playwright no encuentra Chromium | Falta el navegador de pruebas | Ejecuta `./gradlew installPlaywrightBrowsers` (en Linux puede hacer falta `playwright install --with-deps chromium`) |
 
 Antes de cambiar código o documentación, lee **[`docs/base-standards.md`](docs/base-standards.md)**: es el punto de entrada de las reglas del proyecto, para las personas del equipo y para los agentes de IA, y el índice del resto de los estándares.
 
