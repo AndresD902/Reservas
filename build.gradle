@@ -4,6 +4,7 @@ plugins {
 	id 'info.solidsoft.pitest' version '1.19.0'
 	id 'org.springframework.boot' version '4.1.2'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'net.serenity-bdd.serenity-gradle-plugin' version '5.3.9'
 }
 
 group = 'com.institucion'
@@ -39,6 +40,14 @@ dependencies {
 	testImplementation 'io.cucumber:cucumber-junit-platform-engine:8.0.4'
 	testImplementation 'io.cucumber:cucumber-spring:8.0.4'
 	testImplementation 'org.junit.platform:junit-platform-suite'
+	// Serenity + Playwright (HU-27): suite E2E de navegador en vivo.
+	testImplementation 'net.serenity-bdd:serenity-playwright:5.3.11'
+	testImplementation 'net.serenity-bdd:serenity-screenplay:5.3.11'
+	testImplementation 'net.serenity-bdd:serenity-screenplay-playwright:5.3.11'
+	testImplementation 'net.serenity-bdd:serenity-ensure:5.3.11'
+	testImplementation 'net.serenity-bdd:serenity-junit5:5.3.11'
+	testImplementation 'com.microsoft.playwright:playwright:1.64.0'
+	testImplementation 'org.assertj:assertj-core:3.27.0'
 	testRuntimeOnly 'com.h2database:h2'
 	testCompileOnly 'org.projectlombok:lombok'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -47,7 +56,7 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform {
-		excludeTags 'acceptance', 'e2e', 'postgres'
+		excludeTags 'acceptance', 'e2e', 'postgres', 'serenity'
 	}
 	// La suite de Cucumber se ejecuta solo con acceptanceTest, nunca en la suite rápida.
 	exclude '**/CucumberAcceptanceSuite.class'
@@ -78,6 +87,56 @@ def e2eTest = tasks.register('e2eTest', Test) {
 	}
 	exclude '**/CucumberAcceptanceSuite.class'
 	shouldRunAfter tasks.named('test')
+}
+
+// E2E de navegador con Serenity + Playwright (HU-27). Requiere la interfaz
+// servida en `serenity.base.url` (por defecto http://localhost:5173); para
+// ver el navegador en vivo: ./gradlew serenityE2ETest -Pplaywright.headless=false
+def serenityE2ETest = tasks.register('serenityE2ETest', Test) {
+	description = 'Ejecuta las pruebas E2E de navegador con Serenity etiquetadas con serenity.'
+	group = 'verification'
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = sourceSets.test.runtimeClasspath
+	useJUnitPlatform {
+		includeTags 'serenity'
+	}
+	exclude '**/CucumberAcceptanceSuite.class'
+	systemProperty 'playwright.headless',
+			System.getProperty('playwright.headless',
+					project.findProperty('playwright.headless') ?: 'true')
+	systemProperty 'serenity.base.url',
+			System.getProperty('serenity.base.url',
+					project.findProperty('serenity.base.url') ?: 'http://localhost:5173')
+	// En WSLg las capturas por paso fallan en modo headed; para ver el
+	// navegador en vivo se usa -Pserenity.take.screenshots=FOR_FAILURES.
+	systemProperty 'serenity.take.screenshots',
+			System.getProperty('serenity.take.screenshots',
+					project.findProperty('serenity.take.screenshots') ?: 'FOR_EACH_ACTION')
+	systemProperty 'serenity.api.url',
+			System.getProperty('serenity.api.url',
+					project.findProperty('serenity.api.url') ?: 'http://localhost:8080')
+	// Retarda cada acción para poder grabar la corrida en vivo en headed.
+	systemProperty 'playwright.slowmo',
+			System.getProperty('playwright.slowmo',
+					project.findProperty('playwright.slowmo') ?: '0')
+	shouldRunAfter tasks.named('test')
+}
+
+// Tras cada corrida (pase o falle) se regenera el reporte HTML en
+// target/site/serenity/index.html con las capturas por paso.
+serenityE2ETest.configure {
+	finalizedBy('aggregate')
+}
+
+// Descarga una sola vez los navegadores de Playwright en la máquina local.
+// Sin este paso, la primera corrida de serenityE2ETest intenta instalarlos
+// dentro del test y puede expirar.
+tasks.register('installPlaywrightBrowsers', JavaExec) {
+	description = 'Descarga los navegadores de Playwright (una sola vez por máquina).'
+	group = 'verification'
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'com.microsoft.playwright.CLI'
+	args = ['install', 'chromium']
 }
 
 // Las pruebas de concurrencia verifican los bloqueos de PostgreSQL, que H2 no

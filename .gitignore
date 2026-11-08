@@ -56,15 +56,14 @@ security/zap/reports/summary.md
 security/zap/reports/zap.yaml
 security/zap/__pycache__/
 
+### Reportes Serenity (HU-27) ###
+target/
+
 ### Interfaz web (HU-19) ###
 frontend/node_modules/
 frontend/dist/
 frontend/coverage/
 frontend/.vite/
-frontend/playwright-report/
-frontend/test-results/
-frontend/blob-report/
-frontend/playwright/.cache/
 frontend/.env
 frontend/.env.local
 frontend/.env.*.local

@@ -1,21 +1,37 @@
 {
-  "name": "Sistema de Reservas (Java 21 + PostgreSQL)",
+  "name": "Sistema de Reservas (Java 21 + Node 24 + PostgreSQL)",
   "dockerComposeFile": "docker-compose.yml",
   "service": "app",
   "workspaceFolder": "/workspaces/Reservas",
   "shutdownAction": "stopCompose",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "24"
+    }
+  },
   "forwardPorts": [
-    8080
+    8080,
+    5173,
+    5432
   ],
   "portsAttributes": {
     "8080": {
       "label": "API de reservas",
       "onAutoForward": "notify"
+    },
+    "5173": {
+      "label": "Frontend de reservas",
+      "onAutoForward": "notify"
+    },
+    "5432": {
+      "label": "PostgreSQL de reservas",
+      "onAutoForward": "ignore"
     }
   },
   "containerEnv": {
     "DB_USERNAME": "postgres",
     "DB_PASSWORD": "postgres",
+    "SPRING_DATASOURCE_URL": "jdbc:postgresql://db:5432/sistema_reservas",
     "TEST_DB_URL": "jdbc:postgresql://db:5432/sistema_reservas_test"
   },
   "postCreateCommand": "chmod +x gradlew && ./gradlew testClasses",

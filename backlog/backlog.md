@@ -79,7 +79,7 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 |---|---|---|---|
 | HU-01 · Especificación del sistema de reservas con spec-kit | EP-01 | Completado | — |
 | HU-02 · Estándares de trabajo y capa agéntica del proyecto | EP-01 | Completado | — |
-| HU-03 · Registro y gestión de estado de usuarios | EP-02 | En Revisión | — |
+| HU-03 · Registro y gestión de estado de usuarios | EP-02 | Completado | — |
 | HU-04 · Registro y gestión de estado de recursos | EP-02 | Completado | — |
 | HU-05 · Creación de reservas con reglas de negocio y control de concurrencia | EP-03 | Completado | — |
 | HU-06 · Cancelación de reservas | EP-03 | Completado | — |
@@ -87,21 +87,26 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 | HU-08 · Resolución de las dudas abiertas de la especificación | EP-01 | Completado | 1 |
 | HU-09 · Consulta de reservas por rango de fechas | EP-03 | Completado | 3 |
 | HU-10 · Finalización automática de reservas vencidas | EP-03 | Completado | 2 |
-| HU-11 · Contrato OpenAPI de la API | EP-03 | Backlog | 3 |
-| HU-12 · Paginación y filtros en listados | EP-03 | En Revisión | 3 |
+| HU-11 · Contrato OpenAPI de la API | EP-03 | Completado | 3 |
+| HU-12 · Paginación y filtros en listados | EP-03 | Completado | 3 |
 | HU-13 · Suite de pruebas ejecutable sin base de datos externa | EP-04 | Completado | 1 |
-| HU-14 · Reglas de negocio verificadas con pruebas unitarias y de mutación | EP-04 | Backlog | 2 |
+| HU-14 · Reglas de negocio verificadas con pruebas unitarias y de mutación | EP-04 | Completado | 2 |
 | HU-15 · Endpoints y contrato de errores verificados con pruebas de integración | EP-04 | Completado | — |
-| HU-16 · Escenarios de la especificación ejecutables como pruebas de aceptación | EP-04 | Backlog | 2 |
-| HU-17 · Cero reservas duplicadas bajo concurrencia | EP-05 | Backlog | 2 |
-| HU-18 · Prueba de carga con 500 usuarios simultáneos | EP-05 | Backlog | 3 |
-| HU-19 · Reservar un recurso desde la interfaz web | EP-06 | En Revisión | 3 |
+| HU-16 · Escenarios de la especificación ejecutables como pruebas de aceptación | EP-04 | Completado | 2 |
+| HU-17 · Cero reservas duplicadas bajo concurrencia | EP-05 | Completado | 2 |
+| HU-18 · Prueba de carga con 500 usuarios simultáneos | EP-05 | Completado | 3 |
+| HU-19 · Reservar un recurso desde la interfaz web | EP-06 | Completado | 3 |
 | HU-20 · Consultar y cancelar mis reservas desde la interfaz web | EP-06 | Completado | — |
-| HU-21 · Administrar usuarios y recursos desde la interfaz web | EP-06 | En Revisión | 3 |
-| HU-22 · Entorno local con un solo comando | EP-07 | En Revisión | 3 |
-| HU-23 · Pipeline de integración continua | EP-07 | En Revisión | 3 |
-| HU-24 · README operativo con arquitectura, variables y ejemplos curl | EP-07 | En Revisión | 3 |
-| HU-25 · Login del administrador | EP-02 | En Progreso | 1 |
+| HU-21 · Administrar usuarios y recursos desde la interfaz web | EP-06 | Completado | 3 |
+| HU-22 · Entorno local con un solo comando | EP-07 | Completado | 3 |
+| HU-23 · Pipeline de integración continua | EP-07 | Completado | 3 |
+| HU-24 · README operativo con arquitectura, variables y ejemplos curl | EP-07 | Completado | 3 |
+| HU-25 · Login del administrador | EP-02 | Completado | 1 |
+| HU-26 · Pruebas de seguridad automatizadas con OWASP ZAP | EP-04 | Completado | — |
+| HU-27 · Validar Serenity-Playwright con un flujo E2E en vivo | EP-04 | Completado | — |
+| HU-28 · Piloto Serenity: login de administrador y reserva feliz por UI | EP-04 | Completado | — |
+| HU-29 · Migración completa de specs Playwright a Serenity | EP-04 | Completado | — |
+| HU-30 · CI headless, reporte Serenity y retiro de Playwright TS | EP-04 | En Progreso | — |
 
 ## Historias
 
@@ -860,3 +865,143 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 - Dado un visitante sin sesión, cuando abre una ruta de `/admin`, entonces se le redirige al login.
 - Dado un administrador autenticado, cuando cierra sesión, entonces debe autenticarse de nuevo para volver al panel.
 - Dada la base de datos tras el alta, cuando se inspecciona la contraseña, entonces está almacenada con hash y no en texto plano.
+
+### HU-26 · Pruebas de seguridad automatizadas con OWASP ZAP
+
+Épica: `EP-04: Calidad y pruebas automatizadas`
+
+**Card**
+
+> Como equipo de desarrollo, quiero ejecutar un análisis de seguridad automatizado con OWASP ZAP sobre la API y la interfaz, para detectar vulnerabilidades antes de liberar y dejar evidencia reproducible.
+
+**Conversación**
+
+- OWASP ZAP es un escáner DAST: analiza la aplicación en ejecución, no el código; no reemplaza el análisis de dependencias ni una prueba de penetración manual.
+- `docs/api-spec.yml` permite importar el contrato OpenAPI y cubrir los endpoints sin enumerar URLs a mano.
+- Objetivo propuesto: el entorno local de `docker-compose` (API en `:8080`, interfaz en `:5173`) con datos semilla, ejecutando la imagen oficial de ZAP en Docker.
+- Los escaneos activos pueden crear, modificar o cancelar datos. Supuesto: se corre contra una base desechable que se recrea al terminar.
+- HU-25 agrega login de administrador con cookie de sesión y CSRF: cubrir rutas autenticadas depende de que esa historia esté implementada.
+- Indeterminado (bloquea el DoR): modo del escaneo (pasivo o activo) y si incluye la interfaz además de la API.
+- Indeterminado (bloquea el DoR): qué severidades bloquean el build y si el escaneo corre en CI como check obligatorio.
+- Se descarta por ahora el escaneo de infraestructura y las pruebas de explotación manual.
+
+**Tareas**
+
+- Definir el alcance y el modo del escaneo
+- Preparar el entorno objetivo desechable con datos semilla
+- Configurar el escaneo con ZAP sobre OpenAPI y la URL de la interfaz
+- Definir el archivo de reglas y el umbral de fallo
+- Ejecutar el escaneo y publicar reportes HTML y JSON
+- Triar los hallazgos y registrar los riesgos aceptados
+- Documentar el comando y los requisitos de reproducción
+- Integrar el escaneo en CI si se aprueba
+
+**Criterios de Aceptación**
+
+- Dado el entorno local levantado, cuando se ejecuta el escaneo de ZAP, entonces se generan reportes HTML y JSON del alcance definido sin errores de ejecución.
+- Dado un escaneo terminado, cuando se revisan sus alertas de severidad Alta, entonces cada una tiene corrección aplicada o riesgo aceptado con justificación registrada.
+- Dado el umbral de fallo configurado, cuando una alerta alcanza o supera ese umbral, entonces el escaneo termina con código de fallo.
+- Dado el comando documentado, cuando otra persona lo ejecuta sobre el mismo commit y entorno, entonces obtiene un reporte con el mismo alcance y umbral.
+- Dado un escaneo con hallazgos, cuando se cierra la historia, entonces los reportes quedan enlazados como evidencia.
+
+### HU-27 · Validar Serenity-Playwright con un flujo E2E en vivo
+
+Épica: `EP-04: Calidad y pruebas automatizadas`
+
+**Card**
+
+> Como equipo de desarrollo, quiero validar que Serenity-Playwright abre un navegador visible y genera su reporte, para decidir la migración con evidencia.
+
+**Conversación**
+
+- Stack: Java 21, Spring Boot 4.1.2, JUnit 5. Supuesto a confirmar en el spike: Serenity 4.x compatible con ese stack.
+- El navegador corre fuera del devcontainer, visible por WSLg en WSL y nativo en Windows. Headless por defecto; `serenity.headless=false` para en vivo.
+- Fuera de alcance: migrar todas las specs.
+
+**Tareas**
+
+- Validar versión de Serenity compatible
+- Crear una historia mínima Screenplay
+- Generar reporte en `build/reports/serenity/`
+
+**Criterios de Aceptación**
+
+- Dado el entorno WSL o Windows, cuando se ejecuta la tarea Serenity con headless desactivado, entonces se ve el navegador.
+- Dado el reporte generado, cuando se abre, entonces muestra los pasos con capturas.
+
+### HU-28 · Piloto Serenity: login de administrador y reserva feliz por UI
+
+Épica: `EP-04: Calidad y pruebas automatizadas`
+
+**Card**
+
+> Como equipo de desarrollo, quiero dos flujos E2E narrados con Serenity sobre la UI, para tener evidencia viva y trazable del login y la reserva.
+
+**Conversación**
+
+- Espejo de `frontend/e2e/login.spec.ts` y `reservation.spec.ts` (flujo feliz). Estructura Screenplay en `src/test/java/.../e2e/serenity/` con actors, tasks y questions.
+- API/frontend en `localhost:8080`/`5173` reutilizando servicios ya levantados. Fuera de alcance: resto de specs y cambios en CI.
+
+**Tareas**
+
+- Crear actors y tasks de login
+- Crear tasks de reserva
+- Escribir las dos historias
+- Publicar reporte con capturas por paso
+
+**Criterios de Aceptación**
+
+- Dado un admin válido, cuando inicia sesión por UI, entonces llega al panel de administración.
+- Dado usuario activo y recurso disponible, cuando reserva por UI, entonces ve la confirmación.
+- Dado el reporte, cuando se abre, entonces narra cada paso con capturas.
+
+### HU-29 · Migración completa de specs Playwright a Serenity
+
+Épica: `EP-04: Calidad y pruebas automatizadas`
+
+**Card**
+
+> Como equipo de desarrollo, quiero todas las specs E2E de navegador migradas a Serenity, para tener una sola suite E2E en Java.
+
+**Conversación**
+
+- Referencia: `frontend/e2e/reservation.spec.ts`, `my-reservations.spec.ts`, `admin.spec.ts`, `login.spec.ts` (conflicto 409, validación de fechas, disponibilidad, consulta/cancelación, admin CRUD, mantenimiento).
+- Cada flujo se sostiene solo; la paridad se verifica spec por spec. Fuera de alcance: retiro de Playwright TS y cambios en CI.
+
+**Tareas**
+
+- Migrar specs de reserva
+- Migrar specs de mis reservas
+- Migrar specs de administración
+- Verificar paridad spec por spec
+
+**Criterios de Aceptación**
+
+- Dado cada flujo Playwright, cuando se ejecuta su equivalente Serenity, entonces cubre el mismo resultado.
+- Dada la suite Serenity completa, cuando se ejecuta, entonces pasa contra API y frontend reales.
+
+### HU-30 · CI headless, reporte Serenity y retiro de Playwright TS
+
+Épica: `EP-04: Calidad y pruebas automatizadas`
+
+**Card**
+
+> Como equipo de desarrollo, quiero la suite Serenity en CI en modo headless con reporte publicado, para que la evidencia sea automática y no dependa de ver la pantalla.
+
+**Conversación**
+
+- CI siempre headless; el modo en vivo queda solo local. Se publica `build/reports/serenity/` como artefacto en `.github/workflows/ci.yml`.
+- Al alcanzar paridad, se retiran `frontend/e2e/` y el job `browser-e2e` de Playwright. Se documentan las rutas WSL/devcontainer y Windows nativo en `README.md` y `docs/backend-standards.md` / `docs/frontend-standards.md`.
+
+**Tareas**
+
+- Configurar job CI headless
+- Publicar reporte como artefacto
+- Retirar Playwright TS
+- Documentar ejecución en WSL y Windows
+
+**Criterios de Aceptación**
+
+- Dado un push, cuando corre CI, entonces Serenity corre headless y publica su reporte.
+- Dado el reporte en CI, cuando se abre, entonces muestra resultados con capturas por paso.
+- Dado el repositorio, cuando se busca Playwright TS, entonces no queda suite duplicada.
