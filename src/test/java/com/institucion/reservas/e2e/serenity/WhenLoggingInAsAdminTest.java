@@ -3,6 +3,7 @@ package com.institucion.reservas.e2e.serenity;
 import com.institucion.reservas.e2e.serenity.questions.TheCurrentUrl;
 import com.institucion.reservas.e2e.serenity.tasks.LoginAsAdmin;
 import com.institucion.reservas.e2e.serenity.tasks.Logout;
+import com.institucion.reservas.e2e.serenity.tasks.WaitForUrl;
 import com.institucion.reservas.e2e.serenity.ui.AdminUsersPageTargets;
 import net.serenitybdd.screenplay.playwright.interactions.Open;
 import net.serenitybdd.junit5.SerenityJUnit5Extension;
@@ -52,6 +53,7 @@ class WhenLoggingInAsAdminTest {
                 Logout.closeSession(),
                 Ensure.that(TheCurrentUrl.value()).contains("/login"),
                 Open.url(baseUrl + "/admin/usuarios"),
+                WaitForUrl.containing("/login"),
                 Ensure.that(TheCurrentUrl.value()).contains("/login"));
     }
 }

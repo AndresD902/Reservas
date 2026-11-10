@@ -9,7 +9,7 @@ public final class AdminUsersPageTargets {
 
     public static final Target HEADING =
             Target.the("encabezado de administración de usuarios")
-                    .locatedBy("h1");
+                    .locatedBy("h1:has-text('Administración de usuarios')");
 
     private AdminUsersPageTargets() {
     }
