@@ -1,5 +1,6 @@
 package com.institucion.reservas.e2e.serenity.tasks;
 
+import com.institucion.reservas.e2e.serenity.ui.AdminUsersPageTargets;
 import com.institucion.reservas.e2e.serenity.ui.LoginPageTargets;
 import net.serenitybdd.annotations.Step;
 import net.serenitybdd.screenplay.Actor;
@@ -7,6 +8,7 @@ import net.serenitybdd.screenplay.Task;
 import net.serenitybdd.screenplay.playwright.interactions.Click;
 import net.serenitybdd.screenplay.playwright.interactions.Enter;
 import net.serenitybdd.screenplay.playwright.interactions.Open;
+import net.serenitybdd.screenplay.playwright.interactions.WaitFor;
 
 /**
  * Inicia sesión como administrador por la interfaz: entra al panel (que
@@ -36,7 +38,8 @@ public class LoginAsAdmin implements Task {
                 Open.url(adminUsersUrl()),
                 Enter.theValue(adminEmail()).into(LoginPageTargets.EMAIL_INPUT),
                 Enter.theValue(adminPassword()).into(LoginPageTargets.PASSWORD_INPUT),
-                Click.on(LoginPageTargets.SUBMIT_BUTTON));
+                Click.on(LoginPageTargets.SUBMIT_BUTTON),
+                WaitFor.selector(AdminUsersPageTargets.HEADING));
     }
 
     public static LoginAsAdmin withDefaultCredentials() {

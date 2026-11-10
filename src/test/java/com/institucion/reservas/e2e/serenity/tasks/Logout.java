@@ -7,7 +7,8 @@ import net.serenitybdd.screenplay.playwright.Target;
 import net.serenitybdd.screenplay.playwright.interactions.Click;
 
 /**
- * Cierra la sesión desde el encabezado.
+ * Cierra la sesión desde el encabezado. Espera a que el router vuelva al
+ * login porque el cierre ocurre en segundo plano y la URL tarda en cambiar.
  */
 public class Logout implements Task {
 
@@ -18,7 +19,9 @@ public class Logout implements Task {
     @Override
     @Step("{0} cierra la sesión")
     public <T extends Actor> void performAs(T actor) {
-        actor.attemptsTo(Click.on(LOGOUT_BUTTON));
+        actor.attemptsTo(
+                Click.on(LOGOUT_BUTTON),
+                WaitForUrl.containing("/login"));
     }
 
     public static Logout closeSession() {
