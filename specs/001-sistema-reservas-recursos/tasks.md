@@ -249,3 +249,9 @@
 - [x] **T-052**: Ejecutar los ejemplos contra la API local, verificar las referencias del README y actualizar el backlog y el estado de la historia.
   - **Archivos**: `README.md`, `backlog/backlog.md`.
   - **Dependencias**: T-051.
+
+## Fase 18: Flujos Gherkin de login
+
+- [x] **T-053**: Implementar el flujo Gherkin E2E A del login exitoso con Playwright contra el stack de Docker Compose, con video y reporte.
+  - **Archivos**: `build.gradle`, `src/test/resources/features/e2e/admin-login-success.feature`, `src/test/java/com/institucion/reservas/acceptance/e2e/LoginE2eSteps.java`, `.github/workflows/ci.yml`, `docs/backend-standards.md`, `docs/frontend-standards.md`, `README.md`, `backlog/backlog.md`.
+  - **Dependencias**: T-039, T-042, T-052.

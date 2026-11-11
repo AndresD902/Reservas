@@ -136,7 +136,7 @@ jobs:
         run: npm run build
 
   serenity-e2e:
-    name: E2E de navegador con Serenity
+    name: E2E de navegador con Serenity y Gherkin
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -187,12 +187,26 @@ jobs:
       - name: Pruebas E2E de navegador con Serenity
         run: ./gradlew serenityE2ETest --console=plain
 
+      - name: Flujos Gherkin E2E de login
+        if: always()
+        run: ./gradlew e2eGherkinTest --console=plain
+
       - name: Publicar reporte de Serenity
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: serenity-report
           path: target/site/serenity
+          if-no-files-found: warn
+
+      - name: Publicar reporte Gherkin y videos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gherkin-e2e-report
+          path: |
+            build/reports/cucumber
+            build/e2e-videos
           if-no-files-found: warn
 
       - name: Bajar el stack
