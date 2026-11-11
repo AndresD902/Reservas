@@ -8,8 +8,9 @@ import org.junit.platform.suite.api.SelectClasspathResource;
 import org.junit.platform.suite.api.Suite;
 
 /**
- * Punto de entrada de la suite de aceptación. Selecciona las features Gherkin
- * de {@code src/test/resources/features} y las ejecuta con el motor de Cucumber
+ * Punto de entrada de la suite de aceptación de negocio. Selecciona las
+ * features Gherkin de {@code src/test/resources/features}, excluye las de
+ * autenticación (etiqueta {@code @auth}) y las ejecuta con el motor de Cucumber
  * sobre JUnit Platform. La tarea {@code acceptanceTest} la elige por el tag
  * {@code acceptance}.
  */

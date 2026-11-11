@@ -198,8 +198,8 @@
   - **Archivos**: `config/LocalAdminSeeder.java`, `.env.example`, `README.md`.
   - **Dependencias**: T-038.
 
-- [ ] **T-041**: Cubrir autenticación, autorización, CSRF y hashing con pruebas unitarias, de integración y de aceptación; actualizar `DatabaseCleaner` y la cadena permisiva del perfil `test`.
-  - **Archivos**: `src/test/java/com/institucion/reservas/service/impl/AuthServiceImplTest.java`, `controller/AuthControllerTest.java`, `controller/SecurityConfigTest.java`, `support/DatabaseCleaner.java`, `src/test/resources/application-test.yml`.
+- [x] **T-041**: Cubrir autenticación, autorización, CSRF y hashing con pruebas unitarias, de integración y de aceptación; actualizar `DatabaseCleaner` y la cadena permisiva del perfil `test`.
+  - **Archivos**: `src/test/java/com/institucion/reservas/service/impl/AuthServiceImplTest.java`, `controller/AuthControllerTest.java`, `controller/SecurityConfigTest.java`, `acceptance/AuthCucumberAcceptanceSuite.java`, `acceptance/auth/**`, `src/test/resources/features/auth/*.feature`, `support/DatabaseCleaner.java`, `src/test/resources/application-test.yml`, `build.gradle`, `.github/workflows/ci.yml`.
   - **Dependencias**: T-039.
 
 - [ ] **T-042**: Implementar el cliente con credenciales y CSRF, la página `/login`, el guard de `/admin`, el cierre de sesión y las pruebas de componentes.

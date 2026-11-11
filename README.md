@@ -445,12 +445,13 @@ rm -f "$COOKIE_JAR"
 
 ## Integración continua
 
-Cada push y pull request ejecuta [`.github/workflows/ci.yml`](.github/workflows/ci.yml) en GitHub Actions. El workflow tiene tres jobs: `pipeline` corre, en orden, compilación, pruebas unitarias e integración, mutation testing con PIT, cobertura con JaCoCo, pruebas de aceptación y E2E por HTTP; `frontend` corre lint, typecheck, pruebas de componentes y build de la SPA; y `serenity-e2e` levanta el stack con Docker Compose y ejecuta las pruebas E2E de navegador con Serenity en modo headless. Si una etapa falla, el job termina en rojo y el paso indica cuál falló.
+Cada push y pull request ejecuta [`.github/workflows/ci.yml`](.github/workflows/ci.yml) en GitHub Actions. El workflow tiene tres jobs: `pipeline` corre, en orden, compilación, pruebas unitarias e integración, mutation testing con PIT, cobertura con JaCoCo, pruebas de aceptación de autenticación, pruebas de aceptación y E2E por HTTP; `frontend` corre lint, typecheck, pruebas de componentes y build de la SPA; y `serenity-e2e` levanta el stack con Docker Compose y ejecuta las pruebas E2E de navegador con Serenity en modo headless. Si una etapa falla, el job termina en rojo y el paso indica cuál falló.
 
 Las tareas locales equivalentes son:
 
 ```bash
 ./gradlew test
+./gradlew authAcceptanceTest
 ./gradlew acceptanceTest
 ./gradlew e2eTest
 ./gradlew serenityE2ETest
@@ -473,7 +474,8 @@ El workflow [`zap-baseline.yml`](.github/workflows/zap-baseline.yml) ejecuta ade
 | Levantar la API sin contenedor | `./gradlew bootRun` |
 | Compilar y ejecutar todas las verificaciones | `./gradlew build` |
 | Suite rápida de backend (H2) | `./gradlew test` |
-| Pruebas de aceptación | `./gradlew acceptanceTest` |
+| Pruebas de aceptación de autenticación | `./gradlew authAcceptanceTest` |
+| Pruebas de aceptación (incluye autenticación) | `./gradlew acceptanceTest` |
 | Pruebas E2E por HTTP | `./gradlew e2eTest` |
 | Pruebas contra PostgreSQL real | `TEST_DB_URL=jdbc:postgresql://localhost:5432/sistema_reservas_test ./gradlew postgresTest` |
 | Mutation testing | `./gradlew pitest` |

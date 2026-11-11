@@ -47,6 +47,9 @@ jobs:
       - name: Cobertura JaCoCo
         run: ./gradlew jacocoTestReport jacocoTestCoverageVerification --console=plain
 
+      - name: Pruebas de aceptación de autenticación
+        run: ./gradlew authAcceptanceTest --console=plain
+
       - name: Pruebas de aceptación
         run: ./gradlew acceptanceTest --console=plain
 
@@ -85,6 +88,8 @@ jobs:
         with:
           name: acceptance-reports
           path: |
+            build/reports/tests/authAcceptanceTest
+            build/test-results/authAcceptanceTest
             build/reports/tests/acceptanceTest
             build/test-results/acceptanceTest
           if-no-files-found: warn

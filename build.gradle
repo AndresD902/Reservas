@@ -56,10 +56,10 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform {
-		excludeTags 'acceptance', 'e2e', 'postgres', 'serenity'
+		excludeTags 'acceptance', 'auth-acceptance', 'e2e', 'postgres', 'serenity'
 	}
-	// La suite de Cucumber se ejecuta solo con acceptanceTest, nunca en la suite rápida.
-	exclude '**/CucumberAcceptanceSuite.class'
+	// Las suites de Cucumber se ejecutan solo con acceptanceTest, nunca en la suite rápida.
+	exclude '**/CucumberAcceptanceSuite.class', '**/AuthCucumberAcceptanceSuite.class'
 }
 
 def acceptanceTest = tasks.register('acceptanceTest', Test) {
@@ -74,7 +74,26 @@ def acceptanceTest = tasks.register('acceptanceTest', Test) {
 	if (project.hasProperty('cucumberTags')) {
 		systemProperty 'cucumber.filter.tags', project.property('cucumberTags')
 	}
+	exclude '**/AuthCucumberAcceptanceSuite.class'
 	shouldRunAfter tasks.named('test')
+}
+
+// La suite de autenticación corre en su propio JVM: necesita seguridad
+// habilitada y no comparte la configuración de Cucumber de la suite de negocio.
+def authAcceptanceTest = tasks.register('authAcceptanceTest', Test) {
+	description = 'Ejecuta las pruebas de aceptación de autenticación.'
+	group = 'verification'
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = sourceSets.test.runtimeClasspath
+	useJUnitPlatform {
+		includeTags 'auth-acceptance'
+	}
+	exclude '**/CucumberAcceptanceSuite.class'
+	shouldRunAfter tasks.named('test')
+}
+
+acceptanceTest.configure {
+	dependsOn authAcceptanceTest
 }
 
 def e2eTest = tasks.register('e2eTest', Test) {
