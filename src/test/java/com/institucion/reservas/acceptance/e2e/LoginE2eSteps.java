@@ -16,6 +16,7 @@ import io.cucumber.java.Scenario;
 import io.cucumber.java.es.Cuando;
 import io.cucumber.java.es.Dado;
 import io.cucumber.java.es.Entonces;
+import io.cucumber.java.es.Y;
 import org.assertj.core.api.Assertions;
 
 import java.nio.file.Files;
@@ -111,12 +112,6 @@ public class LoginE2eSteps {
         page.context().clearCookies();
     }
 
-    @Dado("que abro la pantalla de inicio de sesión")
-    public void abroPantallaInicioSesion() {
-        page.navigate(BASE_URL + "/login");
-        fieldCorreo().waitFor();
-    }
-
     @Cuando("abro la ruta {string}")
     public void abroLaRuta(String ruta) {
         page.navigate(BASE_URL + ruta);
@@ -124,6 +119,23 @@ public class LoginE2eSteps {
 
     @Cuando("inicio sesión como administrador")
     public void inicioSesionComoAdministrador() {
+        autenticarse(ADMIN_EMAIL, ADMIN_PASSWORD);
+    }
+
+    @Dado("que abro la pantalla de inicio de sesión")
+    public void abroPantallaInicioSesion() {
+        page.navigate(BASE_URL + "/login");
+        fieldCorreo().waitFor();
+    }
+
+    @Cuando("inicio sesión con una contraseña incorrecta")
+    public void inicioSesionConContrasenaIncorrecta() {
+        enviarCredenciales(ADMIN_EMAIL, ADMIN_PASSWORD + "-incorrecta");
+        error().waitFor();
+    }
+
+    @Cuando("reintento iniciar sesión con la contraseña correcta")
+    public void reintentoIniciarSesion() {
         autenticarse(ADMIN_EMAIL, ADMIN_PASSWORD);
     }
 
@@ -145,11 +157,23 @@ public class LoginE2eSteps {
         Assertions.assertThat(page.url()).endsWith(ruta);
     }
 
+    @Entonces("permanezco en la ruta {string}")
+    public void permanezcoEnLaRuta(String ruta) {
+        Assertions.assertThat(page.url()).endsWith(ruta);
+    }
+
     @Entonces("veo el encabezado {string}")
     public void veoElEncabezado(String texto) {
         Locator heading = page.locator("h1");
         heading.waitFor();
         Assertions.assertThat(heading.textContent()).contains(texto);
+    }
+
+    @Y("veo el mensaje de error {string}")
+    public void veoElMensajeDeError(String texto) {
+        Locator alert = error();
+        alert.waitFor();
+        Assertions.assertThat(alert.textContent()).contains(texto);
     }
 
     private void autenticarse(String correo, String password) {
@@ -170,5 +194,9 @@ public class LoginE2eSteps {
 
     private Locator fieldPassword() {
         return page.locator("#login-password");
+    }
+
+    private Locator error() {
+        return page.locator("[role='alert']");
     }
 }
