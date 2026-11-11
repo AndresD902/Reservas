@@ -255,3 +255,7 @@
 - [x] **T-053**: Implementar el flujo Gherkin E2E A del login exitoso con Playwright contra el stack de Docker Compose, con video y reporte.
   - **Archivos**: `build.gradle`, `src/test/resources/features/e2e/admin-login-success.feature`, `src/test/java/com/institucion/reservas/acceptance/e2e/LoginE2eSteps.java`, `.github/workflows/ci.yml`, `docs/backend-standards.md`, `docs/frontend-standards.md`, `README.md`, `backlog/backlog.md`.
   - **Dependencias**: T-039, T-042, T-052.
+
+- [x] **T-054**: Implementar el flujo Gherkin E2E B del login fallido y el reintento exitoso, reutilizando el soporte Playwright de HU-31.
+  - **Archivos**: `src/test/resources/features/e2e/admin-login-retry.feature`, `src/test/java/com/institucion/reservas/acceptance/e2e/LoginE2eSteps.java`, `backlog/backlog.md`.
+  - **Dependencias**: T-053.

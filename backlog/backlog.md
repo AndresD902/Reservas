@@ -108,7 +108,7 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 | HU-29 · Migración completa de specs Playwright a Serenity | EP-04 | Completado | — |
 | HU-30 · CI headless, reporte Serenity y retiro de Playwright TS | EP-04 | En Progreso | — |
 | HU-31 · Flujo Gherkin A: inicio de sesión exitoso del administrador | EP-04 | Completado | 1 |
-| HU-32 · Flujo Gherkin B: inicio de sesión fallido y reintento exitoso | EP-04 | Backlog | 1 |
+| HU-32 · Flujo Gherkin B: inicio de sesión fallido y reintento exitoso | EP-04 | Completado | 1 |
 
 ## Historias
 
@@ -1056,23 +1056,29 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 
 **Conversación**
 
-- Cubre FR-018 y complementa HU-25 y HU-16. El rechazo de credenciales inválidas ya existe en `AuthControllerTest` y en la prueba de componente del login; esta historia lo lleva al flujo Gherkin de aceptación.
-- Flujo B: iniciar sesión con contraseña incorrecta (`POST /auth/login`), comprobar 401 `CREDENCIALES_INVALIDAS` y que `GET /auth/me` responde 401; luego reintentar con la contraseña correcta y comprobar la sesión con `GET /auth/me`.
-- El fallo no debe dejar sesión parcial ni permitir escrituras administrativas. La respuesta conserva el cuerpo común `status`, `error`, `message` y no revela cuál credencial falló.
-- Decidido: misma vía que HU-31, feature Gherkin en `acceptanceTest` con contexto Cucumber de seguridad habilitada; no se suma Serenity-Cucumber.
+- Cubre FR-018 y complementa HU-25 y HU-16. El rechazo de credenciales inválidas ya existe en `AuthControllerTest` y en la prueba de componente; esta historia lo lleva al flujo Gherkin E2E de navegador.
+- Flujo B: abrir `/login`, autenticarse con contraseña incorrecta, ver el mensaje de error y permanecer en `/login`; comprobar que `/admin/usuarios` sigue redirigiendo al login; reintentar con la contraseña correcta y llegar al panel.
+- Decidido: reutiliza la suite y el soporte Playwright de HU-31; el escenario también graba video en `build/e2e-videos/`.
+- La evidencia se produce con `./gradlew e2eGherkinTest -Pplaywright.headless=false -Pplaywright.slowmo=500` y el reporte HTML en `build/reports/cucumber/`.
 - Fuera de alcance: bloqueo por intentos, recuperación de contraseña y MFA.
 
 **Tareas**
 
-- Escribir la feature Gherkin del login fallido y el reintento, etiquetada `@FR-018`
-- Reutilizar el contexto Cucumber de autenticación creado en HU-31
-- Implementar los steps de credenciales inválidas, sesión ausente y reintento
-- Verificar que el fallo no deja sesión utilizable ni permite escrituras administrativas
-- Ejecutar `./gradlew acceptanceTest` y verificar el reporte
+- Escribir la feature Gherkin de HU-32 en `src/test/resources/features/e2e/`
+- Reutilizar la suite y el soporte Playwright de HU-31
+- Implementar los steps de error de credenciales, sesión ausente y reintento
+- Verificar que el fallo no deja sesión antes del reintento
+- Ejecutar el flujo contra el stack y verificar el video y el reporte
 
 **Criterios de Aceptación**
 
-- Dado un administrador registrado, cuando inicia sesión con contraseña incorrecta, entonces se responde 401 con `CREDENCIALES_INVALIDAS` y el cuerpo común.
-- Dado un login fallido, cuando se consulta `GET /auth/me`, entonces responde 401 y no hay sesión activa.
-- Dadas credenciales inválidas y luego válidas, cuando reintenta el login, entonces la segunda respuesta es 200 y `GET /auth/me` devuelve al administrador.
-- Dado el escenario de fallo y reintento, cuando se ejecuta `./gradlew acceptanceTest`, entonces pasa y queda etiquetado con FR-018.
+- Dado un administrador registrado, cuando inicia sesión con contraseña incorrecta, entonces ve el mensaje de error y permanece en `/login`.
+- Dado el login fallido, cuando abre `/admin/usuarios`, entonces se le redirige a `/login`.
+- Dadas credenciales inválidas y luego válidas, cuando reintenta, entonces llega a `/admin/usuarios` y ve el encabezado "Administración de usuarios".
+- Dado el escenario E2E, cuando se ejecuta `./gradlew e2eGherkinTest -Pplaywright.headless=false`, entonces el navegador ejecuta el flujo, se genera el video y el resultado es exitoso.
+
+**Evidencia**
+
+- `build/e2e-videos/el-administrador-falla-no-obtiene-sesi-n-y-reintenta.webm`
+- `build/reports/cucumber/e2e.html`
+- `./gradlew e2eGherkinTest -Pplaywright.headless=false -Pplaywright.slowmo=500`
