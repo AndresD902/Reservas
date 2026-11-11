@@ -128,6 +128,53 @@ serenityE2ETest.configure {
 	finalizedBy('aggregate')
 }
 
+// Flujos Gherkin E2E de navegador (HU-31 y HU-32). El runner de Cucumber se
+// ejecuta en un JVM aparte contra el stack de Docker Compose; no usa MockMvc.
+// Requiere `docker compose --profile frontend up -d --build`.
+// Para ver el navegador en vivo: -Pplaywright.headless=false -Pplaywright.slowmo=500
+def e2eGherkinTest = tasks.register('e2eGherkinTest', JavaExec) {
+	description = 'Ejecuta los flujos Gherkin E2E de navegador con Playwright.'
+	group = 'verification'
+	dependsOn tasks.named('testClasses')
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'io.cucumber.core.cli.Main'
+	args = [
+			'--glue', 'com.institucion.reservas.acceptance.e2e',
+			'--plugin', 'pretty',
+			'--plugin', 'html:build/reports/cucumber/e2e.html',
+			'--plugin', 'json:build/reports/cucumber/e2e.json',
+			'--plugin', 'junit:build/reports/cucumber/e2e.xml',
+			'src/test/resources/features/e2e'
+	]
+	// La suite de aceptación registra Spring en el glue; estos flujos E2E no
+	// usan contexto Spring y fuerzan la factoría de objetos por defecto.
+	systemProperty 'cucumber.object-factory', 'io.cucumber.core.backend.DefaultObjectFactory'
+	systemProperty 'playwright.headless',
+			System.getProperty('playwright.headless',
+					project.findProperty('playwright.headless') ?: 'true')
+	systemProperty 'playwright.slowmo',
+			System.getProperty('playwright.slowmo',
+					project.findProperty('playwright.slowmo') ?: '0')
+	systemProperty 'e2e.base.url',
+			System.getProperty('e2e.base.url',
+					project.findProperty('e2e.base.url') ?: 'http://localhost:5173')
+	systemProperty 'e2e.video.dir',
+			System.getProperty('e2e.video.dir',
+					project.findProperty('e2e.video.dir') ?: 'build/e2e-videos')
+	systemProperty 'e2e.admin.email',
+			System.getProperty('e2e.admin.email',
+					System.getenv('E2E_ADMIN_EMAIL') ?: 'admin@example.com')
+	systemProperty 'e2e.admin.password',
+			System.getProperty('e2e.admin.password',
+					System.getenv('E2E_ADMIN_PASSWORD') ?: 'admin123')
+	doFirst {
+		delete 'build/e2e-videos'
+		delete 'build/reports/cucumber'
+		mkdir 'build/reports/cucumber'
+		mkdir 'build/e2e-videos'
+	}
+}
+
 // Descarga una sola vez los navegadores de Playwright en la máquina local.
 // Sin este paso, la primera corrida de serenityE2ETest intenta instalarlos
 // dentro del test y puede expirar.

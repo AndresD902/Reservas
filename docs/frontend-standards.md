@@ -19,7 +19,7 @@ La interfaz de esta fase es una SPA con login de administrador: el usuario activ
 | TanStack Query 5 | Estado del servidor, caché, reintentos y mutaciones |
 | Tailwind CSS 4 | Estilos utilitarios y diseño responsive |
 | Vitest 5 + Testing Library | Pruebas unitarias y de componentes |
-| Serenity + Playwright (Java) | Pruebas E2E de navegador contra la API real (viven en el backend, HU-27 a HU-30) |
+| Serenity + Playwright (Java) | Pruebas E2E de navegador contra la API real (viven en el backend, HU-27 a HU-30); los flujos Gherkin de login de HU-31 y HU-32 usan Cucumber + Playwright en `acceptance/e2e/` |
 | Oxlint | Lint del código y de los scripts |
 
 `frontend/package.json` es la fuente de verdad de versiones y scripts. Las dependencias se instalan con `npm ci` en CI y con `npm install` en desarrollo.
@@ -78,7 +78,7 @@ Los nombres de archivos y directorios van en inglés y kebab-case. Los identific
 | `npm test` | Vitest en modo no interactivo |
 | `npm run build` | Typecheck y build de producción con Vite |
 
-Las pruebas de componentes viven junto al código (`*.test.tsx` o `*.test.ts`) y usan Testing Library con `jsdom`. Cubren la reserva, mis reservas, la administración de usuarios, la administración de recursos y el login, incluidos los errores de duplicados, de mantenimiento y de credenciales inválidas. Las pruebas E2E de navegador viven en el backend con Serenity + Playwright (Java), en `src/test/java/com/institucion/reservas/e2e/serenity/`, y se ejecutan con `./gradlew serenityE2ETest` contra el stack de Docker Compose; cubren el flujo feliz de reserva, el conflicto 409, la validación de fechas, la consulta de disponibilidad, la consulta y cancelación de reservas, el alta y cambio de estado de usuarios, el alta y edición de recursos y el bloqueo de mantenimiento con reservas futuras (HU-27 a HU-30).
+Las pruebas de componentes viven junto al código (`*.test.tsx` o `*.test.ts`) y usan Testing Library con `jsdom`. Cubren la reserva, mis reservas, la administración de usuarios, la administración de recursos y el login, incluidos los errores de duplicados, de mantenimiento y de credenciales inválidas. Las pruebas E2E de navegador viven en el backend con Serenity + Playwright (Java), en `src/test/java/com/institucion/reservas/e2e/serenity/`, y se ejecutan con `./gradlew serenityE2ETest` contra el stack de Docker Compose; cubren el flujo feliz de reserva, el conflicto 409, la validación de fechas, la consulta de disponibilidad, la consulta y cancelación de reservas, el alta y cambio de estado de usuarios, el alta y edición de recursos y el bloqueo de mantenimiento con reservas futuras (HU-27 a HU-30). Los flujos Gherkin de login de HU-31 y HU-32 viven en `src/test/resources/features/e2e/` con steps Playwright en `src/test/java/com/institucion/reservas/acceptance/e2e/`; se ejecutan con `./gradlew e2eGherkinTest`, graban video en `build/e2e-videos/` y dejan el reporte en `build/reports/cucumber/`.
 
 ## Integración continua
 
@@ -88,9 +88,9 @@ El workflow `.github/workflows/ci.yml` tiene tres jobs:
 |---|---|
 | `pipeline` | Backend: compilación, pruebas, PIT, JaCoCo, aceptación y E2E por HTTP |
 | `frontend` | Lint, typecheck, pruebas de componentes y build de la SPA |
-| `serenity-e2e` | Serenity + Playwright en modo headless contra el stack de Docker Compose (API, PostgreSQL e interfaz) |
+| `serenity-e2e` | Serenity + Playwright y los flujos Gherkin de `e2eGherkinTest` en modo headless contra el stack de Docker Compose (API, PostgreSQL e interfaz) |
 
-El reporte de Serenity se publica como artefacto aunque la ejecución falle.
+El reporte de Serenity se publica como artefacto aunque la ejecución falle; el reporte de Cucumber y los videos de los flujos Gherkin se publican en el artefacto `gherkin-e2e-report`.
 
 El workflow `.github/workflows/zap-baseline.yml` ejecuta el análisis DAST con OWASP ZAP sobre la API y la SPA, y publica los reportes HTML y JSON como el artefacto `reporte-seguridad-zap`. El procedimiento reproducible y las reglas viven en [`security/zap/README.md`](../security/zap/README.md).
 

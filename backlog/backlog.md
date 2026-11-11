@@ -107,7 +107,7 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 | HU-28 · Piloto Serenity: login de administrador y reserva feliz por UI | EP-04 | Completado | — |
 | HU-29 · Migración completa de specs Playwright a Serenity | EP-04 | Completado | — |
 | HU-30 · CI headless, reporte Serenity y retiro de Playwright TS | EP-04 | En Progreso | — |
-| HU-31 · Flujo Gherkin A: inicio de sesión exitoso del administrador | EP-04 | Backlog | 1 |
+| HU-31 · Flujo Gherkin A: inicio de sesión exitoso del administrador | EP-04 | Completado | 1 |
 | HU-32 · Flujo Gherkin B: inicio de sesión fallido y reintento exitoso | EP-04 | Backlog | 1 |
 
 ## Historias
@@ -1018,26 +1018,33 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 
 **Conversación**
 
-- Cubre FR-018 y FR-019 y complementa HU-25 (implementación del login) y HU-16 (suite Gherkin de aceptación). Hoy el login solo está cubierto por pruebas unitarias, de integración y el E2E Serenity de HU-28.
-- Flujo A: solicitar el token CSRF (`GET /auth/csrf`), iniciar sesión (`POST /auth/login`), confirmar la sesión (`GET /auth/me`), cerrar sesión (`POST /auth/logout`) y comprobar que `GET /auth/me` vuelve a responder 401.
-- Precondición: un administrador con credenciales válidas. Cada escenario crea el suyo con `AuthService`, sin depender de los datos semilla.
-- Decidido: se implementa como feature de aceptación en `src/test/resources/features/` con la tarea `acceptanceTest`, contra la API real con MockMvc. La suite actual corre con `reservas.security.enabled=false`: los escenarios de autenticación usan un contexto Cucumber propio con seguridad habilitada.
-- Fuera de alcance: el E2E de navegador, ya cubierto por HU-28 y la suite Serenity.
+- Cubre FR-018 y FR-019 y complementa HU-25 (login implementado) y HU-16 (Gherkin de aceptación). El login ya está cubierto por unitarias, integración y Serenity; esta historia exige un flujo Gherkin E2E de navegador.
+- Flujo A: abrir `/admin/usuarios` sin sesión, ser redirigido a `/login`, autenticarse con credenciales válidas, llegar al panel de usuarios, cerrar sesión y comprobar que `/admin/usuarios` vuelve a redirigir al login.
+- Decidido: feature en `src/test/resources/features/e2e/` y steps Playwright en `acceptance/e2e/`, contra el stack de Docker Compose (`:5173` y `:8080`). La tarea `e2eGherkinTest` se ejecuta en un JVM aparte y no usa MockMvc.
+- Decidido: el escenario graba video del navegador en `build/e2e-videos/`; para la evidencia en pantalla se corre con `-Pplaywright.headless=false -Pplaywright.slowmo=500` y el reporte HTML queda en `build/reports/cucumber/`.
+- Precondición: administrador local sembrado (`admin@example.com` / `admin123`). Fuera de alcance: autenticación de usuarios finales y pruebas de carga.
 
 **Tareas**
 
-- Escribir la feature Gherkin del login exitoso en `src/test/resources/features/`, con escenarios etiquetados `@FR-018` y `@FR-019`
-- Crear el contexto Cucumber de autenticación con `reservas.security.enabled=true` sin alterar la suite existente
-- Implementar los step definitions de login, sesión, logout y CSRF
-- Preparar el administrador de prueba y el token CSRF en cada escenario
-- Ejecutar `./gradlew acceptanceTest` y verificar el reporte
+- Actualizar la historia y la card al enfoque E2E de navegador
+- Escribir la feature Gherkin de HU-31 en `src/test/resources/features/e2e/`
+- Crear la suite Cucumber E2E y los steps Playwright de navegación, login, panel y logout
+- Configurar la tarea `e2eGherkinTest` con navegador visible, video y URL del stack
+- Excluir la suite E2E de las demás tareas de prueba
+- Ejecutar el flujo contra el stack y verificar el video y el reporte
 
 **Criterios de Aceptación**
 
-- Dado un administrador con credenciales válidas, cuando inicia sesión, entonces la respuesta es 200 con su identidad y sin datos sensibles.
-- Dado un administrador autenticado, cuando consulta su sesión, entonces `GET /auth/me` devuelve el mismo administrador.
-- Dado un administrador autenticado, cuando cierra sesión, entonces `POST /auth/logout` responde 204 y `GET /auth/me` responde 401.
-- Dado el escenario de login exitoso, cuando se ejecuta `./gradlew acceptanceTest`, entonces pasa y queda etiquetado con FR-018 y FR-019.
+- Dado un visitante sin sesión, cuando abre `/admin/usuarios`, entonces es redirigido a `/login`.
+- Dado un administrador con credenciales válidas, cuando envía el formulario de login, entonces llega a `/admin/usuarios` y ve el encabezado "Administración de usuarios".
+- Dado un administrador autenticado, cuando cierra sesión, entonces vuelve a `/login` y al abrir `/admin/usuarios` se le redirige de nuevo.
+- Dado el escenario E2E, cuando se ejecuta `./gradlew e2eGherkinTest -Pplaywright.headless=false`, entonces el navegador ejecuta el flujo, se genera el video y el resultado es exitoso.
+
+**Evidencia**
+
+- `build/e2e-videos/el-administrador-llega-al-panel-y-cierra-sesi-n.webm`
+- `build/reports/cucumber/e2e.html`
+- `./gradlew e2eGherkinTest -Pplaywright.headless=false -Pplaywright.slowmo=500`
 
 ### HU-32 · Flujo Gherkin B: inicio de sesión fallido y reintento exitoso
 

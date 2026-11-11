@@ -166,10 +166,10 @@ cp src/main/resources/application-local.example.yml application-local.yml
 | `VITE_API_BASE_URL` | SPA | `/api` | Prefijo de las llamadas del navegador |
 | `VITE_API_PROXY_TARGET` | Vite en desarrollo | `http://localhost:8080` | Destino del proxy `/api` |
 | `TEST_DB_URL` | `./gradlew postgresTest` | sin valor | URL de PostgreSQL para las pruebas de concurrencia |
-| `E2E_ADMIN_EMAIL` | Serenity E2E | `admin@example.com` | Administrador con el que operan las pruebas |
-| `E2E_ADMIN_PASSWORD` | Serenity E2E | `admin123` | Contraseña del administrador de pruebas |
+| `E2E_ADMIN_EMAIL` | E2E de navegador | `admin@example.com` | Administrador con el que operan las pruebas |
+| `E2E_ADMIN_PASSWORD` | E2E de navegador | `admin123` | Contraseña del administrador de pruebas |
 
-Los valores `ADMIN_*` y `E2E_ADMIN_*` son solo de desarrollo. Si cambias las credenciales del administrador en `.env`, cambia también las de E2E o exporta las variables antes de correr Serenity.
+Los valores `ADMIN_*` y `E2E_ADMIN_*` son solo de desarrollo. Si cambias las credenciales del administrador en `.env`, cambia también las de E2E o exporta las variables antes de correr las pruebas de navegador.
 
 ## Interfaz web
 
@@ -190,18 +190,20 @@ npm test
 npm run build
 ```
 
-Las pruebas E2E de navegador usan Serenity + Playwright (Java) y corren contra el stack de Docker Compose (`http://localhost:5173` y `http://localhost:8080`), con JDK 21:
+Las pruebas E2E de navegador usan Serenity + Playwright (Java), y los flujos Gherkin de login usan Cucumber + Playwright. Todas corren contra el stack de Docker Compose (`http://localhost:5173` y `http://localhost:8080`), con JDK 21:
 
 ```bash
 docker compose --profile frontend up -d --build
 ./gradlew installPlaywrightBrowsers   # una sola vez por máquina
 ./gradlew serenityE2ETest
+./gradlew e2eGherkinTest
 ```
 
-El reporte narrado con capturas por paso queda en `target/site/serenity/index.html`. Para ver el navegador en vivo en tu pantalla (útil para grabar):
+El reporte narrado con capturas por paso de Serenity queda en `target/site/serenity/index.html`. Los flujos Gherkin de HU-31 y HU-32 graban un video por escenario en `build/e2e-videos/` y dejan el reporte HTML, JSON y JUnit en `build/reports/cucumber/`. Para ver el navegador en vivo en tu pantalla (útil para grabar):
 
 ```bash
 ./gradlew serenityE2ETest -Pplaywright.headless=false -Pplaywright.slowmo=800 -Pserenity.take.screenshots=FOR_FAILURES
+./gradlew e2eGherkinTest -Pplaywright.headless=false -Pplaywright.slowmo=500
 ```
 
 En WSL el navegador se ve desde Windows gracias a WSLg; en Windows nativo se ve directamente. En Linux puede hacer falta instalar las librerías del sistema de Chromium (`playwright install --with-deps chromium`).
@@ -445,7 +447,7 @@ rm -f "$COOKIE_JAR"
 
 ## Integración continua
 
-Cada push y pull request ejecuta [`.github/workflows/ci.yml`](.github/workflows/ci.yml) en GitHub Actions. El workflow tiene tres jobs: `pipeline` corre, en orden, compilación, pruebas unitarias e integración, mutation testing con PIT, cobertura con JaCoCo, pruebas de aceptación y E2E por HTTP; `frontend` corre lint, typecheck, pruebas de componentes y build de la SPA; y `serenity-e2e` levanta el stack con Docker Compose y ejecuta las pruebas E2E de navegador con Serenity en modo headless. Si una etapa falla, el job termina en rojo y el paso indica cuál falló.
+Cada push y pull request ejecuta [`.github/workflows/ci.yml`](.github/workflows/ci.yml) en GitHub Actions. El workflow tiene tres jobs: `pipeline` corre, en orden, compilación, pruebas unitarias e integración, mutation testing con PIT, cobertura con JaCoCo, pruebas de aceptación y E2E por HTTP; `frontend` corre lint, typecheck, pruebas de componentes y build de la SPA; y `serenity-e2e` levanta el stack con Docker Compose y ejecuta las pruebas E2E de navegador con Serenity y los flujos Gherkin de `e2eGherkinTest` en modo headless. Si una etapa falla, el job termina en rojo y el paso indica cuál falló.
 
 Las tareas locales equivalentes son:
 
@@ -454,10 +456,11 @@ Las tareas locales equivalentes son:
 ./gradlew acceptanceTest
 ./gradlew e2eTest
 ./gradlew serenityE2ETest
+./gradlew e2eGherkinTest
 cd frontend && npm test
 ```
 
-Los reportes de cada etapa quedan como artefactos de la ejecución del workflow, incluido el reporte HTML de Serenity (`target/site/serenity`).
+Los reportes de cada etapa quedan como artefactos de la ejecución del workflow, incluidos el reporte HTML de Serenity (`target/site/serenity`), el reporte de Cucumber (`build/reports/cucumber`) y los videos de los flujos Gherkin (`build/e2e-videos`).
 
 El workflow [`zap-baseline.yml`](.github/workflows/zap-baseline.yml) ejecuta además el análisis DAST con OWASP ZAP sobre la API y la interfaz, y publica los reportes HTML y JSON como el artefacto `reporte-seguridad-zap`. El procedimiento reproducible vive en [`security/zap`](security/zap/README.md).
 
@@ -482,10 +485,11 @@ El workflow [`zap-baseline.yml`](.github/workflows/zap-baseline.yml) ejecuta ade
 | Levantar Vite en desarrollo | `cd frontend && npm run dev` |
 | Lint, tipos, pruebas y build de la SPA | `cd frontend && npm run lint && npm run typecheck && npm test && npm run build` |
 | Instalar Chromium para Playwright | `./gradlew installPlaywrightBrowsers` |
-| Pruebas E2E de navegador | `./gradlew serenityE2ETest` |
+| Pruebas E2E de navegador con Serenity | `./gradlew serenityE2ETest` |
+| Flujos Gherkin E2E de login | `./gradlew e2eGherkinTest` |
 | Verificar referencias y symlinks | `bash ai-specs/scripts/check-references.sh` |
 
-`./gradlew build` ejecuta `check`, que a su vez corre PIT, JaCoCo, aceptación y E2E; por eso tarda más que `./gradlew test`. Para el ciclo de desarrollo usa las tareas acotadas y reserva `build` para antes de cerrar el cambio.
+`./gradlew build` ejecuta `check`, que a su vez corre PIT, JaCoCo, aceptación y E2E por HTTP; por eso tarda más que `./gradlew test`. Las pruebas E2E de navegador (`serenityE2ETest` y `e2eGherkinTest`) se ejecutan aparte porque exigen el stack de Docker Compose levantado. Para el ciclo de desarrollo usa las tareas acotadas y reserva `build` para antes de cerrar el cambio.
 
 ## Solución de problemas
 
