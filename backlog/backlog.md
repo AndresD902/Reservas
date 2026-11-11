@@ -107,6 +107,8 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 | HU-28 · Piloto Serenity: login de administrador y reserva feliz por UI | EP-04 | Completado | — |
 | HU-29 · Migración completa de specs Playwright a Serenity | EP-04 | Completado | — |
 | HU-30 · CI headless, reporte Serenity y retiro de Playwright TS | EP-04 | En Progreso | — |
+| HU-31 · Flujo Gherkin A: inicio de sesión exitoso del administrador | EP-04 | Backlog | 1 |
+| HU-32 · Flujo Gherkin B: inicio de sesión fallido y reintento exitoso | EP-04 | Backlog | 1 |
 
 ## Historias
 
@@ -1005,3 +1007,65 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 - Dado un push, cuando corre CI, entonces Serenity corre headless y publica su reporte.
 - Dado el reporte en CI, cuando se abre, entonces muestra resultados con capturas por paso.
 - Dado el repositorio, cuando se busca Playwright TS, entonces no queda suite duplicada.
+
+### HU-31 · Flujo Gherkin A: inicio de sesión exitoso del administrador
+
+Épica: `EP-04: Calidad y pruebas automatizadas`
+
+**Card**
+
+> Como equipo de desarrollo, quiero el flujo completo de inicio de sesión exitoso del administrador narrado en Gherkin, para verificar de punta a punta que la sesión se crea, se reconoce y se invalida.
+
+**Conversación**
+
+- Cubre FR-018 y FR-019 y complementa HU-25 (implementación del login) y HU-16 (suite Gherkin de aceptación). Hoy el login solo está cubierto por pruebas unitarias, de integración y el E2E Serenity de HU-28.
+- Flujo A: solicitar el token CSRF (`GET /auth/csrf`), iniciar sesión (`POST /auth/login`), confirmar la sesión (`GET /auth/me`), cerrar sesión (`POST /auth/logout`) y comprobar que `GET /auth/me` vuelve a responder 401.
+- Precondición: un administrador con credenciales válidas. Cada escenario crea el suyo con `AuthService`, sin depender de los datos semilla.
+- Decidido: se implementa como feature de aceptación en `src/test/resources/features/` con la tarea `acceptanceTest`, contra la API real con MockMvc. La suite actual corre con `reservas.security.enabled=false`: los escenarios de autenticación usan un contexto Cucumber propio con seguridad habilitada.
+- Fuera de alcance: el E2E de navegador, ya cubierto por HU-28 y la suite Serenity.
+
+**Tareas**
+
+- Escribir la feature Gherkin del login exitoso en `src/test/resources/features/`, con escenarios etiquetados `@FR-018` y `@FR-019`
+- Crear el contexto Cucumber de autenticación con `reservas.security.enabled=true` sin alterar la suite existente
+- Implementar los step definitions de login, sesión, logout y CSRF
+- Preparar el administrador de prueba y el token CSRF en cada escenario
+- Ejecutar `./gradlew acceptanceTest` y verificar el reporte
+
+**Criterios de Aceptación**
+
+- Dado un administrador con credenciales válidas, cuando inicia sesión, entonces la respuesta es 200 con su identidad y sin datos sensibles.
+- Dado un administrador autenticado, cuando consulta su sesión, entonces `GET /auth/me` devuelve el mismo administrador.
+- Dado un administrador autenticado, cuando cierra sesión, entonces `POST /auth/logout` responde 204 y `GET /auth/me` responde 401.
+- Dado el escenario de login exitoso, cuando se ejecuta `./gradlew acceptanceTest`, entonces pasa y queda etiquetado con FR-018 y FR-019.
+
+### HU-32 · Flujo Gherkin B: inicio de sesión fallido y reintento exitoso
+
+Épica: `EP-04: Calidad y pruebas automatizadas`
+
+**Card**
+
+> Como equipo de desarrollo, quiero el flujo completo de inicio de sesión fallido con reintento exitoso narrado en Gherkin, para verificar que unas credenciales inválidas no crean sesión y que el reintento válido sí la crea.
+
+**Conversación**
+
+- Cubre FR-018 y complementa HU-25 y HU-16. El rechazo de credenciales inválidas ya existe en `AuthControllerTest` y en la prueba de componente del login; esta historia lo lleva al flujo Gherkin de aceptación.
+- Flujo B: iniciar sesión con contraseña incorrecta (`POST /auth/login`), comprobar 401 `CREDENCIALES_INVALIDAS` y que `GET /auth/me` responde 401; luego reintentar con la contraseña correcta y comprobar la sesión con `GET /auth/me`.
+- El fallo no debe dejar sesión parcial ni permitir escrituras administrativas. La respuesta conserva el cuerpo común `status`, `error`, `message` y no revela cuál credencial falló.
+- Decidido: misma vía que HU-31, feature Gherkin en `acceptanceTest` con contexto Cucumber de seguridad habilitada; no se suma Serenity-Cucumber.
+- Fuera de alcance: bloqueo por intentos, recuperación de contraseña y MFA.
+
+**Tareas**
+
+- Escribir la feature Gherkin del login fallido y el reintento, etiquetada `@FR-018`
+- Reutilizar el contexto Cucumber de autenticación creado en HU-31
+- Implementar los steps de credenciales inválidas, sesión ausente y reintento
+- Verificar que el fallo no deja sesión utilizable ni permite escrituras administrativas
+- Ejecutar `./gradlew acceptanceTest` y verificar el reporte
+
+**Criterios de Aceptación**
+
+- Dado un administrador registrado, cuando inicia sesión con contraseña incorrecta, entonces se responde 401 con `CREDENCIALES_INVALIDAS` y el cuerpo común.
+- Dado un login fallido, cuando se consulta `GET /auth/me`, entonces responde 401 y no hay sesión activa.
+- Dadas credenciales inválidas y luego válidas, cuando reintenta el login, entonces la segunda respuesta es 200 y `GET /auth/me` devuelve al administrador.
+- Dado el escenario de fallo y reintento, cuando se ejecuta `./gradlew acceptanceTest`, entonces pasa y queda etiquetado con FR-018.
