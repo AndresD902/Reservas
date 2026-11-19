@@ -106,9 +106,15 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 | HU-27 · Validar Serenity-Playwright con un flujo E2E en vivo | EP-04 | Completado | — |
 | HU-28 · Piloto Serenity: login de administrador y reserva feliz por UI | EP-04 | Completado | — |
 | HU-29 · Migración completa de specs Playwright a Serenity | EP-04 | Completado | — |
-| HU-30 · CI headless, reporte Serenity y retiro de Playwright TS | EP-04 | En Progreso | — |
+| HU-30 · CI headless, reporte Serenity y retiro de Playwright TS | EP-04 | Completado | — |
 | HU-31 · Flujo Gherkin A: inicio de sesión exitoso del administrador | EP-04 | Completado | 1 |
 | HU-32 · Flujo Gherkin B: inicio de sesión fallido y reintento exitoso | EP-04 | Completado | 1 |
+| HU-33 · Análisis estático con SonarQube y quality gate | EP-04 | Backlog | 1 |
+| HU-34 · Evidencia de mutación PIT y análisis de mutantes sobrevivientes | EP-04 | Backlog | 2 |
+| HU-35 · Evidencia de rendimiento JMeter con dashboard y análisis | EP-05 | Backlog | 2 |
+| HU-36 · Pipeline de Azure DevOps con pruebas, ZAP y E2E | EP-07 | Backlog | 1 |
+| HU-37 · Plan de pruebas y guía de evidencia de calidad | EP-04 | Backlog | 1 |
+| HU-38 · Guion de presentación y demo del recorrido crítico | EP-04 | Backlog | 3 |
 
 ## Historias
 
@@ -1082,3 +1088,239 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 - `build/e2e-videos/el-administrador-falla-no-obtiene-sesi-n-y-reintenta.webm`
 - `build/reports/cucumber/e2e.html`
 - `./gradlew e2eGherkinTest -Pplaywright.headless=false -Pplaywright.slowmo=500`
+
+### HU-33 · Análisis estático con SonarQube y quality gate
+
+Épica: `EP-04: Calidad y pruebas automatizadas`
+
+**Card**
+
+> Como equipo de desarrollo, quiero analizar el proyecto con SonarQube y publicar sus métricas, para detectar bugs, vulnerabilidades, code smells, deuda técnica y duplicación antes de integrar.
+
+**Conversación**
+
+- Complementa HU-14 y HU-15: esas historias cubren pruebas y mutación; esta agrega el análisis estático y la cobertura en SonarQube.
+- Se usará SonarQube Cloud sobre el repositorio público `AndresD902/Reservas`, con `projectKey=AndresD902_Reservas` y organización `andresd902`. Si el equipo usa un servidor propio, cambian la URL y el token, no el alcance.
+- El análisis se ejecuta con el plugin `org.sonarqube` 7.6.0.18749 y consume el XML de JaCoCo en `build/reports/jacoco/test/jacocoTestReport.xml`.
+- Se excluyen DTOs, entidades, mappers, configuración y la clase de arranque; la exclusión se justifica en la guía para que la cobertura refleje lógica de negocio.
+- El quality gate se evalúa en el pipeline y no se desactiva. Los hallazgos legacy se trian y se documentan.
+- Fuera de alcance: corregir toda la deuda histórica y analizar la SPA. La cobertura publicada es la del backend.
+
+**Tareas**
+
+- Configurar el proyecto y el token en SonarQube
+- Agregar el plugin y las propiedades `sonar` en `build.gradle`
+- Verificar la ruta del reporte JaCoCo y las exclusiones
+- Ejecutar `./gradlew test jacocoTestReport sonar`
+- Triar bugs, vulnerabilidades y code smells; corregir los de impacto alto
+- Documentar métricas, deuda, duplicación y cobertura en la guía
+- Integrar el análisis en el pipeline de Azure
+
+**Criterios de Aceptación**
+
+- Dado el proyecto configurado, cuando se ejecuta `./gradlew sonar`, entonces el análisis termina y publica el dashboard.
+- Dada la cobertura de JaCoCo, cuando SonarQube procesa el reporte, entonces muestra el porcentaje de cobertura del backend.
+- Dado el quality gate, cuando corre el pipeline, entonces el resultado se evalúa y no se ignora.
+- Dados los hallazgos, cuando se revisa el reporte, entonces bugs, vulnerabilidades, code smells, deuda y duplicación tienen interpretación y acción.
+
+**Evidencia**
+
+- URL del proyecto en SonarQube
+- Captura del dashboard con las métricas solicitadas
+- `docs/quality-evidence-guide.md`, sección SonarQube
+- Quality gate del run de Azure
+
+### HU-34 · Evidencia de mutación PIT y análisis de mutantes sobrevivientes
+
+Épica: `EP-04: Calidad y pruebas automatizadas`
+
+**Card**
+
+> Como equipo de desarrollo, quiero ejecutar PIT sobre el proyecto y analizar los mutantes sobrevivientes, para demostrar que las pruebas detectan regresiones en la lógica de negocio.
+
+**Conversación**
+
+- Complementa HU-14, que ya configuró PIT con umbral 80/90 sobre `service.impl`.
+- El gate actual se mantiene; se agrega una corrida exploratoria `pitestFull` sobre servicios, controladores y excepciones, sin umbral, para obtener evidencia ampliada.
+- Se excluyen DTOs, entidades, mappers, configuración y la clase de arranque.
+- El reporte HTML y XML se publican como artefacto; los supervivientes se clasifican por clase, línea, mutador y causa.
+- Si hay supervivientes accionables, se agregan pruebas y se vuelve a ejecutar el gate.
+- Fuera de alcance: exigir 100 % de mutación en todas las capas.
+
+**Tareas**
+
+- Ejecutar `./gradlew pitest` y conservar el reporte
+- Agregar la tarea `pitestFull` con el alcance ampliado
+- Extraer mutation score, mutaciones eliminadas y supervivientes
+- Analizar los supervivientes y agregar pruebas para los accionables
+- Documentar el análisis en la guía
+- Publicar el reporte en Azure
+
+**Criterios de Aceptación**
+
+- Dado el proyecto, cuando se ejecuta PIT, entonces se genera el reporte HTML y XML.
+- Dado el reporte, cuando se revisa, entonces muestra el mutation score y los mutantes eliminados.
+- Dados los supervivientes, cuando se analizan, entonces cada uno tiene causa y acción.
+- Dado el gate, cuando corre el build, entonces falla si baja del umbral.
+
+**Evidencia**
+
+- `build/reports/pitest/index.html` y `mutations.xml`
+- `build/reports/pitest-full/` si se ejecuta la tarea ampliada
+- Tabla de supervivientes en `docs/quality-evidence-guide.md`
+- Artefacto de Azure
+
+### HU-35 · Evidencia de rendimiento JMeter con dashboard y análisis
+
+Épica: `EP-05: Concurrencia y rendimiento`
+
+**Card**
+
+> Como equipo de desarrollo, quiero ejecutar el escenario JMeter de 500 usuarios y publicar sus métricas, para analizar el comportamiento bajo carga y los cuellos de botella.
+
+**Conversación**
+
+- Complementa HU-18, que ya definió el escenario de 500 hilos, ramp-up 10 s, mismo recurso y horario, p95 < 800 ms y 1×201/499×409.
+- Se agrega el dashboard HTML de JMeter (`-e -o`) y un resumen `summary.json` con promedio, throughput, percentiles y errores.
+- Los 499 HTTP 409 son conflictos de negocio esperados; el informe distingue error HTTP bruto de error inesperado.
+- El entorno es Docker Compose; se documenta el agente (vCPU/RAM) porque los resultados dependen de él.
+- Fuera de alcance: escalar la infraestructura o cambiar el bloqueo pesimista.
+
+**Tareas**
+
+- Ajustar `perf/scripts/run-hu18.sh` para generar el dashboard y limpiar resultados
+- Extender `verify-integrity.py` con throughput, error %, p99 y `summary.json`
+- Ejecutar el escenario contra el stack
+- Verificar 1×201, 499×409, p95 y una sola reserva activa
+- Publicar JTL, dashboard y resumen
+- Documentar métricas y cuello de botella en la guía
+
+**Criterios de Aceptación**
+
+- Dado el escenario, cuando termina, entonces hay 1×201 y 499×409.
+- Dado el JTL, cuando se procesa, entonces p95 < 800 ms.
+- Dado el dashboard, cuando se revisa, entonces muestra promedio, throughput, error % y percentiles.
+- Dada la base de datos, cuando se consulta, entonces hay una sola reserva activa solapada.
+- Dado el informe, cuando se lee, entonces explica los 409 esperados y el cuello de botella.
+
+**Evidencia**
+
+- `perf/results/reservas-500.jtl`
+- `perf/results/html/index.html`
+- `perf/results/summary.json`
+- Sección JMeter de la guía y artefacto de Azure
+
+### HU-36 · Pipeline de Azure DevOps con pruebas, ZAP y E2E
+
+Épica: `EP-07: Operación y entrega continua`
+
+**Card**
+
+> Como equipo de desarrollo, quiero un pipeline en Azure DevOps que compile, pruebe, analice y publique evidencia en cada cambio, para detectar regresiones y dejar un CI oficial trazable.
+
+**Conversación**
+
+- Complementa HU-23 (GitHub Actions), HU-26 (ZAP), HU-30 (Serenity) y HU-31/HU-32 (Gherkin). Azure DevOps pasa a ser el CI oficial; GitHub Actions queda como respaldo hasta que Azure esté verde.
+- Etapas: backend (JUnit, PIT, JaCoCo, aceptación y E2E HTTP), frontend (lint, typecheck, Vitest y build), navegador (Serenity y Gherkin), seguridad (ZAP) y rendimiento (JMeter manual).
+- Publica artefactos de pruebas, cobertura, mutación, Serenity, Cucumber, videos, ZAP y JMeter.
+- Los secretos viven en el variable group `reservas-quality`; no se escriben tokens en el YAML.
+- La evidencia de fallo se produce con una rama temporal que rompe una aserción, un run en rojo y la reversión posterior.
+- Fuera de alcance: despliegue a producción y cambios de lógica de la aplicación.
+
+**Tareas**
+
+- Crear `azure-pipelines.yml` con las etapas y condiciones
+- Configurar JDK 21, Node 24, Gradle y Docker Compose en el agente
+- Integrar JUnit, PIT, JaCoCo, aceptación y E2E HTTP
+- Integrar Serenity, Gherkin, ZAP y JMeter como etapas o artefactos
+- Publicar resultados de pruebas y artefactos con `PublishTestResults@2` y `PublishPipelineArtifact@1`
+- Ejecutar el pipeline en `main` y verificar el run verde
+- Ejecutar el fallo controlado y capturar la evidencia roja
+
+**Criterios de Aceptación**
+
+- Dado un push a `main`, cuando corre el pipeline, entonces se ejecutan todas las etapas configuradas.
+- Dado un pull request, cuando corre el pipeline, entonces las pruebas y el quality gate pueden bloquear la integración.
+- Dada una prueba que falla, cuando corre el pipeline, entonces la etapa termina en rojo e identifica el test fallido.
+- Dado un run exitoso, cuando se revisan los artefactos, entonces están disponibles los reportes de pruebas, cobertura, mutación, E2E, ZAP y JMeter.
+- Dado el run de fallo controlado, cuando se revisa, entonces la evidencia muestra la etapa y la prueba que fallaron.
+
+**Evidencia**
+
+- URL del run de Azure en `main`
+- Captura de las etapas en verde y de la etapa roja controlada
+- Artefactos publicados por el pipeline
+- `docs/quality-evidence-guide.md`, sección Azure Pipelines
+
+### HU-37 · Plan de pruebas y guía de evidencia de calidad
+
+Épica: `EP-04: Calidad y pruebas automatizadas`
+
+**Card**
+
+> Como equipo de desarrollo, quiero un plan de pruebas y una guía de evidencia, para ejecutar y evaluar la calidad del sistema de forma reproducible y trazable.
+
+**Conversación**
+
+- Cubre B y ordena C–H; complementa HU-13 a HU-32.
+- El documento vive en `docs/quality-evidence-guide.md`, bajo el patrón `*-guide.md` del catálogo de documentación.
+- Incluye objetivo, alcance, componentes, tipos de prueba, entornos, riesgos y criterios de éxito.
+- La matriz de trazabilidad enlaza A–I, HUs, cards y evidencia.
+- Fuera de alcance: ejecutar las pruebas; la guía describe cómo hacerlo y dónde queda la evidencia.
+
+**Tareas**
+
+- Escribir las secciones del plan de pruebas
+- Documentar comandos, umbrales y rutas de reportes
+- Construir la matriz A–I
+- Revisar el documento con el equipo
+- Actualizarlo cuando cambie el CI o un umbral
+
+**Criterios de Aceptación**
+
+- Dado el documento, cuando otra persona lo lee, entonces puede ejecutar las pruebas sin preguntar.
+- Dados los riesgos, cuando se revisan, entonces tienen mitigación.
+- Dados los criterios de éxito, cuando se evalúa el sistema, entonces son medibles.
+- Dada la matriz, cuando se consulta un ítem A–I, entonces encuentra su HU, su card y su evidencia.
+
+**Evidencia**
+
+- `docs/quality-evidence-guide.md`
+- Revisión del equipo registrada en la card
+
+### HU-38 · Guion de presentación y demo del recorrido crítico
+
+Épica: `EP-04: Calidad y pruebas automatizadas`
+
+**Card**
+
+> Como equipo de desarrollo, quiero un guion de presentación y demo del recorrido crítico, para exponer el sistema y su evidencia de calidad sin improvisar.
+
+**Conversación**
+
+- Cubre A y consolida C–H; complementa HU-01 a HU-32.
+- Recorrido: login del administrador, gestión de usuario y recurso, reserva, mis reservas, cancelación, conflicto 409 y logout.
+- Incluye diapositivas, datos de demo, comandos, resultados esperados y plan de respaldo con video o capturas.
+- Enlaza los reportes de JUnit, PIT, Sonar, Gherkin, ZAP, JMeter y Azure.
+- Fuera de alcance: grabar la presentación final; el guion y la evidencia quedan listos para usarse.
+
+**Tareas**
+
+- Escribir el guion de la presentación A–I
+- Definir datos y comandos de la demo
+- Preparar capturas y video de respaldo
+- Ensayar el recorrido y ajustar tiempos
+- Enlazar la evidencia de cada herramienta
+
+**Criterios de Aceptación**
+
+- Dado el guion, cuando se sigue, entonces cubre A–I en el tiempo previsto.
+- Dado el recorrido, cuando se ejecuta, entonces login, reserva y cancelación funcionan.
+- Dado un fallo en vivo, cuando ocurre, entonces hay video o capturas de respaldo.
+- Dada la evidencia, cuando se revisa, entonces los reportes están enlazados.
+
+**Evidencia**
+
+- Sección de presentación de `docs/quality-evidence-guide.md`
+- Video o capturas de la demo
+- Enlaces a los reportes de cada herramienta
