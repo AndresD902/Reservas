@@ -1232,7 +1232,7 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 - Etapas: backend (JUnit, PIT, JaCoCo, aceptación y E2E HTTP), frontend (lint, typecheck, Vitest y build), navegador (Serenity y Gherkin), seguridad (ZAP) y rendimiento (JMeter manual).
 - Publica artefactos de pruebas, cobertura, mutación, Serenity, Cucumber, videos, ZAP y JMeter.
 - Los secretos viven en el variable group `reservas-quality`; no se escriben tokens en el YAML.
-- La evidencia de fallo se produce con una rama temporal que rompe una aserción, un run en rojo y la reversión posterior.
+- La evidencia de fallo se produce con el parámetro manual `runControlledFailure=true`, que activa el test `ControlledFailureEvidenceTest` en un stage separado; el valor predeterminado omite ese stage. El test publica su resultado aunque falle y una ejecución normal posterior restablece el resultado verde sin alterar el código funcional.
 - Fuera de alcance: despliegue a producción y cambios de lógica de la aplicación.
 
 **Tareas**

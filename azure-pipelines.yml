@@ -13,6 +13,12 @@ variables:
   - name: GRADLE_USER_HOME
     value: $(Pipeline.Workspace)/.gradle
 
+parameters:
+  - name: runControlledFailure
+    displayName: Ejecutar fallo controlado para HU-36
+    type: boolean
+    default: false
+
 stages:
   - stage: PerformanceEvidence
     displayName: Evidencia de rendimiento JMeter
@@ -114,3 +120,226 @@ stages:
             inputs:
               targetPath: $(System.DefaultWorkingDirectory)/build/reports
               artifact: backend-quality-reports
+
+  - stage: FrontendQuality
+    displayName: Calidad del frontend
+    dependsOn: []
+    jobs:
+      - job: Frontend
+        displayName: Lint, tipos, pruebas y compilación
+        pool:
+          vmImage: ubuntu-latest
+        timeoutInMinutes: 20
+        steps:
+          - checkout: self
+
+          - task: NodeTool@0
+            displayName: Configurar Node 24
+            inputs:
+              versionSpec: '24.x'
+
+          - bash: mkdir -p frontend/coverage
+            displayName: Preparar reportes del frontend
+
+          - bash: npm ci --ignore-scripts
+            workingDirectory: frontend
+            displayName: Instalar dependencias
+
+          - bash: npm run lint
+            workingDirectory: frontend
+            displayName: Ejecutar lint
+
+          - bash: npm run typecheck
+            workingDirectory: frontend
+            displayName: Verificar tipos
+
+          - bash: npm test -- --reporter=junit --outputFile=coverage/junit.xml
+            workingDirectory: frontend
+            displayName: Ejecutar pruebas del frontend
+
+          - task: PublishTestResults@2
+            displayName: Publicar pruebas del frontend
+            condition: always()
+            inputs:
+              testResultsFormat: JUnit
+              searchFolder: $(System.DefaultWorkingDirectory)/frontend/coverage
+              testResultsFiles: junit.xml
+              mergeTestResults: true
+              failTaskOnFailedTests: true
+              failTaskOnMissingResults: false
+              testRunTitle: Pruebas del frontend
+
+          - bash: npm run build
+            workingDirectory: frontend
+            displayName: Compilar frontend
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publicar evidencia del frontend
+            condition: always()
+            inputs:
+              targetPath: $(System.DefaultWorkingDirectory)/frontend/coverage
+              artifact: frontend-quality-reports
+
+  - stage: BrowserE2E
+    displayName: Serenity y Gherkin E2E
+    dependsOn: []
+    jobs:
+      - job: BrowserTests
+        displayName: E2E de navegador con Serenity y Gherkin
+        pool:
+          vmImage: ubuntu-latest
+        timeoutInMinutes: 45
+        variables:
+          E2E_ADMIN_EMAIL: admin@example.com
+          E2E_ADMIN_PASSWORD: admin123
+        steps:
+          - checkout: self
+
+          - task: JavaToolInstaller@0
+            displayName: Configurar JDK 21
+            inputs:
+              versionSpec: '21'
+              jdkArchitectureOption: x64
+              jdkSourceOption: PreInstalled
+
+          - bash: chmod +x ./gradlew
+            displayName: Habilitar Gradle Wrapper
+
+          - bash: docker compose --profile frontend up -d --build
+            displayName: Levantar el stack para E2E
+
+          - bash: |
+              for attempt in $(seq 1 60); do
+                frontend=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5173/login || true)
+                api=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/recursos || true)
+                if [ "$frontend" = "200" ] && [ "$api" = "200" ]; then
+                  echo "Stack listo (frontend=$frontend api=$api)"
+                  exit 0
+                fi
+                sleep 3
+              done
+              docker compose --profile frontend logs --tail 50
+              exit 1
+            displayName: Esperar a API e interfaz
+
+          - bash: sudo npx -y playwright@1.64.0 install-deps chromium
+            displayName: Instalar dependencias de Chromium
+
+          - bash: ./gradlew installPlaywrightBrowsers --console=plain
+            displayName: Instalar Chromium de Playwright
+
+          - bash: ./gradlew serenityE2ETest --console=plain
+            displayName: Ejecutar Serenity con Playwright
+
+          - bash: ./gradlew e2eGherkinTest --console=plain
+            displayName: Ejecutar flujos Gherkin
+            condition: always()
+
+          - task: PublishTestResults@2
+            displayName: Publicar resultados Gherkin
+            condition: always()
+            inputs:
+              testResultsFormat: JUnit
+              searchFolder: $(System.DefaultWorkingDirectory)/build/reports/cucumber
+              testResultsFiles: e2e.xml
+              mergeTestResults: true
+              failTaskOnFailedTests: true
+              failTaskOnMissingResults: false
+              testRunTitle: Flujos Gherkin E2E
+
+          - bash: |
+              mkdir -p "$(Pipeline.Workspace)/browser-evidence/serenity" \
+                "$(Pipeline.Workspace)/browser-evidence/cucumber" \
+                "$(Pipeline.Workspace)/browser-evidence/videos"
+              if [ -d target/site/serenity ]; then cp -R target/site/serenity/. "$(Pipeline.Workspace)/browser-evidence/serenity/"; fi
+              if [ -d build/reports/cucumber ]; then cp -R build/reports/cucumber/. "$(Pipeline.Workspace)/browser-evidence/cucumber/"; fi
+              if [ -d build/e2e-videos ]; then cp -R build/e2e-videos/. "$(Pipeline.Workspace)/browser-evidence/videos/"; fi
+            displayName: Preparar artefactos E2E
+            condition: always()
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publicar reportes Serenity, Gherkin y videos
+            condition: always()
+            inputs:
+              targetPath: $(Pipeline.Workspace)/browser-evidence
+              artifact: browser-e2e-evidence
+
+          - bash: docker compose --profile frontend down --remove-orphans
+            displayName: Detener el stack E2E
+            condition: always()
+
+  - stage: ZapSecurity
+    displayName: Seguridad DAST con OWASP ZAP
+    dependsOn: []
+    jobs:
+      - job: ZapBaseline
+        displayName: Escanear API e interfaz
+        pool:
+          vmImage: ubuntu-latest
+        timeoutInMinutes: 45
+        steps:
+          - checkout: self
+
+          - bash: chmod +x ./gradlew && ./gradlew test --console=plain
+            displayName: Verificar backend antes del escaneo
+
+          - bash: bash security/zap/run-baseline.sh
+            displayName: Ejecutar ZAP Baseline
+            env:
+              ZAP_FAIL_ON: medium
+
+          - bash: |
+              evidence_dir="$(Pipeline.Workspace)/zap-evidence"
+              mkdir -p "$evidence_dir"
+              for report in security/zap/reports/api-zap.html security/zap/reports/api-zap.json \
+                security/zap/reports/ui-zap.html security/zap/reports/ui-zap.json \
+                security/zap/reports/summary.md; do
+                if [ -f "$report" ]; then cp "$report" "$evidence_dir/"; fi
+              done
+              if [ -z "$(ls -A "$evidence_dir")" ]; then
+                printf 'ZAP no generó reportes en esta ejecución. Revisa los logs del job.\n' > "$evidence_dir/run-status.txt"
+              fi
+            displayName: Preparar solo la evidencia del run
+            condition: always()
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publicar reportes ZAP
+            condition: always()
+            inputs:
+              targetPath: $(Pipeline.Workspace)/zap-evidence
+              artifact: zap-security-evidence
+
+  - ${{ if eq(parameters.runControlledFailure, true) }}:
+    - stage: ControlledFailureEvidence
+      displayName: Evidencia de fallo controlado
+      dependsOn: []
+      jobs:
+        - job: IntentionalTestFailure
+          displayName: Identificar la aserción fallida
+          pool:
+            vmImage: ubuntu-latest
+          steps:
+            - checkout: self
+
+            - task: JavaToolInstaller@0
+              displayName: Configurar JDK 21
+              inputs:
+                versionSpec: '21'
+                jdkArchitectureOption: x64
+                jdkSourceOption: PreInstalled
+
+            - bash: chmod +x ./gradlew && ./gradlew -Phu36.forceFailure=true test --tests com.institucion.reservas.quality.ControlledFailureEvidenceTest --console=plain
+              displayName: Ejecutar la prueba con fallo intencional
+              continueOnError: false
+
+            - task: PublishTestResults@2
+              displayName: Publicar el test fallido
+              condition: always()
+              inputs:
+                testResultsFormat: JUnit
+                searchFolder: $(System.DefaultWorkingDirectory)/build/test-results/test
+                testResultsFiles: TEST-com.institucion.reservas.quality.ControlledFailureEvidenceTest.xml
+                mergeTestResults: true
+                failTaskOnFailedTests: false
+                failTaskOnMissingResults: false
+                testRunTitle: Fallo controlado HU-36

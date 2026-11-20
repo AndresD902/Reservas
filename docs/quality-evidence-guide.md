@@ -381,6 +381,15 @@ El intento anterior, run 17, publicó JTL/dashboard pero falló antes del resume
 |---|---|---|
 | `PerformanceEvidence` | Docker Compose, 500 usuarios JMeter, verificación de integridad | Artefacto `jmeter-performance-evidence` con JTL, dashboard HTML y `summary.json` |
 | `BackendQuality` | JUnit, PIT, JaCoCo, aceptación, E2E HTTP y SonarCloud | Reportes de pruebas, cobertura, mutación y resultado del quality gate |
+| `FrontendQuality` | Node 24, lint, typecheck, Vitest y build | Artefacto `frontend-quality-reports` y resultados JUnit |
+| `BrowserE2E` | Stack Docker Compose, Serenity/Playwright y Gherkin | Artefacto `browser-e2e-evidence` con reportes y videos; resultados JUnit de Gherkin |
+| `ZapSecurity` | Baseline DAST de API e interfaz con umbral medio | Artefacto `zap-security-evidence` con JSON, HTML y resumen del run |
+
+La etapa `ControlledFailureEvidence` se agrega únicamente cuando una ejecución manual
+selecciona el parámetro `runControlledFailure=true`. Activa una aserción JUnit dedicada,
+publica el XML aunque el test falle y deja el pipeline rojo de forma intencional. Las
+ejecuciones normales omiten esa etapa. Después de capturar la evidencia roja, ejecutar
+el pipeline con el valor predeterminado para volver a obtener un resultado verde.
 
 ### Pipeline versionado
 
@@ -388,7 +397,12 @@ El pipeline versionado en `azure-pipelines.yml` se dispara con cambios y pull re
 
 La etapa de backend genera el reporte JaCoCo y ejecuta SonarCloud con el secreto `SONAR_TOKEN` del variable group `reservas-quality`. El checkout usa `fetchDepth: 0` para descargar el historial completo: Sonar necesita el blame para distinguir issues existentes de issues nuevos y evaluar correctamente el quality gate. El job falla si el gate no se aprueba.
 
-Este pipeline cubre backend, SonarCloud y rendimiento; no sustituye los jobs de GitHub Actions para frontend, navegador o seguridad.
+Las cinco etapas ordinarias se disparan para pushes y pull requests a `main`. Las etapas
+de backend, frontend, navegador y ZAP usan agentes hospedados de Ubuntu; rendimiento
+requiere `NewAgent` conectado en `LocalPool`. Todas publican su artefacto con condición
+`always()` para conservar evidencia diagnóstica cuando una verificación falla. La etapa
+de frontend también publica resultados JUnit de Vitest y la etapa de navegador publica
+los resultados XML de Gherkin.
 
 ### Configuración manual en Azure DevOps
 
@@ -397,12 +411,14 @@ Este pipeline cubre backend, SonarCloud y rendimiento; no sustituye los jobs de 
 3. Seleccionar el repositorio y elegir **Existing Azure Pipelines YAML file**.
 4. Seleccionar la rama que contiene el archivo (`feature/hu-33-sonar-quality-gate` antes del merge) y la ruta `/azure-pipelines.yml`; guardar y ejecutar.
 5. Si Azure solicita autorización de recursos, autorizar la conexión GitHub y el variable group `reservas-quality` para este pipeline. También puede hacerse en **Pipelines → Library → reservas-quality → Pipeline permissions**, habilitando este pipeline.
-6. Confirmar que el primer run termina con `BackendQuality` exitoso y que el dashboard SonarCloud muestra cobertura JaCoCo y quality gate. Revisar el log para confirmar que no se expone el valor del token.
-7. En GitHub, abrir **Settings → Rules → Rulesets** y crear un ruleset para `main` que requiera el status check publicado por este pipeline. El check aparecerá para seleccionarlo después de la primera ejecución de validación de PR.
+6. Confirmar que todas las etapas ordinarias terminan y que el dashboard SonarCloud muestra cobertura JaCoCo y quality gate. Revisar el log para confirmar que no se expone el valor del token y descargar los cinco artefactos.
+7. Ejecutar manualmente con `runControlledFailure=true`; verificar que `ControlledFailureEvidence` quede roja y que el XML identifique `ControlledFailureEvidenceTest`. Después, ejecutar el pipeline con el valor predeterminado y confirmar que vuelve a verde.
+8. En GitHub, abrir **Settings → Rules → Rulesets** y crear un ruleset para `main` que requiera el check de Azure publicado por la validación del pull request.
 
 ### Evidencia de ejecución
 
-- URL del run de `main` con el job de SonarCloud y el quality gate aprobados.
+- URL del run exitoso con las cinco etapas y los artefactos descargables.
+- URL del run manual con fallo controlado y del run normal posterior exitoso.
 - URL del proyecto SonarCloud con cobertura y métricas visibles.
 - Confirmación de que Build validation quedó como requerida en la política de `main`.
 - Clasificación y acción para bugs, vulnerabilidades, code smells, deuda y duplicación observados.
