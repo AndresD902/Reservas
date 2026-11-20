@@ -14,6 +14,10 @@ variables:
     value: $(Pipeline.Workspace)/.gradle
 
 parameters:
+  - name: runPerformance
+    displayName: Ejecutar evidencia JMeter
+    type: boolean
+    default: false
   - name: runControlledFailure
     displayName: Ejecutar fallo controlado para HU-36
     type: boolean
@@ -22,6 +26,7 @@ parameters:
 stages:
   - stage: PerformanceEvidence
     displayName: Evidencia de rendimiento JMeter
+    condition: or(eq(variables['Build.Reason'], 'IndividualCI'), eq('${{ parameters.runPerformance }}', 'true'))
     dependsOn: []
     jobs:
       - job: JMeter
