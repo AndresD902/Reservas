@@ -37,7 +37,7 @@ stages:
             displayName: Habilitar Gradle Wrapper
 
           - script: >-
-              ./gradlew test pitest jacocoTestReport
+              ./gradlew test pitest pitestFull jacocoTestReport
               jacocoTestCoverageVerification acceptanceTest e2eTest sonar
               --console=plain
             displayName: Ejecutar verificaciones y SonarCloud

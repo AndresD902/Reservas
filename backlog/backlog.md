@@ -1171,7 +1171,8 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 **Evidencia**
 
 - `build/reports/pitest/index.html` y `mutations.xml`
-- `build/reports/pitest-full/` si se ejecuta la tarea ampliada
+- `build/reports/pitest-full/` — corrida local: 135 mutaciones, 134 eliminadas y una sobreviviente equivalente; mutation score 99 % y cobertura de líneas 98 %
+- La sobreviviente de `AuthController.java:60` (`SecurityContextHolder.setContext`) se documenta como redundante para el contrato HTTP cubierto; revisar si cambia el uso del contexto durante la petición
 - Tabla de supervivientes en `docs/quality-evidence-guide.md`
 - Artefacto de Azure
 

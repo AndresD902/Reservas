@@ -213,6 +213,47 @@ pitest {
 	threads = 2
 }
 
+def pitestFull = tasks.register('pitestFull', info.solidsoft.gradle.pitest.PitestTask) {
+	description = 'Ejecuta PIT sobre servicios, controladores y excepciones sin umbrales de calidad.'
+	group = 'verification'
+	dependsOn tasks.named('classes'), tasks.named('testClasses')
+	shouldRunAfter tasks.named('test')
+
+	targetClasses.set([
+			'com.institucion.reservas.service.*',
+			'com.institucion.reservas.controller.*',
+			'com.institucion.reservas.exception.*'
+	])
+	targetTests.set([
+			'com.institucion.reservas.service.**',
+			'com.institucion.reservas.controller.**',
+			'com.institucion.reservas.exception.**'
+	])
+	excludedClasses.set([
+			'com.institucion.reservas.dto.*',
+			'com.institucion.reservas.entity.*',
+			'com.institucion.reservas.mapper.*',
+			'com.institucion.reservas.config.*',
+			'com.institucion.reservas.ReservasApplication'
+	])
+	reportDir.set(layout.buildDirectory.dir('reports/pitest-full'))
+	outputFormats.set(['HTML', 'XML'])
+	timestampedReports.set(false)
+	threads.set(2)
+	coverageThreshold.set(0)
+	mutationThreshold.set(0)
+
+	def testSourceSet = sourceSets.test
+	def mainSourceSet = sourceSets.main
+	sourceDirs.setFrom(mainSourceSet.allSource.srcDirs)
+	mutableCodePaths.setFrom(mainSourceSet.output.classesDirs)
+	additionalClasspath.from(testSourceSet.runtimeClasspath)
+	launchClasspath.from(configurations.named('pitest'))
+	useAdditionalClasspathFile.set(true)
+	additionalClasspathFile.set(layout.buildDirectory.file('pitest-full-classpath'))
+	defaultFileForHistoryData.set(layout.buildDirectory.file('pitest-full-history.txt'))
+}
+
 jacoco {
 	toolVersion = '0.8.16'
 }

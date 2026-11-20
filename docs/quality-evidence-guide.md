@@ -168,7 +168,13 @@ Reporte:
 - `build/reports/pitest/index.html`
 - `build/reports/pitest/mutations.xml`
 
-Para la evidencia ampliada se agrega una tarea `pitestFull` sobre servicios, controladores y excepciones, sin umbral, con reporte en `build/reports/pitest-full`. No forma parte de `check`.
+La tarea `pitestFull` analiza servicios, controladores y excepciones, excluye DTOs, entidades, mappers, configuración y la clase de arranque, y no aplica umbrales de mutación ni cobertura. No forma parte de `check`; el pipeline de Azure la ejecuta junto con `pitest` y publica ambos reportes dentro de `build/reports`.
+
+```bash
+./gradlew pitestFull
+```
+
+El reporte HTML/XML queda en `build/reports/pitest-full/`.
 
 ### Análisis de supervivientes
 
@@ -184,6 +190,16 @@ Cada mutante sobreviviente se registra con:
 | Acción | Prueba agregada, exclusión justificada o riesgo aceptado |
 
 Si el gate queda en 100 %, se documenta que no hay supervivientes en ese alcance y se adjunta el reporte como evidencia.
+
+### Corrida ampliada local
+
+En Windows, `./gradlew.bat pitestFull --console=plain` generó 135 mutaciones: 134 eliminadas y una sobreviviente; score 99 %, cobertura de líneas 235/240 (98 %), cobertura de mutantes 100 % y 32 clases de prueba examinadas. El reporte está en `build/reports/pitest-full/`.
+
+| Clase | Línea | Mutador | Causa | Acción |
+|---|---:|---|---|---|
+| `AuthController` | 60 | `VoidMethodCallMutator` elimina `SecurityContextHolder.setContext` | `SecurityContextRepository.saveContext` persiste el contexto y las pruebas de sesión verifican el acceso posterior. La llamada al holder no cambia el resultado observable del flujo cubierto y el mutante sobrevivió. | Aceptado como redundancia para el contrato HTTP actual; se conserva documentado como riesgo de disponibilidad del contexto durante el resto de la petición. |
+
+Una primera corrida detectó además que la prueba de `/auth/csrf` verificaba el JSON, pero no la cookie CSRF. Se agregó la aserción de existencia de `XSRF-TOKEN`; la corrida repetida eliminó ese mutante. El mutante de `setContext` permanece clasificado como sobreviviente equivalente y no se cambió lógica de autenticación fuera del alcance de HU-34.
 
 ## Evidencia SonarQube (E)
 

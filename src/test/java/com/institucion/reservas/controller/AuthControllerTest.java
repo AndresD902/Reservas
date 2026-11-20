@@ -18,6 +18,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(properties = "reservas.security.enabled=true")
@@ -77,6 +78,7 @@ class AuthControllerTest {
     void csrfExponeElTokenYLaCabecera() throws Exception {
         mockMvc.perform(get("/auth/csrf"))
                 .andExpect(status().isOk())
+                .andExpect(cookie().exists("XSRF-TOKEN"))
                 .andExpect(jsonPath("$.headerName").value("X-XSRF-TOKEN"))
                 .andExpect(jsonPath("$.token").isNotEmpty());
     }
