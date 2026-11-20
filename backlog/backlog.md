@@ -1188,6 +1188,7 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 
 - Complementa HU-18, que ya definió el escenario de 500 hilos, ramp-up 10 s, mismo recurso y horario, p95 < 800 ms y 1×201/499×409.
 - Se agrega el dashboard HTML de JMeter (`-e -o`) y un resumen `summary.json` con promedio, throughput, percentiles y errores.
+- El JTL fija timestamps de inicio: el throughput usa desde el primer inicio hasta el último fin (`timeStamp + elapsed`). Los percentiles del verificador usan nearest-rank; el dashboard interpola y puede mostrar valores distintos.
 - Los 499 HTTP 409 son conflictos de negocio esperados; el informe distingue error HTTP bruto de error inesperado.
 - El entorno es Docker Compose; se documenta el agente (vCPU/RAM) porque los resultados dependen de él.
 - La repetición solicitada se ejecuta mediante Azure DevOps en `LocalPool`, agente self-hosted `NewAgent` del equipo ANDRES. Docker Compose usa proyecto, volumen y puertos aislados del entorno local; se registra CPU/RAM junto con la evidencia. Bash debe usar el checkout estable bajo `/mnt/<unidad>/` para que la salida del contenedor no invalide el directorio de trabajo.
@@ -1214,7 +1215,7 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 
 - Seis corridas locales en Docker Desktop Linux x86_64 (16 vCPU, 7,59 GiB): todas dieron 1×201, 499×409, 500 CSRF HTTP 200 y una reserva activa solapada. Con heap JMeter de 2 GiB, la más reciente dio p95 de 4 ms, promedio de 3 ms y throughput de 52,13 reservas/s.
 - Azure runs 14 y 15 publicaron `jmeter-performance-evidence` con JTL, dashboard y resumen. El run 14 midió p95 de 1106 ms con heap por defecto de 5,2 GiB; el run 15 midió 1580 ms con heap limitado a 2 GiB. Ambos pasaron códigos e integridad, pero fallaron el umbral p95 de 800 ms en ese entorno.
-- El [run 18](https://dev.azure.com/andresposada274/Reservas/_build/results?buildId=18), `20261120.11`, pasó la etapa de rendimiento en Azure `LocalPool` / `NewAgent` (Docker: 16 CPU, 7,59 GiB). Mismo escenario: 1×201, 499×409, 500 CSRF HTTP 200, p95 190 ms, promedio 22,29 ms, throughput 50,40/s y una activa solapada comprobada por API y PostgreSQL. Artefacto descargado y contrastado con el JTL: dashboard, resumen y recursos del agente. El criterio p95 queda verificado; el cierre de la card sigue sujeto al merge del PR #33.
+- El [run 18](https://dev.azure.com/andresposada274/Reservas/_build/results?buildId=18), `20261120.11`, pasó la etapa de rendimiento en Azure `LocalPool` / `NewAgent` (Docker: 16 CPU, 7,59 GiB). Mismo escenario: 1×201, 499×409, 500 CSRF HTTP 200, p95 190 ms (dashboard: 208,05 ms), promedio 22,29 ms, throughput del dashboard 52,36/s y una activa solapada comprobada por API y PostgreSQL. Artefacto descargado y contrastado con el JTL: dashboard, resumen y recursos del agente. El resumen histórico mostraba 50,40/s por interpretar mal el timestamp; una prueba RED-GREEN y el recálculo del JTL verifican la corrección del throughput. El criterio p95 queda verificado; el cierre de la card sigue sujeto al merge del PR #33.
 - Sección JMeter de `docs/quality-evidence-guide.md` actualizada con métricas, variación observada y análisis de 409 esperados.
 
 ### HU-36 · Pipeline de Azure DevOps con pruebas, ZAP y E2E

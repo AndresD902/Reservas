@@ -51,6 +51,7 @@ En Azure Pipelines la carga corre en `LocalPool` / `NewAgent` (Windows con Docke
 - El bloque pesimista (`findByIdForUpdate`) serializa los 500 intentos sobre el mismo recurso; por eso el escenario da 1 confirmación y 499 conflictos sin duplicar.
 - El CSV se genera a partir de los usuarios `CARGA-%` existentes y el recurso recién sembrado; el plan usa `CSVDataSet` sin reciclar datos.
 - El contenedor JMeter usa `JVM_XMN=256`, `JVM_XMS=512` y `JVM_XMX=2048` para no reservar por defecto casi toda la memoria del agente.
+- El runner fija `sampleresult.timestamp.start=true`: el throughput de reservas divide las 500 muestras por el intervalo entre el primer inicio y el último fin (`timeStamp + elapsed`). Los percentiles del resumen usan nearest-rank, mientras que el dashboard interpola; comparar siempre la fila `POST /reservas`, ya que `Total` incluye también CSRF.
 - El `HeaderManager` debe usar `<collectionProp name="HeaderManager.headers">` con `<elementProp name="Content-Type" elementType="Header">`; con la forma antigua JMeter envía `text/plain` y la API responde 500.
 - El bloque pesimista serializa: con ramp 2 s el p95 sube a ~4.3 s; con ramp 10 s (flujo escalonado) el p95 queda en ~360 ms y cumple < 800 ms manteniendo 1×201 y 499×409.
 - Tiempos: `HU18_FECHA_INICIO/FIN` deben ser futuras respecto al reloj del servidor; por defecto usan `2030-01-01` para no depender de "hoy".

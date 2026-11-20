@@ -328,6 +328,8 @@ El script debe generar:
 | Error inesperado | Respuestas fuera del contrato, como 500 |
 | p50, p90, p95, p99 | Percentiles del JTL o dashboard |
 
+El runner fija `sampleresult.timestamp.start=true`. Para `POST /reservas`, el throughput se calcula como número de muestras dividido por el intervalo entre el primer inicio y el último fin (`timeStamp + elapsed`). Los percentiles del verificador usan nearest-rank; JMeter interpola, por lo que no se espera igualdad exacta. La fila `Total` del dashboard incluye CSRF y no representa únicamente las reservas.
+
 ### Interpretación
 
 JMeter marca los 499 HTTP 409 como fallos HTTP. El informe debe separar:
@@ -353,12 +355,14 @@ El [run 18, `20261120.11`](https://dev.azure.com/andresposada274/Reservas/_build
 |---|---|
 | Códigos | 1×201 y 499×409 |
 | Promedio | 22,29 ms |
-| Throughput | 50,40 reservas/s |
+| Throughput del dashboard | 52,36 reservas/s |
 | p50 / p90 / p95 / p99 | 4 / 10 / 190 / 334 ms |
 | Error HTTP bruto / inesperado | 99,8 % / 0 % |
 | Reservas activas solapadas | 1, verificada por API y PostgreSQL |
 
-El artefacto `jmeter-performance-evidence` se descargó y verificó: JTL con 500 CSRF HTTP 200 y 500 POST, `summary.json` recalculado desde el JTL, dashboard HTML con sus 127 archivos y `environment.json`. El CSV auxiliar no se publica. El p95 de 190 ms cumple < 800 ms para este escenario y entorno; no prueba capacidad dedicada ni rendimiento sostenido para otras cargas.
+El artefacto `jmeter-performance-evidence` se descargó y verificó: JTL con 500 CSRF HTTP 200 y 500 POST, `summary.json`, dashboard HTML con sus 127 archivos y `environment.json`. El CSV auxiliar no se publica. El p95 de 190 ms del verificador y el p95 interpolado de 208,05 ms del dashboard cumplen < 800 ms para este escenario y entorno; no prueban capacidad dedicada ni rendimiento sostenido para otras cargas.
+
+Al contrastar el dashboard se detectó que los resúmenes originales hasta el run 19 interpretaban el timestamp como fin de petición y calculaban mal la duración. El `summary.json` histórico del run 18 conserva 50,40/s; el throughput correcto es 52,36/s, coincidente entre el dashboard y el JTL recalculado con la corrección. La prueba de regresión reprodujo una duración errónea de 1500 ms frente a los 1000 ms esperados y pasó tras corregir la ventana. Este ajuste no cambia las latencias, los códigos ni la integridad. Las cifras de throughput de corridas anteriores se conservan como registro histórico del cálculo original.
 
 El intento anterior, run 17, publicó JTL/dashboard pero falló antes del resumen y de verificar integridad: WSL heredó una ruta temporal de Docker que quedó inválida tras terminar el contenedor. El pipeline ahora entra al checkout estable bajo `/mnt/c/` antes de ejecutar el script. El run 18 pasó también la limpieza del stack aislado. El PR permanece pendiente de revisión y merge; este registro acredita la etapa de rendimiento, no afirma el estado de otras etapas todavía en ejecución.
 

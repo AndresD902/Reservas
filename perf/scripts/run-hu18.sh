@@ -50,6 +50,7 @@ rm -f "$RESULTS" "$SUMMARY"
 rm -rf "$HTML_REPORT"
 docker run --rm --network "$NETWORK" -e JVM_XMN=256 -e JVM_XMS=512 -e JVM_XMX=2048 -v "$PWD":/work -w /work justb4/jmeter \
   -n -t "/work/$JMX" \
+  -Jsampleresult.timestamp.start=true \
   -l "/work/$RESULTS" \
   -e -o "/work/$HTML_REPORT" 2>&1 | tail -20
 

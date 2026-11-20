@@ -10,6 +10,17 @@ SPEC.loader.exec_module(VERIFY_INTEGRITY)
 
 
 class CalculateSummaryTests(unittest.TestCase):
+    def test_throughput_covers_first_start_through_last_completion(self) -> None:
+        samples = [
+            {"timeStamp": "1000", "elapsed": "1000", "responseCode": "201", "success": "true"},
+            {"timeStamp": "1500", "elapsed": "10", "responseCode": "409", "success": "false"},
+        ]
+
+        summary = VERIFY_INTEGRITY.calculate_summary(samples)
+
+        self.assertEqual(summary["durationMs"], 1000)
+        self.assertEqual(summary["throughputPerSecond"], 2.0)
+
     def test_reservation_summary_excludes_csrf_get_samples(self) -> None:
         samples = [
             {"label": "GET /auth/csrf", "responseCode": "200"},

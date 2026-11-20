@@ -50,8 +50,9 @@ def calculate_summary(samples: Sequence[Mapping[str, str]]) -> dict[str, object]
         if code not in (201, 409):
             unexpected_errors += 1
 
-    start_ms = min(sample[2] - sample[1] for sample in normalized)
-    end_ms = max(sample[2] for sample in normalized)
+    # El runner fija sampleresult.timestamp.start=true en el JTL.
+    start_ms = min(sample[2] for sample in normalized)
+    end_ms = max(sample[2] + sample[1] for sample in normalized)
     duration_ms = max(1, end_ms - start_ms)
 
     def percentile(percent: float) -> int:
