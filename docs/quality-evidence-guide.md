@@ -339,9 +339,11 @@ El cuello de botella principal es el bloqueo pesimista `findByIdForUpdate`, que 
 
 ### Corrida local de HU-35
 
-El 20 de noviembre de 2026, Docker Desktop reportó Linux x86_64 con 16 vCPU y 7,59 GiB de memoria. Cuatro corridas consecutivas cumplieron 1×201, 499×409, 500 GET de CSRF con HTTP 200 y una reserva activa solapada. Los p95 observados fueron 126, 6, 6 y 5 ms, y el throughput estuvo entre 51,32 y 52,32 reservas/s. La corrida más reciente produjo p95 de 5 ms, promedio de 3,46 ms y throughput de 52,14 reservas/s. Esta variación confirma que las latencias dependen del estado del entorno.
+El 20 de noviembre de 2026, Docker Desktop reportó Linux x86_64 con 16 vCPU y 7,59 GiB de memoria. Seis corridas locales cumplieron 1×201, 499×409, 500 GET de CSRF con HTTP 200 y una reserva activa solapada. Con el heap del generador limitado a 2 GiB, la corrida más reciente produjo p95 de 4 ms, promedio de 3 ms y throughput de 52,13 reservas/s. Las corridas anteriores midieron p95 de 126, 6, 6, 5 y 4 ms. La variación confirma que las latencias dependen del estado del entorno.
 
 El resumen más reciente registró 99,8 % de error HTTP bruto porque JMeter cuenta los 499 conflictos esperados como errores; el porcentaje de respuestas inesperadas fue 0 %. El dashboard desglosa los samplers y conserva esa distinción en `summary.json` para `POST /reservas`.
+
+El run 14 de Azure (build `20261120.7`) publicó el artefacto `jmeter-performance-evidence`, pero el agente alojado midió p95 de 1106 ms y falló el umbral de 800 ms; obtuvo 1×201, 499×409, 0 % de errores inesperados y 45,14 reservas/s. La imagen JMeter había reservado un heap de 5,2 GiB. El script ahora limita el heap del generador a 2 GiB; falta verificar esta configuración en una nueva corrida de Azure.
 
 ## Azure Pipelines (I)
 

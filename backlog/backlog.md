@@ -1211,8 +1211,8 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 
 **Evidencia**
 
-- Cuatro corridas locales en Docker Desktop Linux x86_64 (16 vCPU, 7,59 GiB): todas dieron 1×201, 499×409, 500 CSRF HTTP 200 y una reserva activa solapada. p95 observado: 126, 6, 6 y 5 ms; throughput: entre 51,32 y 52,32 reservas/s.
-- La corrida más reciente generó `perf/results/reservas-500.jtl`, `perf/results/html/index.html` y `perf/results/summary.json`. El JTL, el dashboard y el resumen están configurados para publicarse como `jmeter-performance-evidence` en Azure; falta verificar una ejecución de pipeline.
+- Seis corridas locales en Docker Desktop Linux x86_64 (16 vCPU, 7,59 GiB): todas dieron 1×201, 499×409, 500 CSRF HTTP 200 y una reserva activa solapada. Con heap JMeter de 2 GiB, la más reciente dio p95 de 4 ms, promedio de 3 ms y throughput de 52,13 reservas/s.
+- Azure run 14 publicó el artefacto `jmeter-performance-evidence` con JTL, dashboard y resumen, pero midió p95 de 1106 ms (límite 800 ms); los demás criterios de integridad pasaron. El generador ahora limita el heap a 2 GiB; queda repetir Azure y verificar el p95 del agente alojado.
 - Sección JMeter de `docs/quality-evidence-guide.md` actualizada con métricas, variación observada y análisis de 409 esperados.
 
 ### HU-36 · Pipeline de Azure DevOps con pruebas, ZAP y E2E

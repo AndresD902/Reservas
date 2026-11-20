@@ -13,7 +13,7 @@ Escenario reproducible con **JMeter 5.5** (decidido por el equipo):
 |---|---|
 | `perf/jmeter/reservas-500.jmx` | Escenario JMeter 5.5 (500 hilos, ramp 10 s, una iteración, CSRF por hilo, IDs desde CSV) |
 | `perf/seed/01-seed-500.sql` | Semilla: 500 usuarios activos `CARGA-0001..CARGA-0500` y recurso "Recurso de carga" `DISPONIBLE` |
-| `perf/scripts/run-hu18.sh` | Espera la API, siembra, genera CSV con IDs reales, limpia resultados, genera JTL/dashboard y verifica integridad |
+| `perf/scripts/run-hu18.sh` | Espera la API, siembra, genera CSV con IDs reales, limita el heap del generador, limpia resultados, genera JTL/dashboard y verifica integridad |
 | `perf/scripts/verify-integrity.py` | Verifica CSRF y reservas, resume promedio, throughput, errores, p50/p90/p95/p99 y confirma una activa solapada |
 | `perf/jmeter/smoke.jmx` | Smoke test de 2/5 hilos para validar el JMX |
 
@@ -46,6 +46,7 @@ El servicio `api` queda accesible como host `api:8080` dentro de la red `sistema
 
 - El bloque pesimista (`findByIdForUpdate`) serializa los 500 intentos sobre el mismo recurso; por eso el escenario da 1 confirmación y 499 conflictos sin duplicar.
 - El CSV se genera a partir de los usuarios `CARGA-%` existentes y el recurso recién sembrado; el plan usa `CSVDataSet` sin reciclar datos.
+- El contenedor JMeter usa `JVM_XMN=256`, `JVM_XMS=512` y `JVM_XMX=2048` para no reservar por defecto casi toda la memoria del agente.
 - El `HeaderManager` debe usar `<collectionProp name="HeaderManager.headers">` con `<elementProp name="Content-Type" elementType="Header">`; con la forma antigua JMeter envía `text/plain` y la API responde 500.
 - El bloque pesimista serializa: con ramp 2 s el p95 sube a ~4.3 s; con ramp 10 s (flujo escalonado) el p95 queda en ~360 ms y cumple < 800 ms manteniendo 1×201 y 499×409.
 - Tiempos: `HU18_FECHA_INICIO/FIN` deben ser futuras respecto al reloj del servidor; por defecto usan `2030-01-01` para no depender de "hoy".
