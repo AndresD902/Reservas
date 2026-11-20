@@ -1211,10 +1211,9 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 
 **Evidencia**
 
-- `perf/results/reservas-500.jtl`
-- `perf/results/html/index.html`
-- `perf/results/summary.json`
-- Sección JMeter de la guía y artefacto de Azure
+- Cuatro corridas locales en Docker Desktop Linux x86_64 (16 vCPU, 7,59 GiB): todas dieron 1×201, 499×409, 500 CSRF HTTP 200 y una reserva activa solapada. p95 observado: 126, 6, 6 y 5 ms; throughput: entre 51,32 y 52,32 reservas/s.
+- La corrida más reciente generó `perf/results/reservas-500.jtl`, `perf/results/html/index.html` y `perf/results/summary.json`. El JTL, el dashboard y el resumen están configurados para publicarse como `jmeter-performance-evidence` en Azure; falta verificar una ejecución de pipeline.
+- Sección JMeter de `docs/quality-evidence-guide.md` actualizada con métricas, variación observada y análisis de 409 esperados.
 
 ### HU-36 · Pipeline de Azure DevOps con pruebas, ZAP y E2E
 

@@ -337,6 +337,12 @@ JMeter marca los 499 HTTP 409 como fallos HTTP. El informe debe separar:
 
 El cuello de botella principal es el bloqueo pesimista `findByIdForUpdate`, que serializa los intentos sobre el mismo recurso.
 
+### Corrida local de HU-35
+
+El 20 de noviembre de 2026, Docker Desktop reportó Linux x86_64 con 16 vCPU y 7,59 GiB de memoria. Cuatro corridas consecutivas cumplieron 1×201, 499×409, 500 GET de CSRF con HTTP 200 y una reserva activa solapada. Los p95 observados fueron 126, 6, 6 y 5 ms, y el throughput estuvo entre 51,32 y 52,32 reservas/s. La corrida más reciente produjo p95 de 5 ms, promedio de 3,46 ms y throughput de 52,14 reservas/s. Esta variación confirma que las latencias dependen del estado del entorno.
+
+El resumen más reciente registró 99,8 % de error HTTP bruto porque JMeter cuenta los 499 conflictos esperados como errores; el porcentaje de respuestas inesperadas fue 0 %. El dashboard desglosa los samplers y conserva esa distinción en `summary.json` para `POST /reservas`.
+
 ## Azure Pipelines (I)
 
 ### Preparación
@@ -344,19 +350,22 @@ El cuello de botella principal es el bloqueo pesimista `findByIdForUpdate`, que 
 1. El proyecto `andresposada274/Reservas` y la service connection GitHub de `AndresD902` ya existen.
 2. El variable group `reservas-quality` ya existe y contiene `SONAR_TOKEN` como secreto.
 3. Crear o autorizar el pipeline desde `azure-pipelines.yml` siguiendo la sección de configuración manual.
-4. El agente `ubuntu-latest` usa JDK 21; no requiere Docker Compose para este pipeline.
+4. El agente `ubuntu-latest` usa JDK 21 para backend y Docker Compose v2 para la etapa de rendimiento.
 
 ### Etapas propuestas
 
 | Etapa | Qué ejecuta | Artefactos |
 |---|---|---|
+| `PerformanceEvidence` | Docker Compose, 500 usuarios JMeter, verificación de integridad | Artefacto `jmeter-performance-evidence` con JTL, dashboard HTML y `summary.json` |
 | `BackendQuality` | JUnit, PIT, JaCoCo, aceptación, E2E HTTP y SonarCloud | Reportes de pruebas, cobertura, mutación y resultado del quality gate |
 
 ### Pipeline versionado
 
-El pipeline versionado en `azure-pipelines.yml` se dispara con cambios y pull requests hacia `main`. Ejecuta la suite de backend, genera el reporte JaCoCo y ejecuta SonarCloud con el secreto `SONAR_TOKEN` del variable group `reservas-quality`. El checkout usa `fetchDepth: 0` para descargar el historial completo: Sonar necesita el blame para distinguir issues existentes de issues nuevos y evaluar correctamente el quality gate. El análisis espera el resultado del quality gate y, por ello, el job queda fallido si el gate no se aprueba.
+El pipeline versionado en `azure-pipelines.yml` se dispara con cambios y pull requests hacia `main`. Ejecuta en paralelo la suite de backend y la etapa `PerformanceEvidence`. Esta última levanta Docker Compose, ejecuta `perf/scripts/run-hu18.sh` y publica JTL, dashboard y resumen como `jmeter-performance-evidence`, incluso si falla una verificación para facilitar el diagnóstico. El agente `ubuntu-latest` ejecuta el escenario de carga.
 
-Este pipeline cubre el backend y SonarCloud; no sustituye los jobs de GitHub Actions para frontend, navegador, seguridad o rendimiento.
+La etapa de backend genera el reporte JaCoCo y ejecuta SonarCloud con el secreto `SONAR_TOKEN` del variable group `reservas-quality`. El checkout usa `fetchDepth: 0` para descargar el historial completo: Sonar necesita el blame para distinguir issues existentes de issues nuevos y evaluar correctamente el quality gate. El job falla si el gate no se aprueba.
+
+Este pipeline cubre backend, SonarCloud y rendimiento; no sustituye los jobs de GitHub Actions para frontend, navegador o seguridad.
 
 ### Configuración manual en Azure DevOps
 

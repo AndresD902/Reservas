@@ -14,8 +14,42 @@ variables:
     value: $(Pipeline.Workspace)/.gradle
 
 stages:
+  - stage: PerformanceEvidence
+    displayName: Evidencia de rendimiento JMeter
+    dependsOn: []
+    jobs:
+      - job: JMeter
+        displayName: Ejecutar carga y publicar evidencia
+        pool:
+          vmImage: ubuntu-latest
+        timeoutInMinutes: 30
+        steps:
+          - checkout: self
+
+          - script: docker compose up --build -d
+            displayName: Levantar API y base de datos
+
+          - script: bash perf/scripts/run-hu18.sh
+            displayName: Ejecutar escenario de 500 reservas
+
+          - script: rm -f perf/results/load-users.csv
+            displayName: Retirar datos auxiliares del artefacto
+            condition: always()
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publicar evidencia JMeter
+            condition: always()
+            inputs:
+              targetPath: $(System.DefaultWorkingDirectory)/perf/results
+              artifact: jmeter-performance-evidence
+
+          - script: docker compose down -v
+            displayName: Detener el entorno de rendimiento
+            condition: always()
+
   - stage: BackendQuality
     displayName: Calidad del backend
+    dependsOn: []
     jobs:
       - job: Analyze
         displayName: Pruebas, cobertura y análisis SonarCloud
