@@ -193,6 +193,8 @@ Si el gate queda en 100 %, se documenta que no hay supervivientes en ese alcance
 
 El token se lee exclusivamente desde `SONAR_TOKEN`; no debe guardarse en el repositorio ni imprimirse en logs. En Azure DevOps, el variable group `reservas-quality` es la fuente de esa variable. `sonar.qualitygate.wait=true` hace que la tarea falle cuando SonarCloud rechaza el quality gate; el timeout configurado es de 300 segundos.
 
+El primer análisis de HU-33 falló por `new_security_rating=3`, con requisito máximo `1`. SonarCloud señaló dos referencias `gradle/actions/setup-gradle@v4` sin SHA completo y `npm ci` sin `--ignore-scripts` en `.github/workflows/ci.yml`. El workflow ahora fija setup-gradle a un SHA verificado y omite scripts de instalación durante `npm ci`; falta confirmar el resultado del siguiente análisis.
+
 ### Ejecución
 
 ```bash
