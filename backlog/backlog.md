@@ -1104,6 +1104,8 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 - El análisis se ejecuta con el plugin `org.sonarqube` 7.6.0.18749 y consume el XML de JaCoCo en `build/reports/jacoco/test/jacocoTestReport.xml`.
 - Se excluyen DTOs, entidades, mappers, configuración y la clase de arranque; la exclusión se justifica en la guía para que la cobertura refleje lógica de negocio.
 - El quality gate se evalúa en el pipeline y no se desactiva. Los hallazgos legacy se trian y se documentan.
+- `build.gradle` configura SonarCloud y JaCoCo; `azure-pipelines.yml` ejecuta las verificaciones del backend y espera el resultado del quality gate usando `SONAR_TOKEN` del variable group existente `reservas-quality`.
+- El pipeline debe crearse o autorizarse en Azure DevOps y configurarse como Build validation requerida para `main`; el resultado del análisis y el triage siguen pendientes de una ejecución real.
 - Fuera de alcance: corregir toda la deuda histórica y analizar la SPA. La cobertura publicada es la del backend.
 
 **Tareas**
@@ -1128,6 +1130,7 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 - URL del proyecto en SonarQube
 - Captura del dashboard con las métricas solicitadas
 - `docs/quality-evidence-guide.md`, sección SonarQube
+- `azure-pipelines.yml` y ejecución del pipeline en Azure DevOps (pendiente de crear/autorizar)
 - Quality gate del run de Azure
 
 ### HU-34 · Evidencia de mutación PIT y análisis de mutantes sobrevivientes

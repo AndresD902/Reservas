@@ -1,0 +1,62 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pr:
+  branches:
+    include:
+      - main
+
+variables:
+  - group: reservas-quality
+  - name: GRADLE_USER_HOME
+    value: $(Pipeline.Workspace)/.gradle
+
+stages:
+  - stage: BackendQuality
+    displayName: Calidad del backend
+    jobs:
+      - job: Analyze
+        displayName: Pruebas, cobertura y análisis SonarCloud
+        pool:
+          vmImage: ubuntu-latest
+        timeoutInMinutes: 60
+        steps:
+          - checkout: self
+
+          - task: JavaToolInstaller@0
+            displayName: Configurar JDK 21
+            inputs:
+              versionSpec: '21'
+              jdkArchitectureOption: x64
+              jdkSourceOption: PreInstalled
+
+          - script: chmod +x ./gradlew
+            displayName: Habilitar Gradle Wrapper
+
+          - script: >-
+              ./gradlew test pitest jacocoTestReport
+              jacocoTestCoverageVerification acceptanceTest e2eTest sonar
+              --console=plain
+            displayName: Ejecutar verificaciones y SonarCloud
+            env:
+              SONAR_TOKEN: $(SONAR_TOKEN)
+
+          - task: PublishTestResults@2
+            displayName: Publicar resultados JUnit
+            condition: always()
+            inputs:
+              testResultsFormat: JUnit
+              searchFolder: $(System.DefaultWorkingDirectory)/build/test-results
+              testResultsFiles: '**/TEST-*.xml'
+              mergeTestResults: true
+              failTaskOnFailedTests: true
+              testRunTitle: Verificaciones backend
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publicar reportes de calidad
+            condition: always()
+            inputs:
+              targetPath: $(System.DefaultWorkingDirectory)/build/reports
+              artifact: backend-quality-reports
