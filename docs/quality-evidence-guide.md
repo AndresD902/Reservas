@@ -343,7 +343,7 @@ El 20 de noviembre de 2026, Docker Desktop reportó Linux x86_64 con 16 vCPU y 7
 
 El resumen más reciente registró 99,8 % de error HTTP bruto porque JMeter cuenta los 499 conflictos esperados como errores; el porcentaje de respuestas inesperadas fue 0 %. El dashboard desglosa los samplers y conserva esa distinción en `summary.json` para `POST /reservas`.
 
-El run 14 de Azure (build `20261120.7`) publicó el artefacto `jmeter-performance-evidence`, pero el agente alojado midió p95 de 1106 ms y falló el umbral de 800 ms; obtuvo 1×201, 499×409, 0 % de errores inesperados y 45,14 reservas/s. La imagen JMeter había reservado un heap de 5,2 GiB. El script ahora limita el heap del generador a 2 GiB; falta verificar esta configuración en una nueva corrida de Azure.
+Los runs 14 (`20261120.7`) y 15 de Azure publicaron `jmeter-performance-evidence`. Ambos dieron 1×201, 499×409, 500 GET CSRF HTTP 200, 0 % de errores inesperados y una reserva activa solapada, pero no cumplieron p95 < 800 ms. El run 14 midió p95 1106 ms, promedio 210 ms y throughput 45,14/s con heap JMeter de 5,2 GiB; el run 15 midió p95 1580 ms, promedio 394,05 ms y throughput 43,52/s con heap limitado a 2 GiB. La corrida local con el mismo heap midió p95 4 ms. La diferencia observada confirma que los resultados dependen del agente; no determina por sí sola un cambio requerido en el backend.
 
 ## Azure Pipelines (I)
 
