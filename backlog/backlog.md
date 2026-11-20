@@ -1105,6 +1105,7 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 - Se excluyen DTOs, entidades, mappers, configuración y la clase de arranque; la exclusión se justifica en la guía para que la cobertura refleje lógica de negocio.
 - El quality gate se evalúa en el pipeline y no se desactiva. Los hallazgos legacy se trian y se documentan.
 - `build.gradle` configura SonarCloud y JaCoCo; `azure-pipelines.yml` ejecuta las verificaciones del backend y espera el resultado del quality gate usando `SONAR_TOKEN` del variable group existente `reservas-quality`.
+- El checkout de Azure descarga el historial completo (`fetchDepth: 0`) para que SonarCloud reciba la información blame y clasifique correctamente el código nuevo.
 - El pipeline debe crearse o autorizarse en Azure DevOps y configurarse como Build validation requerida para `main`; el resultado del análisis y el triage siguen pendientes de una ejecución real.
 - Fuera de alcance: corregir toda la deuda histórica y analizar la SPA. La cobertura publicada es la del backend.
 

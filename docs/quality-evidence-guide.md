@@ -336,7 +336,7 @@ El cuello de botella principal es el bloqueo pesimista `findByIdForUpdate`, que 
 
 ### Pipeline versionado
 
-El pipeline versionado en `azure-pipelines.yml` se dispara con cambios y pull requests hacia `main`. Ejecuta la suite de backend, genera el reporte JaCoCo y ejecuta SonarCloud con el secreto `SONAR_TOKEN` del variable group `reservas-quality`. El análisis espera el resultado del quality gate y, por ello, el job queda fallido si el gate no se aprueba.
+El pipeline versionado en `azure-pipelines.yml` se dispara con cambios y pull requests hacia `main`. Ejecuta la suite de backend, genera el reporte JaCoCo y ejecuta SonarCloud con el secreto `SONAR_TOKEN` del variable group `reservas-quality`. El checkout usa `fetchDepth: 0` para descargar el historial completo: Sonar necesita el blame para distinguir issues existentes de issues nuevos y evaluar correctamente el quality gate. El análisis espera el resultado del quality gate y, por ello, el job queda fallido si el gate no se aprueba.
 
 Este pipeline cubre el backend y SonarCloud; no sustituye los jobs de GitHub Actions para frontend, navegador, seguridad o rendimiento.
 

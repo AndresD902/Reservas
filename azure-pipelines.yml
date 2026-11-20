@@ -24,6 +24,7 @@ stages:
         timeoutInMinutes: 60
         steps:
           - checkout: self
+            fetchDepth: 0
 
           - task: JavaToolInstaller@0
             displayName: Configurar JDK 21
