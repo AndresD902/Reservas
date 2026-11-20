@@ -41,7 +41,10 @@ stages:
               if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
               $parts = $resources.Split('|')
               @{ cpu = [int]$parts[0]; memoryBytes = [long]$parts[1]; agent = '$(Agent.Name)'; buildId = '$(Build.BuildId)'; commit = '$(Build.SourceVersion)' } | ConvertTo-Json | Set-Content -Encoding utf8 perf/results/environment.json
-              bash -c 'COMPOSE_PROJECT_NAME=hu35-$(Build.BuildId) API_PORT=18085 bash perf/scripts/run-hu18.sh'
+              $windowsPath = '$(System.DefaultWorkingDirectory)'.Replace('\', '/')
+              $wslPath = '/mnt/' + $windowsPath.Substring(0, 1).ToLower() + $windowsPath.Substring(2)
+              $command = "cd '$wslPath' && COMPOSE_PROJECT_NAME=hu35-$(Build.BuildId) API_PORT=18085 bash perf/scripts/run-hu18.sh"
+              & "$env:WINDIR\System32\wsl.exe" --exec bash -c $command
               exit $LASTEXITCODE
             displayName: Ejecutar escenario de 500 reservas
 

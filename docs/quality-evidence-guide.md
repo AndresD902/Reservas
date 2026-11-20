@@ -352,7 +352,7 @@ Los runs 14 (`20261120.7`) y 15 de Azure publicaron `jmeter-performance-evidence
 1. El proyecto `andresposada274/Reservas` y la service connection GitHub de `AndresD902` ya existen.
 2. El variable group `reservas-quality` ya existe y contiene `SONAR_TOKEN` como secreto.
 3. Crear o autorizar el pipeline desde `azure-pipelines.yml` siguiendo la sección de configuración manual.
-4. El agente `ubuntu-latest` usa JDK 21 para backend. Rendimiento requiere el agente Windows self-hosted `NewAgent` en `LocalPool`, con Docker Desktop Linux, Compose v2, Bash/WSL y Python 3 en WSL; debe estar conectado cuando se ejecute el pipeline.
+4. El agente `ubuntu-latest` usa JDK 21 para backend. Rendimiento requiere el agente Windows self-hosted `NewAgent` en `LocalPool`, con Docker Desktop Linux, Compose v2, Bash/WSL y Python 3 en WSL; debe estar conectado cuando se ejecute el pipeline. El checkout se resuelve explícitamente bajo `/mnt/<unidad>/`: una ruta temporal de Docker Desktop puede desaparecer al terminar JMeter y dejar a Python sin directorio de trabajo.
 
 ### Etapas propuestas
 

@@ -1190,7 +1190,7 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 - Se agrega el dashboard HTML de JMeter (`-e -o`) y un resumen `summary.json` con promedio, throughput, percentiles y errores.
 - Los 499 HTTP 409 son conflictos de negocio esperados; el informe distingue error HTTP bruto de error inesperado.
 - El entorno es Docker Compose; se documenta el agente (vCPU/RAM) porque los resultados dependen de él.
-- La repetición solicitada se ejecuta mediante Azure DevOps en `LocalPool`, agente self-hosted `NewAgent` del equipo ANDRES. Docker Compose usa proyecto, volumen y puertos aislados del entorno local; se registra CPU/RAM junto con la evidencia.
+- La repetición solicitada se ejecuta mediante Azure DevOps en `LocalPool`, agente self-hosted `NewAgent` del equipo ANDRES. Docker Compose usa proyecto, volumen y puertos aislados del entorno local; se registra CPU/RAM junto con la evidencia. Bash debe usar el checkout estable bajo `/mnt/<unidad>/` para que la salida del contenedor no invalide el directorio de trabajo.
 - Fuera de alcance: escalar la infraestructura o cambiar el bloqueo pesimista.
 
 **Tareas**
