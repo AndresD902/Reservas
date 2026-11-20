@@ -34,6 +34,10 @@ El servicio `api` queda accesible como host `api:8080` dentro de la red `sistema
 ./perf/scripts/run-hu18.sh
 ```
 
+Para un stack aislado se pueden definir `COMPOSE_PROJECT_NAME` y `API_PORT`; los valores por defecto siguen siendo `sistema-reservas` y `8080`. La red y el contenedor PostgreSQL se derivan del nombre del proyecto.
+
+En Azure Pipelines la carga corre en `LocalPool` / `NewAgent` (Windows con Docker Desktop Linux, Bash/WSL y Python 3 en WSL). Cada run usa proyecto `hu35-<BuildId>`, API en 18085 y PostgreSQL en 15435. El artefacto incluye `environment.json` con CPU/RAM de Docker, agente, commit y run. El agente debe permanecer conectado; los recursos disponibles no garantizan el umbral y se comprueban contra el JTL de cada corrida.
+
 ## Resultados esperados
 
 - `perf/results/reservas-500.jtl` con 500 GET CSRF y 500 POST de reservas.

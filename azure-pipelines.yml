@@ -21,18 +21,32 @@ stages:
       - job: JMeter
         displayName: Ejecutar carga y publicar evidencia
         pool:
-          vmImage: ubuntu-latest
+          name: LocalPool
+          demands:
+            - Agent.Name -equals NewAgent
         timeoutInMinutes: 30
         steps:
           - checkout: self
 
-          - script: docker compose up --build -d
+          - powershell: |
+              $env:API_PORT = '18085'
+              $env:POSTGRES_PORT = '15435'
+              docker compose -p hu35-$(Build.BuildId) up --build -d
+              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             displayName: Levantar API y base de datos
 
-          - script: bash perf/scripts/run-hu18.sh
+          - powershell: |
+              New-Item -ItemType Directory -Force perf/results | Out-Null
+              $resources = docker info --format '{{.NCPU}}|{{.MemTotal}}'
+              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+              $parts = $resources.Split('|')
+              @{ cpu = [int]$parts[0]; memoryBytes = [long]$parts[1]; agent = '$(Agent.Name)'; buildId = '$(Build.BuildId)'; commit = '$(Build.SourceVersion)' } | ConvertTo-Json | Set-Content -Encoding utf8 perf/results/environment.json
+              bash -c 'COMPOSE_PROJECT_NAME=hu35-$(Build.BuildId) API_PORT=18085 bash perf/scripts/run-hu18.sh'
+              exit $LASTEXITCODE
             displayName: Ejecutar escenario de 500 reservas
 
-          - script: rm -f perf/results/load-users.csv
+          - powershell: |
+              if (Test-Path perf/results/load-users.csv) { Remove-Item -LiteralPath perf/results/load-users.csv }
             displayName: Retirar datos auxiliares del artefacto
             condition: always()
 
@@ -43,7 +57,9 @@ stages:
               targetPath: $(System.DefaultWorkingDirectory)/perf/results
               artifact: jmeter-performance-evidence
 
-          - script: docker compose down -v
+          - powershell: |
+              docker compose -p hu35-$(Build.BuildId) down -v
+              exit $LASTEXITCODE
             displayName: Detener el entorno de rendimiento
             condition: always()
 

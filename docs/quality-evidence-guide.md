@@ -352,7 +352,7 @@ Los runs 14 (`20261120.7`) y 15 de Azure publicaron `jmeter-performance-evidence
 1. El proyecto `andresposada274/Reservas` y la service connection GitHub de `AndresD902` ya existen.
 2. El variable group `reservas-quality` ya existe y contiene `SONAR_TOKEN` como secreto.
 3. Crear o autorizar el pipeline desde `azure-pipelines.yml` siguiendo la sección de configuración manual.
-4. El agente `ubuntu-latest` usa JDK 21 para backend y Docker Compose v2 para la etapa de rendimiento.
+4. El agente `ubuntu-latest` usa JDK 21 para backend. Rendimiento requiere el agente Windows self-hosted `NewAgent` en `LocalPool`, con Docker Desktop Linux, Compose v2, Bash/WSL y Python 3 en WSL; debe estar conectado cuando se ejecute el pipeline.
 
 ### Etapas propuestas
 
@@ -363,7 +363,7 @@ Los runs 14 (`20261120.7`) y 15 de Azure publicaron `jmeter-performance-evidence
 
 ### Pipeline versionado
 
-El pipeline versionado en `azure-pipelines.yml` se dispara con cambios y pull requests hacia `main`. Ejecuta en paralelo la suite de backend y la etapa `PerformanceEvidence`. Esta última levanta Docker Compose, ejecuta `perf/scripts/run-hu18.sh` y publica JTL, dashboard y resumen como `jmeter-performance-evidence`, incluso si falla una verificación para facilitar el diagnóstico. El agente `ubuntu-latest` ejecuta el escenario de carga.
+El pipeline versionado en `azure-pipelines.yml` se dispara con cambios y pull requests hacia `main`. Ejecuta en paralelo la suite de backend y la etapa `PerformanceEvidence`. Esta última levanta Docker Compose, ejecuta `perf/scripts/run-hu18.sh` y publica JTL, dashboard y resumen como `jmeter-performance-evidence`, incluso si falla una verificación para facilitar el diagnóstico. El agente `NewAgent` ejecuta la carga con proyecto Compose `hu35-<BuildId>` y puertos 18085 (API) y 15435 (PostgreSQL), conservando aislados los volúmenes del entorno local. La limpieza elimina solo el stack de esa corrida. `environment.json` registra CPU y RAM disponibles para Docker, agente, commit y run; esos recursos no equivalen a capacidad dedicada. `LocalPool` debe estar autorizado para este pipeline. El umbral se conserva en p95 < 800 ms.
 
 La etapa de backend genera el reporte JaCoCo y ejecuta SonarCloud con el secreto `SONAR_TOKEN` del variable group `reservas-quality`. El checkout usa `fetchDepth: 0` para descargar el historial completo: Sonar necesita el blame para distinguir issues existentes de issues nuevos y evaluar correctamente el quality gate. El job falla si el gate no se aprueba.
 
