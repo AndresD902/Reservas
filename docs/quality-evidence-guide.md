@@ -19,11 +19,11 @@ Queda fuera de alcance el despliegue a producción, la prueba de penetración ma
 | B. Plan de pruebas | Criterios dispersos en el backlog y los estándares | Documento único con alcance, tipos, riesgos y criterios |
 | C. JUnit | 181 pruebas, 0 fallos en la última corrida local | Reporte adjunto y análisis de casos positivos/negativos |
 | D. PIT | Configurado con umbral 80/90 sobre `service.impl` | Reporte versionado y análisis de supervivientes |
-| E. SonarQube | No configurado | Proyecto, plugin, quality gate y triage |
+| E. SonarQube | Configuración Gradle y YAML de Azure añadidos; el variable group `reservas-quality` ya existe | Crear/autorizar el pipeline, ejecutar el análisis y registrar dashboard, quality gate y triage |
 | F. Gherkin | Dos escenarios de login, 0 fallos | Ejecución en Azure y publicación de videos/reportes |
 | G. OWASP ZAP | Reporte HU-26 con triage | Ejecución en Azure y actualización de evidencia |
 | H. JMeter | Escenario de 500 usuarios y scripts | Dashboard, métricas reales y análisis |
-| I. Azure Pipelines | Solo GitHub Actions | Pipeline YAML, ejecución y artefactos en Azure |
+| I. Azure Pipelines | GitHub Actions y `azure-pipelines.yml` | Crear/autorizar el pipeline en Azure y publicar evidencia de su ejecución |
 
 ## Plan de pruebas
 
@@ -187,41 +187,13 @@ Si el gate queda en 100 %, se documenta que no hay supervivientes en ese alcance
 
 ## Evidencia SonarQube (E)
 
-### Configuración propuesta
+### Configuración
 
-Agregar el plugin en `build.gradle`:
+`build.gradle` aplica `org.sonarqube` 7.6.0.18749 y configura `projectKey=AndresD902_Reservas`, organización `andresd902`, URL `https://sonarcloud.io` y nombre `Sistema de Reservas`. El análisis importa el XML de JaCoCo de `build/reports/jacoco/test/jacocoTestReport.xml`. Se excluyen DTOs, entidades, mappers, configuración y la clase de arranque del cálculo de cobertura; DTOs, entidades y mappers también se excluyen del cálculo de duplicación.
 
-```groovy
-plugins {
-    id 'org.sonarqube' version '7.6.0.18749'
-}
+El token se lee exclusivamente desde `SONAR_TOKEN`; no debe guardarse en el repositorio ni imprimirse en logs. En Azure DevOps, el variable group `reservas-quality` es la fuente de esa variable. `sonar.qualitygate.wait=true` hace que la tarea falle cuando SonarCloud rechaza el quality gate; el timeout configurado es de 300 segundos.
 
-sonar {
-    properties {
-        property 'sonar.projectKey', 'AndresD902_Reservas'
-        property 'sonar.organization', 'andresd902'
-        property 'sonar.projectName', 'Sistema de Reservas'
-        property 'sonar.host.url', 'https://sonarcloud.io'
-        property 'sonar.coverage.jacoco.xmlReportPaths',
-                'build/reports/jacoco/test/jacocoTestReport.xml'
-        property 'sonar.coverage.exclusions',
-                '**/dto/**,**/entity/**,**/mapper/**,**/config/**,**/ReservasApplication.java'
-        property 'sonar.cpd.exclusions', '**/dto/**,**/entity/**,**/mapper/**'
-        property 'sonar.qualitygate.wait', 'true'
-        property 'sonar.qualitygate.timeout', '300'
-    }
-}
-```
-
-Pasos:
-
-1. Importar el repositorio en SonarQube Cloud.
-2. Confirmar `projectKey` y organización.
-3. Generar el token y guardarlo en el variable group `reservas-quality`.
-4. Desactivar Automatic Analysis para que el análisis lo controle el pipeline.
-5. Ejecutar el análisis.
-6. Triar bugs, vulnerabilidades, code smells, deuda y duplicación.
-7. Publicar el dashboard y el quality gate como evidencia.
+El primer análisis de HU-33 falló por `new_security_rating=3`, con requisito máximo `1`. SonarCloud señaló dos referencias `gradle/actions/setup-gradle@v4` sin SHA completo y `npm ci` sin `--ignore-scripts` en `.github/workflows/ci.yml`. El workflow ahora fija setup-gradle a un SHA verificado y omite scripts de instalación durante `npm ci`; falta confirmar el resultado del siguiente análisis.
 
 ### Ejecución
 
@@ -353,74 +325,39 @@ El cuello de botella principal es el bloqueo pesimista `findByIdForUpdate`, que 
 
 ### Preparación
 
-1. Crear el proyecto en Azure DevOps y conectar el repositorio de GitHub.
-2. Crear el variable group `reservas-quality` con `SONAR_TOKEN`, `E2E_ADMIN_EMAIL` y `E2E_ADMIN_PASSWORD`.
-3. Crear el pipeline desde `azure-pipelines.yml`.
-4. Verificar que el agente tenga Docker Compose v2 y JDK 21.
+1. El proyecto `andresposada274/Reservas` y la service connection GitHub de `AndresD902` ya existen.
+2. El variable group `reservas-quality` ya existe y contiene `SONAR_TOKEN` como secreto.
+3. Crear o autorizar el pipeline desde `azure-pipelines.yml` siguiendo la sección de configuración manual.
+4. El agente `ubuntu-latest` usa JDK 21; no requiere Docker Compose para este pipeline.
 
 ### Etapas propuestas
 
 | Etapa | Qué ejecuta | Artefactos |
 |---|---|---|
-| `BackendQuality` | Compilación, JUnit, PIT, JaCoCo, aceptación, E2E HTTP y Sonar | Test results, cobertura, mutación, quality gate |
-| `Frontend` | Lint, typecheck, Vitest y build | Resultados y `frontend/dist` |
-| `BrowserE2E` | Serenity y Gherkin contra Docker Compose | Reporte Serenity, Cucumber y videos |
-| `Security` | OWASP ZAP sobre API y SPA | Reportes HTML, JSON y resumen |
-| `Performance` | JMeter manual sobre 500 usuarios | JTL, dashboard y resumen |
+| `BackendQuality` | JUnit, PIT, JaCoCo, aceptación, E2E HTTP y SonarCloud | Reportes de pruebas, cobertura, mutación y resultado del quality gate |
 
-### Esqueleto de configuración
+### Pipeline versionado
 
-```yaml
-trigger:
-  branches:
-    include: [main]
+El pipeline versionado en `azure-pipelines.yml` se dispara con cambios y pull requests hacia `main`. Ejecuta la suite de backend, genera el reporte JaCoCo y ejecuta SonarCloud con el secreto `SONAR_TOKEN` del variable group `reservas-quality`. El checkout usa `fetchDepth: 0` para descargar el historial completo: Sonar necesita el blame para distinguir issues existentes de issues nuevos y evaluar correctamente el quality gate. El análisis espera el resultado del quality gate y, por ello, el job queda fallido si el gate no se aprueba.
 
-pr:
-  branches:
-    include: [main]
-  autoCancel: true
+Este pipeline cubre el backend y SonarCloud; no sustituye los jobs de GitHub Actions para frontend, navegador, seguridad o rendimiento.
 
-parameters:
-  - name: runSecurity
-    type: boolean
-    default: false
-  - name: runPerformance
-    type: boolean
-    default: false
+### Configuración manual en Azure DevOps
 
-variables:
-  - group: reservas-quality
-  - name: GRADLE_USER_HOME
-    value: $(Pipeline.Workspace)/.gradle
-
-stages:
-  - stage: BackendQuality
-    jobs:
-      - job: Backend
-        pool:
-          vmImage: ubuntu-latest
-        steps:
-          - checkout: self
-          - task: UseJava@1
-            inputs:
-              versionSpec: '21'
-              jdkSourceOption: PreInstalled
-          - script: chmod +x gradlew
-          - script: ./gradlew test pitest jacocoTestReport jacocoTestCoverageVerification acceptanceTest e2eTest
-          - script: ./gradlew sonar
-            env:
-              SONAR_TOKEN: $(SONAR_TOKEN)
-```
-
-Las etapas restantes se agregan con la misma estructura: `Frontend`, `BrowserE2E`, `Security` y `Performance`. La ejecución de seguridad y rendimiento se controla con los parámetros `runSecurity` y `runPerformance`.
+1. Abrir **Pipelines → New pipeline** y seleccionar **GitHub**.
+2. Elegir la conexión existente de GitHub para `AndresD902`; si se solicita, autorizarla para acceder al repositorio `AndresD902/Reservas`.
+3. Seleccionar el repositorio y elegir **Existing Azure Pipelines YAML file**.
+4. Seleccionar la rama que contiene el archivo (`feature/hu-33-sonar-quality-gate` antes del merge) y la ruta `/azure-pipelines.yml`; guardar y ejecutar.
+5. Si Azure solicita autorización de recursos, autorizar la conexión GitHub y el variable group `reservas-quality` para este pipeline. También puede hacerse en **Pipelines → Library → reservas-quality → Pipeline permissions**, habilitando este pipeline.
+6. Confirmar que el primer run termina con `BackendQuality` exitoso y que el dashboard SonarCloud muestra cobertura JaCoCo y quality gate. Revisar el log para confirmar que no se expone el valor del token.
+7. En GitHub, abrir **Settings → Rules → Rulesets** y crear un ruleset para `main` que requiera el status check publicado por este pipeline. El check aparecerá para seleccionarlo después de la primera ejecución de validación de PR.
 
 ### Evidencia de ejecución
 
-- URL del run de `main` con las etapas verdes.
-- Lista de artefactos publicados.
-- Run de fallo controlado en una rama temporal.
-- Captura de la etapa roja y del test que falló.
-- Badge o enlace del pipeline en el README.
+- URL del run de `main` con el job de SonarCloud y el quality gate aprobados.
+- URL del proyecto SonarCloud con cobertura y métricas visibles.
+- Confirmación de que Build validation quedó como requerida en la política de `main`.
+- Clasificación y acción para bugs, vulnerabilidades, code smells, deuda y duplicación observados.
 
 ## Presentación y demo (A)
 

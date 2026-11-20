@@ -30,7 +30,7 @@ jobs:
           java-version: '21'
 
       - name: Configurar Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@48b5f213c81028ace310571dc5ec0fbbca0b2947 # v4.4.3
 
       - name: Dar permiso de ejecución al wrapper
         run: chmod +x gradlew
@@ -117,7 +117,7 @@ jobs:
 
       - name: Instalar dependencias
         working-directory: frontend
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Lint
         working-directory: frontend
@@ -155,7 +155,7 @@ jobs:
           java-version: '21'
 
       - name: Configurar Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@48b5f213c81028ace310571dc5ec0fbbca0b2947 # v4.4.3
 
       - name: Dar permiso de ejecución al wrapper
         run: chmod +x gradlew
