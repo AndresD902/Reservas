@@ -12,5 +12,5 @@ FROM generate_series(1, 500) AS n
 ON CONFLICT (documento) DO NOTHING;
 
 INSERT INTO recursos (nombre, descripcion, tipo, capacidad, estado)
-VALUES ('Recurso de carga', 'Recurso compartido para el escenario de 500 usuarios', 'Sala', 500, 'DISPONIBLE')
-ON CONFLICT DO NOTHING;
+SELECT 'Recurso de carga', 'Recurso compartido para el escenario de 500 usuarios', 'Sala', 500, 'DISPONIBLE'
+WHERE NOT EXISTS (SELECT 1 FROM recursos WHERE nombre = 'Recurso de carga');

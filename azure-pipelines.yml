@@ -14,8 +14,61 @@ variables:
     value: $(Pipeline.Workspace)/.gradle
 
 stages:
+  - stage: PerformanceEvidence
+    displayName: Evidencia de rendimiento JMeter
+    dependsOn: []
+    jobs:
+      - job: JMeter
+        displayName: Ejecutar carga y publicar evidencia
+        pool:
+          name: LocalPool
+          demands:
+            - Agent.Name -equals NewAgent
+        timeoutInMinutes: 30
+        steps:
+          - checkout: self
+
+          - powershell: |
+              $env:API_PORT = '18085'
+              $env:POSTGRES_PORT = '15435'
+              docker compose -p hu35-$(Build.BuildId) up --build -d
+              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            displayName: Levantar API y base de datos
+
+          - powershell: |
+              New-Item -ItemType Directory -Force perf/results | Out-Null
+              $resources = docker info --format '{{.NCPU}}|{{.MemTotal}}'
+              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+              $parts = $resources.Split('|')
+              @{ cpu = [int]$parts[0]; memoryBytes = [long]$parts[1]; agent = '$(Agent.Name)'; buildId = '$(Build.BuildId)'; commit = '$(Build.SourceVersion)' } | ConvertTo-Json | Set-Content -Encoding utf8 perf/results/environment.json
+              $windowsPath = '$(System.DefaultWorkingDirectory)'.Replace('\', '/')
+              $wslPath = '/mnt/' + $windowsPath.Substring(0, 1).ToLower() + $windowsPath.Substring(2)
+              $command = "cd '$wslPath' && COMPOSE_PROJECT_NAME=hu35-$(Build.BuildId) API_PORT=18085 bash perf/scripts/run-hu18.sh"
+              & "$env:WINDIR\System32\wsl.exe" --exec bash -c $command
+              exit $LASTEXITCODE
+            displayName: Ejecutar escenario de 500 reservas
+
+          - powershell: |
+              if (Test-Path perf/results/load-users.csv) { Remove-Item -LiteralPath perf/results/load-users.csv }
+            displayName: Retirar datos auxiliares del artefacto
+            condition: always()
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publicar evidencia JMeter
+            condition: always()
+            inputs:
+              targetPath: $(System.DefaultWorkingDirectory)/perf/results
+              artifact: jmeter-performance-evidence
+
+          - powershell: |
+              docker compose -p hu35-$(Build.BuildId) down -v
+              exit $LASTEXITCODE
+            displayName: Detener el entorno de rendimiento
+            condition: always()
+
   - stage: BackendQuality
     displayName: Calidad del backend
+    dependsOn: []
     jobs:
       - job: Analyze
         displayName: Pruebas, cobertura y análisis SonarCloud

@@ -328,6 +328,8 @@ El script debe generar:
 | Error inesperado | Respuestas fuera del contrato, como 500 |
 | p50, p90, p95, p99 | Percentiles del JTL o dashboard |
 
+El runner fija `sampleresult.timestamp.start=true`. Para `POST /reservas`, el throughput se calcula como número de muestras dividido por el intervalo entre el primer inicio y el último fin (`timeStamp + elapsed`). Los percentiles del verificador usan nearest-rank; JMeter interpola, por lo que no se espera igualdad exacta. La fila `Total` del dashboard incluye CSRF y no representa únicamente las reservas.
+
 ### Interpretación
 
 JMeter marca los 499 HTTP 409 como fallos HTTP. El informe debe separar:
@@ -335,7 +337,34 @@ JMeter marca los 499 HTTP 409 como fallos HTTP. El informe debe separar:
 - **Conflictos esperados:** 499 respuestas 409 por la regla de recurso no disponible.
 - **Errores inesperados:** respuestas 500 o fuera del contrato.
 
-El cuello de botella principal es el bloqueo pesimista `findByIdForUpdate`, que serializa los intentos sobre el mismo recurso.
+El bloqueo pesimista `findByIdForUpdate` serializa los intentos sobre el mismo recurso y constituye un punto de contención del escenario. Estas mediciones no incluyen profiling que permita atribuirle por sí solo toda la latencia.
+
+### Corrida local de HU-35
+
+El 20 de noviembre de 2026, Docker Desktop reportó Linux x86_64 con 16 vCPU y 7,59 GiB de memoria. Seis corridas locales cumplieron 1×201, 499×409, 500 GET de CSRF con HTTP 200 y una reserva activa solapada. Con el heap del generador limitado a 2 GiB, la corrida más reciente produjo p95 de 4 ms, promedio de 3 ms y throughput de 52,13 reservas/s. Las corridas anteriores midieron p95 de 126, 6, 6, 5 y 4 ms. La variación confirma que las latencias dependen del estado del entorno.
+
+El resumen más reciente registró 99,8 % de error HTTP bruto porque JMeter cuenta los 499 conflictos esperados como errores; el porcentaje de respuestas inesperadas fue 0 %. El dashboard desglosa los samplers y conserva esa distinción en `summary.json` para `POST /reservas`.
+
+Los runs 14 (`20261120.7`) y 15 de Azure publicaron `jmeter-performance-evidence`. Ambos dieron 1×201, 499×409, 500 GET CSRF HTTP 200, 0 % de errores inesperados y una reserva activa solapada, pero no cumplieron p95 < 800 ms. El run 14 midió p95 1106 ms, promedio 210 ms y throughput 45,14/s con heap JMeter de 5,2 GiB; el run 15 midió p95 1580 ms, promedio 394,05 ms y throughput 43,52/s con heap limitado a 2 GiB. La corrida local con el mismo heap midió p95 4 ms. La diferencia observada confirma que los resultados dependen del agente; no determina por sí sola un cambio requerido en el backend.
+
+### Repetición en agente Azure self-hosted de HU-35
+
+El [run 18, `20261120.11`](https://dev.azure.com/andresposada274/Reservas/_build/results?buildId=18) ejecutó `PerformanceEvidence` correctamente en `LocalPool` / `NewAgent` el 20 de noviembre de 2026. `environment.json` registra 16 CPU y 8 151 265 280 bytes de RAM disponibles para Docker (7,59 GiB), y el commit de validación del PR `41015fb097900de7b02a75aaa6bded720f834608`, correspondiente a la rama con commit `7fe2d3b`. Se conservó el escenario de 500 hilos, ramp-up de 10 segundos y una iteración, sin cambiar el umbral ni el backend.
+
+| Métrica de los 500 POST | Run 18 |
+|---|---|
+| Códigos | 1×201 y 499×409 |
+| Promedio | 22,29 ms |
+| Throughput del dashboard | 52,36 reservas/s |
+| p50 / p90 / p95 / p99 | 4 / 10 / 190 / 334 ms |
+| Error HTTP bruto / inesperado | 99,8 % / 0 % |
+| Reservas activas solapadas | 1, verificada por API y PostgreSQL |
+
+El artefacto `jmeter-performance-evidence` se descargó y verificó: JTL con 500 CSRF HTTP 200 y 500 POST, `summary.json`, dashboard HTML con sus 127 archivos y `environment.json`. El CSV auxiliar no se publica. El p95 de 190 ms del verificador y el p95 interpolado de 208,05 ms del dashboard cumplen < 800 ms para este escenario y entorno; no prueban capacidad dedicada ni rendimiento sostenido para otras cargas.
+
+Al contrastar el dashboard se detectó que los resúmenes originales hasta el run 19 interpretaban el timestamp como fin de petición y calculaban mal la duración. El `summary.json` histórico del run 18 conserva 50,40/s; el throughput correcto es 52,36/s, coincidente entre el dashboard y el JTL recalculado con la corrección. La prueba de regresión reprodujo una duración errónea de 1500 ms frente a los 1000 ms esperados y pasó tras corregir la ventana. Este ajuste no cambia las latencias, los códigos ni la integridad. Las cifras de throughput de corridas anteriores se conservan como registro histórico del cálculo original.
+
+El intento anterior, run 17, publicó JTL/dashboard pero falló antes del resumen y de verificar integridad: WSL heredó una ruta temporal de Docker que quedó inválida tras terminar el contenedor. El pipeline ahora entra al checkout estable bajo `/mnt/c/` antes de ejecutar el script. El run 18 pasó también la limpieza del stack aislado. El PR permanece pendiente de revisión y merge; este registro acredita la etapa de rendimiento, no afirma el estado de otras etapas todavía en ejecución.
 
 ## Azure Pipelines (I)
 
@@ -344,19 +373,22 @@ El cuello de botella principal es el bloqueo pesimista `findByIdForUpdate`, que 
 1. El proyecto `andresposada274/Reservas` y la service connection GitHub de `AndresD902` ya existen.
 2. El variable group `reservas-quality` ya existe y contiene `SONAR_TOKEN` como secreto.
 3. Crear o autorizar el pipeline desde `azure-pipelines.yml` siguiendo la sección de configuración manual.
-4. El agente `ubuntu-latest` usa JDK 21; no requiere Docker Compose para este pipeline.
+4. El agente `ubuntu-latest` usa JDK 21 para backend. Rendimiento requiere el agente Windows self-hosted `NewAgent` en `LocalPool`, con Docker Desktop Linux, Compose v2, Bash/WSL y Python 3 en WSL; debe estar conectado cuando se ejecute el pipeline. El checkout se resuelve explícitamente bajo `/mnt/<unidad>/`: una ruta temporal de Docker Desktop puede desaparecer al terminar JMeter y dejar a Python sin directorio de trabajo.
 
 ### Etapas propuestas
 
 | Etapa | Qué ejecuta | Artefactos |
 |---|---|---|
+| `PerformanceEvidence` | Docker Compose, 500 usuarios JMeter, verificación de integridad | Artefacto `jmeter-performance-evidence` con JTL, dashboard HTML y `summary.json` |
 | `BackendQuality` | JUnit, PIT, JaCoCo, aceptación, E2E HTTP y SonarCloud | Reportes de pruebas, cobertura, mutación y resultado del quality gate |
 
 ### Pipeline versionado
 
-El pipeline versionado en `azure-pipelines.yml` se dispara con cambios y pull requests hacia `main`. Ejecuta la suite de backend, genera el reporte JaCoCo y ejecuta SonarCloud con el secreto `SONAR_TOKEN` del variable group `reservas-quality`. El checkout usa `fetchDepth: 0` para descargar el historial completo: Sonar necesita el blame para distinguir issues existentes de issues nuevos y evaluar correctamente el quality gate. El análisis espera el resultado del quality gate y, por ello, el job queda fallido si el gate no se aprueba.
+El pipeline versionado en `azure-pipelines.yml` se dispara con cambios y pull requests hacia `main`. Ejecuta en paralelo la suite de backend y la etapa `PerformanceEvidence`. Esta última levanta Docker Compose, ejecuta `perf/scripts/run-hu18.sh` y publica JTL, dashboard y resumen como `jmeter-performance-evidence`, incluso si falla una verificación para facilitar el diagnóstico. El agente `NewAgent` ejecuta la carga con proyecto Compose `hu35-<BuildId>` y puertos 18085 (API) y 15435 (PostgreSQL), conservando aislados los volúmenes del entorno local. La limpieza elimina solo el stack de esa corrida. `environment.json` registra CPU y RAM disponibles para Docker, agente, commit y run; esos recursos no equivalen a capacidad dedicada. `LocalPool` debe estar autorizado para este pipeline. El umbral se conserva en p95 < 800 ms.
 
-Este pipeline cubre el backend y SonarCloud; no sustituye los jobs de GitHub Actions para frontend, navegador, seguridad o rendimiento.
+La etapa de backend genera el reporte JaCoCo y ejecuta SonarCloud con el secreto `SONAR_TOKEN` del variable group `reservas-quality`. El checkout usa `fetchDepth: 0` para descargar el historial completo: Sonar necesita el blame para distinguir issues existentes de issues nuevos y evaluar correctamente el quality gate. El job falla si el gate no se aprueba.
+
+Este pipeline cubre backend, SonarCloud y rendimiento; no sustituye los jobs de GitHub Actions para frontend, navegador o seguridad.
 
 ### Configuración manual en Azure DevOps
 
