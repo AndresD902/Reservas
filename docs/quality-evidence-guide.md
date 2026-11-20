@@ -335,7 +335,7 @@ JMeter marca los 499 HTTP 409 como fallos HTTP. El informe debe separar:
 - **Conflictos esperados:** 499 respuestas 409 por la regla de recurso no disponible.
 - **Errores inesperados:** respuestas 500 o fuera del contrato.
 
-El cuello de botella principal es el bloqueo pesimista `findByIdForUpdate`, que serializa los intentos sobre el mismo recurso.
+El bloqueo pesimista `findByIdForUpdate` serializa los intentos sobre el mismo recurso y constituye un punto de contención del escenario. Estas mediciones no incluyen profiling que permita atribuirle por sí solo toda la latencia.
 
 ### Corrida local de HU-35
 
@@ -344,6 +344,23 @@ El 20 de noviembre de 2026, Docker Desktop reportó Linux x86_64 con 16 vCPU y 7
 El resumen más reciente registró 99,8 % de error HTTP bruto porque JMeter cuenta los 499 conflictos esperados como errores; el porcentaje de respuestas inesperadas fue 0 %. El dashboard desglosa los samplers y conserva esa distinción en `summary.json` para `POST /reservas`.
 
 Los runs 14 (`20261120.7`) y 15 de Azure publicaron `jmeter-performance-evidence`. Ambos dieron 1×201, 499×409, 500 GET CSRF HTTP 200, 0 % de errores inesperados y una reserva activa solapada, pero no cumplieron p95 < 800 ms. El run 14 midió p95 1106 ms, promedio 210 ms y throughput 45,14/s con heap JMeter de 5,2 GiB; el run 15 midió p95 1580 ms, promedio 394,05 ms y throughput 43,52/s con heap limitado a 2 GiB. La corrida local con el mismo heap midió p95 4 ms. La diferencia observada confirma que los resultados dependen del agente; no determina por sí sola un cambio requerido en el backend.
+
+### Repetición en agente Azure self-hosted de HU-35
+
+El [run 18, `20261120.11`](https://dev.azure.com/andresposada274/Reservas/_build/results?buildId=18) ejecutó `PerformanceEvidence` correctamente en `LocalPool` / `NewAgent` el 20 de noviembre de 2026. `environment.json` registra 16 CPU y 8 151 265 280 bytes de RAM disponibles para Docker (7,59 GiB), y el commit de validación del PR `41015fb097900de7b02a75aaa6bded720f834608`, correspondiente a la rama con commit `7fe2d3b`. Se conservó el escenario de 500 hilos, ramp-up de 10 segundos y una iteración, sin cambiar el umbral ni el backend.
+
+| Métrica de los 500 POST | Run 18 |
+|---|---|
+| Códigos | 1×201 y 499×409 |
+| Promedio | 22,29 ms |
+| Throughput | 50,40 reservas/s |
+| p50 / p90 / p95 / p99 | 4 / 10 / 190 / 334 ms |
+| Error HTTP bruto / inesperado | 99,8 % / 0 % |
+| Reservas activas solapadas | 1, verificada por API y PostgreSQL |
+
+El artefacto `jmeter-performance-evidence` se descargó y verificó: JTL con 500 CSRF HTTP 200 y 500 POST, `summary.json` recalculado desde el JTL, dashboard HTML con sus 127 archivos y `environment.json`. El CSV auxiliar no se publica. El p95 de 190 ms cumple < 800 ms para este escenario y entorno; no prueba capacidad dedicada ni rendimiento sostenido para otras cargas.
+
+El intento anterior, run 17, publicó JTL/dashboard pero falló antes del resumen y de verificar integridad: WSL heredó una ruta temporal de Docker que quedó inválida tras terminar el contenedor. El pipeline ahora entra al checkout estable bajo `/mnt/c/` antes de ejecutar el script. El run 18 pasó también la limpieza del stack aislado. El PR permanece pendiente de revisión y merge; este registro acredita la etapa de rendimiento, no afirma el estado de otras etapas todavía en ejecución.
 
 ## Azure Pipelines (I)
 
