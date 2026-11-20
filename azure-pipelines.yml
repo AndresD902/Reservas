@@ -40,6 +40,8 @@ stages:
           - checkout: self
 
           - powershell: |
+              New-Item -ItemType Directory -Force perf/results | Out-Null
+              'La ejecución JMeter todavía no ha generado evidencia.' | Set-Content -Encoding utf8 perf/results/run-status.txt
               $env:API_PORT = '18085'
               $env:POSTGRES_PORT = '15435'
               docker compose -p hu35-$(Build.BuildId) up --build -d
@@ -56,7 +58,13 @@ stages:
               $wslPath = '/mnt/' + $windowsPath.Substring(0, 1).ToLower() + $windowsPath.Substring(2)
               $command = "cd '$wslPath' && COMPOSE_PROJECT_NAME=hu35-$(Build.BuildId) API_PORT=18085 bash perf/scripts/run-hu18.sh"
               & "$env:WINDIR\System32\wsl.exe" --exec bash -c $command
-              exit $LASTEXITCODE
+              $exitCode = $LASTEXITCODE
+              if ($exitCode -eq 0) {
+                Remove-Item -LiteralPath perf/results/run-status.txt -ErrorAction SilentlyContinue
+              } else {
+                'El escenario JMeter no terminó correctamente. Consulta los logs del run.' | Set-Content -Encoding utf8 perf/results/run-status.txt
+              }
+              exit $exitCode
             displayName: Ejecutar escenario de 500 reservas
 
           - powershell: |

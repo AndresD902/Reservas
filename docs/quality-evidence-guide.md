@@ -379,7 +379,7 @@ El intento anterior, run 17, publicó JTL/dashboard pero falló antes del resume
 
 | Etapa | Qué ejecuta | Artefactos |
 |---|---|---|
-| `PerformanceEvidence` | Docker Compose, 500 usuarios JMeter, verificación de integridad | Artefacto `jmeter-performance-evidence` con JTL, dashboard HTML y `summary.json` |
+| `PerformanceEvidence` | Docker Compose, 500 usuarios JMeter, verificación de integridad | Artefacto `jmeter-performance-evidence` con JTL, dashboard HTML y `summary.json`; `run-status.txt` si no se completa la ejecución |
 | `BackendQuality` | JUnit, PIT, JaCoCo, aceptación, E2E HTTP y SonarCloud | Reportes de pruebas, cobertura, mutación y resultado del quality gate |
 | `FrontendQuality` | Node 24, lint, typecheck, Vitest y build | Artefacto `frontend-quality-reports` y resultados JUnit |
 | `BrowserE2E` | Stack Docker Compose, Serenity/Playwright y Gherkin | Artefacto `browser-e2e-evidence` con reportes y videos; resultados JUnit de Gherkin |
@@ -410,12 +410,12 @@ de Vitest y la etapa de navegador publica los resultados XML de Gherkin.
 1. Abrir **Pipelines → New pipeline** y seleccionar **GitHub**.
 2. Elegir la conexión existente de GitHub para `AndresD902`; si se solicita, autorizarla para acceder al repositorio `AndresD902/Reservas`.
 3. Seleccionar el repositorio y elegir **Existing Azure Pipelines YAML file**.
-4. Seleccionar la rama que contiene el archivo (`feature/hu-33-sonar-quality-gate` antes del merge) y la ruta `/azure-pipelines.yml`; guardar y ejecutar.
+4. Seleccionar `main` (o la rama que contiene el archivo si se configura antes del merge) y la ruta `/azure-pipelines.yml`; guardar y ejecutar.
 5. Si Azure solicita autorización de recursos, autorizar la conexión GitHub y el variable group `reservas-quality` para este pipeline. También puede hacerse en **Pipelines → Library → reservas-quality → Pipeline permissions**, habilitando este pipeline.
 6. Confirmar que backend, frontend, navegador y ZAP terminan en el PR y que el dashboard SonarCloud muestra cobertura JaCoCo y quality gate. Revisar el log para confirmar que no se expone el token.
 7. En la validación del PR no debe ejecutarse JMeter. En un push a `main` o en una ejecución manual con `runPerformance=true`, confirmar que JMeter publica el quinto artefacto.
 8. Ejecutar manualmente con `runControlledFailure=true`; verificar que `ControlledFailureEvidence` quede roja y que el XML identifique `ControlledFailureEvidenceTest`. Después, ejecutar el pipeline con el valor predeterminado y confirmar que vuelve a verde.
-9. En GitHub, abrir **Settings → Rules → Rulesets** y crear un ruleset para `main` que requiera el check de Azure publicado por la validación del pull request.
+9. En GitHub, abrir **Settings → Rules → Rulesets** y confirmar que el ruleset `Azure Pipelines required on main` exige el check `AndresD902.Reservas` para `main`.
 
 ### Evidencia de ejecución
 

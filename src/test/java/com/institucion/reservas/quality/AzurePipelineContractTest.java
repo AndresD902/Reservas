@@ -57,6 +57,24 @@ class AzurePipelineContractTest {
                 "JMeter debe ejecutarse al pedirlo manualmente o en el push a main");
     }
 
+    @Test
+    void performanceEvidenceDirectoryExistsEvenWhenDockerSetupFails() throws IOException {
+        JsonNode pipeline = new YAMLMapper().readTree(Path.of("azure-pipelines.yml").toFile());
+        JsonNode performanceStage = StreamSupport.stream(pipeline.path("stages").spliterator(), false)
+                .filter(stage -> stage.path("stage").asText().equals("PerformanceEvidence"))
+                .findFirst()
+                .orElse(null);
+        boolean initializesEvidenceBeforeRunningDocker = performanceStage != null
+                && StreamSupport.stream(performanceStage.findValues("powershell").spliterator(), false)
+                .map(JsonNode::asText)
+                .anyMatch(script -> script.contains("New-Item -ItemType Directory -Force perf/results")
+                        && script.indexOf("New-Item -ItemType Directory -Force perf/results")
+                        < script.indexOf("docker compose"));
+
+        assertTrue(initializesEvidenceBeforeRunningDocker,
+                "El artefacto de rendimiento debe existir aunque Docker no pueda arrancar");
+    }
+
     private boolean publishesPipelineArtifact(JsonNode stage) {
         return StreamSupport.stream(stage.findValues("task").spliterator(), false)
                 .anyMatch(task -> task.asText().equals("PublishPipelineArtifact@1"));
