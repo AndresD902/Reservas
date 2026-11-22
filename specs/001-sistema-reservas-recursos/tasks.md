@@ -259,3 +259,21 @@
 - [x] **T-054**: Implementar el flujo Gherkin E2E B del login fallido y el reintento exitoso, reutilizando el soporte Playwright de HU-31.
   - **Archivos**: `src/test/resources/features/e2e/admin-login-retry.feature`, `src/test/java/com/institucion/reservas/acceptance/e2e/LoginE2eSteps.java`, `backlog/backlog.md`.
   - **Dependencias**: T-053.
+
+## Fase 19: Plan de pruebas y guía de evidencia
+
+- [x] **T-055**: Actualizar el plan de pruebas con objetivo, alcance, componentes, tipos, entornos, riesgos y criterios de éxito verificables.
+  - **Archivos**: `docs/quality-evidence-guide.md`.
+  - **Dependencias**: HU-37.
+
+- [x] **T-056**: Documentar el estado de cada ítem A–I, los comandos, los umbrales y las rutas de los reportes.
+  - **Archivos**: `docs/quality-evidence-guide.md`, `README.md`.
+  - **Dependencias**: T-055.
+
+- [x] **T-057**: Construir la matriz A–I con historias, cards, comandos de reproducción y evidencia, y actualizar el checklist de cierre.
+  - **Archivos**: `docs/quality-evidence-guide.md`, `backlog/backlog.md`.
+  - **Dependencias**: T-056.
+
+- [ ] **T-058**: Ejecutar la verificación de referencias, abrir el PR y solicitar la revisión del equipo.
+  - **Archivos**: `docs/quality-evidence-guide.md`, `backlog/backlog.md`, `specs/001-sistema-reservas-recursos/tasks.md`.
+  - **Dependencias**: T-057.

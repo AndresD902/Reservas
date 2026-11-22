@@ -11,19 +11,31 @@ La guía describe **cómo ejecutar y demostrar** cada verificación. No reemplaz
 
 Queda fuera de alcance el despliegue a producción, la prueba de penetración manual y el análisis de infraestructura.
 
-## Estado actual y trabajo pendiente
+## Cómo usar esta guía
 
-| Ítem | Estado de partida | Qué falta |
-|---|---|---|
-| A. Presentación | El README describe problema, arquitectura y rutas | Guion de demo, datos y evidencia consolidada |
-| B. Plan de pruebas | Criterios dispersos en el backlog y los estándares | Documento único con alcance, tipos, riesgos y criterios |
-| C. JUnit | 181 pruebas, 0 fallos en la última corrida local | Reporte adjunto y análisis de casos positivos/negativos |
-| D. PIT | Configurado con umbral 80/90 sobre `service.impl` | Reporte versionado y análisis de supervivientes |
-| E. SonarQube | Configuración Gradle y YAML de Azure añadidos; el variable group `reservas-quality` ya existe | Crear/autorizar el pipeline, ejecutar el análisis y registrar dashboard, quality gate y triage |
-| F. Gherkin | Dos escenarios de login, 0 fallos | Ejecución en Azure y publicación de videos/reportes |
-| G. OWASP ZAP | Reporte HU-26 con triage | Ejecución en Azure y actualización de evidencia |
-| H. JMeter | Escenario de 500 usuarios y scripts | Dashboard, métricas reales y análisis |
-| I. Azure Pipelines | GitHub Actions y `azure-pipelines.yml` | Crear/autorizar el pipeline en Azure y publicar evidencia de su ejecución |
+1. Ubica el ítem A–I que se quiere demostrar en la matriz de trazabilidad.
+2. Ejecuta el comando de la sección correspondiente y conserva el reporte en la ruta indicada.
+3. Registra la fecha, el entorno y la URL o ruta del artefacto; una captura sin ubicación no es evidencia reproducible.
+4. Actualiza el estado de la evidencia, la card de la historia y el checklist de cierre cuando corresponda.
+5. Si cambia un comando, un umbral o una etapa de CI, actualiza esta guía en el mismo cambio.
+
+La guía distingue **cómo se reproduce** una evidencia de **qué resultado se obtuvo**. Las cifras de las secciones son la última corrida registrada; no reemplazan el reporte que genera cada ejecución.
+
+## Estado de la evidencia
+
+Esta tabla es una foto al 2026-11-22. No sustituye los artefactos: indica qué está listo y qué falta para cerrar la entrega.
+
+| Ítem | Estado | Evidencia vigente | Qué falta |
+|---|---|---|---|
+| A. Presentación | Guion y recorrido definidos en esta guía | `## Presentación y demo (A)` | Grabar el video de respaldo, ensayar tiempos y registrar la demo |
+| B. Plan de pruebas | En preparación con HU-37 | Esta guía | Aprobación del equipo en el PR |
+| C. JUnit | Reporte local disponible sin fallos; la corrida de cierre se toma de CI | `build/reports/tests/test`, `build/test-results/test` | Adjuntar el reporte de la corrida de cierre |
+| D. PIT | Gate 80/90 y corrida ampliada documentados | `build/reports/pitest`, `build/reports/pitest-full`, tabla de supervivientes | Repetir la corrida ampliada cuando cambie la lógica de negocio |
+| E. SonarQube | Configurado en Azure `BackendQuality` | `azure-pipelines.yml`, dashboard de SonarCloud | Registrar la URL del run con el quality gate y el triage de hallazgos |
+| F. Gherkin | Escenarios A/B implementados y ejecutables en local y GitHub Actions | `build/reports/cucumber`, `build/e2e-videos` | Registrar la evidencia de Azure si se integra allí |
+| G. OWASP ZAP | Escaneo pasivo local y workflow de GitHub Actions | `security/zap/reports`, `.github/workflows/zap-baseline.yml` | Registrar el run oficial y el triage vigente |
+| H. JMeter | Escenario, dashboard y run 18 verificados | `perf/results`, artefacto `jmeter-performance-evidence` | Repetir si cambia el agente o el escenario |
+| I. Azure Pipelines | Etapas `BackendQuality` y `PerformanceEvidence` versionadas | `azure-pipelines.yml`, run 18 de rendimiento | Cerrar la evidencia de `BackendQuality`, el ruleset de `main` y el fallo controlado |
 
 ## Plan de pruebas
 
@@ -79,8 +91,8 @@ No incluye:
 | Estático | SonarQube | `./gradlew sonar` | Dashboard de SonarQube |
 | DAST | OWASP ZAP | `bash security/zap/run-baseline.sh` | `security/zap/reports` |
 | Rendimiento | JMeter | `bash perf/scripts/run-hu18.sh` | `perf/results` |
-| Frontend | Vitest + Testing Library | `cd frontend && npm test` | Salida de Vitest |
-| Integración continua | Azure Pipelines | Push o PR | Artefactos del run |
+| Frontend | ESLint, TypeScript, Vitest y Vite | `cd frontend && npm run lint && npm run typecheck && npm test && npm run build` | Salida de cada comando |
+| Integración continua | GitHub Actions y Azure Pipelines | Push o PR en GitHub; Azure según `azure-pipelines.yml` | Artefactos y resultados de cada run |
 
 ### Entornos
 
@@ -135,8 +147,10 @@ Casos representativos:
 
 ### Ejecución
 
+Requiere JDK 21 y no necesita PostgreSQL: la suite usa H2 en memoria y aplica las migraciones de Flyway. La tarea `test` excluye las etiquetas `acceptance`, `e2e`, `postgres` y `serenity`.
+
 ```bash
-./gradlew test
+./gradlew test --console=plain
 ```
 
 Reportes:
@@ -209,7 +223,7 @@ Una primera corrida detectó además que la prueba de `/auth/csrf` verificaba el
 
 El token se lee exclusivamente desde `SONAR_TOKEN`; no debe guardarse en el repositorio ni imprimirse en logs. En Azure DevOps, el variable group `reservas-quality` es la fuente de esa variable. `sonar.qualitygate.wait=true` hace que la tarea falle cuando SonarCloud rechaza el quality gate; el timeout configurado es de 300 segundos.
 
-El primer análisis de HU-33 falló por `new_security_rating=3`, con requisito máximo `1`. SonarCloud señaló dos referencias `gradle/actions/setup-gradle@v4` sin SHA completo y `npm ci` sin `--ignore-scripts` en `.github/workflows/ci.yml`. El workflow ahora fija setup-gradle a un SHA verificado y omite scripts de instalación durante `npm ci`; falta confirmar el resultado del siguiente análisis.
+El primer análisis de HU-33 falló por `new_security_rating=3`, con requisito máximo `1`. SonarCloud señaló dos referencias `gradle/actions/setup-gradle@v4` sin SHA completo y `npm ci` sin `--ignore-scripts` en `.github/workflows/ci.yml`. El workflow ya fija setup-gradle a un SHA verificado y omite scripts de instalación durante `npm ci`. El resultado que cuenta como evidencia es el del último run de `BackendQuality`: si `sonar` falla o el quality gate se rechaza, el job termina en rojo. La URL del run y el triage se registran en la card HU-33; no se usa una captura local como sustituto.
 
 ### Ejecución
 
@@ -375,12 +389,14 @@ El intento anterior, run 17, publicó JTL/dashboard pero falló antes del resume
 3. Crear o autorizar el pipeline desde `azure-pipelines.yml` siguiendo la sección de configuración manual.
 4. El agente `ubuntu-latest` usa JDK 21 para backend. Rendimiento requiere el agente Windows self-hosted `NewAgent` en `LocalPool`, con Docker Desktop Linux, Compose v2, Bash/WSL y Python 3 en WSL; debe estar conectado cuando se ejecute el pipeline. El checkout se resuelve explícitamente bajo `/mnt/<unidad>/`: una ruta temporal de Docker Desktop puede desaparecer al terminar JMeter y dejar a Python sin directorio de trabajo.
 
-### Etapas propuestas
+### Etapas implementadas
 
 | Etapa | Qué ejecuta | Artefactos |
 |---|---|---|
 | `PerformanceEvidence` | Docker Compose, 500 usuarios JMeter, verificación de integridad | Artefacto `jmeter-performance-evidence` con JTL, dashboard HTML y `summary.json` |
-| `BackendQuality` | JUnit, PIT, JaCoCo, aceptación, E2E HTTP y SonarCloud | Reportes de pruebas, cobertura, mutación y resultado del quality gate |
+| `BackendQuality` | `test`, `pitest`, `pitestFull`, JaCoCo, aceptación, E2E HTTP y SonarCloud | Artefacto `backend-quality-reports` y resultados JUnit publicados en Azure |
+
+El pipeline cubre backend, SonarCloud y rendimiento. Las pruebas de frontend, navegador (Serenity/Gherkin) y el escaneo ZAP se ejecutan en GitHub Actions hasta que se agreguen etapas equivalentes en Azure.
 
 ### Pipeline versionado
 
@@ -395,17 +411,22 @@ Este pipeline cubre backend, SonarCloud y rendimiento; no sustituye los jobs de 
 1. Abrir **Pipelines → New pipeline** y seleccionar **GitHub**.
 2. Elegir la conexión existente de GitHub para `AndresD902`; si se solicita, autorizarla para acceder al repositorio `AndresD902/Reservas`.
 3. Seleccionar el repositorio y elegir **Existing Azure Pipelines YAML file**.
-4. Seleccionar la rama que contiene el archivo (`feature/hu-33-sonar-quality-gate` antes del merge) y la ruta `/azure-pipelines.yml`; guardar y ejecutar.
+4. Seleccionar la rama `main` y la ruta `/azure-pipelines.yml`; guardar y ejecutar.
 5. Si Azure solicita autorización de recursos, autorizar la conexión GitHub y el variable group `reservas-quality` para este pipeline. También puede hacerse en **Pipelines → Library → reservas-quality → Pipeline permissions**, habilitando este pipeline.
-6. Confirmar que el primer run termina con `BackendQuality` exitoso y que el dashboard SonarCloud muestra cobertura JaCoCo y quality gate. Revisar el log para confirmar que no se expone el valor del token.
+6. Confirmar que el run de `main` termina con `BackendQuality` exitoso y que el dashboard SonarCloud muestra cobertura JaCoCo y quality gate. Revisar el log para confirmar que no se expone el valor del token.
 7. En GitHub, abrir **Settings → Rules → Rulesets** y crear un ruleset para `main` que requiera el status check publicado por este pipeline. El check aparecerá para seleccionarlo después de la primera ejecución de validación de PR.
 
 ### Evidencia de ejecución
 
-- URL del run de `main` con el job de SonarCloud y el quality gate aprobados.
-- URL del proyecto SonarCloud con cobertura y métricas visibles.
-- Confirmación de que Build validation quedó como requerida en la política de `main`.
-- Clasificación y acción para bugs, vulnerabilidades, code smells, deuda y duplicación observados.
+| Evidencia | Estado | Dónde se registra |
+|---|---|---|
+| `PerformanceEvidence` verde y artefacto `jmeter-performance-evidence` verificado | Verificado en el run 18 | Card HU-35 y sección de JMeter |
+| `BackendQuality` verde, resultados JUnit publicados y artefacto `backend-quality-reports` descargado | Pendiente de registrar el run de `main` | Card HU-36 |
+| Quality gate de SonarCloud aprobado | Pendiente de registrar la URL del run | Card HU-33 |
+| Ruleset de `main` con el check de Azure requerido | Pendiente de confirmar en GitHub | Card HU-36 |
+| Fallo controlado: el pipeline se pone rojo cuando una prueba o el quality gate fallan | Pendiente de registrar la prueba | Card HU-36 |
+
+No se marca una fila como verificada hasta que exista la URL o el artefacto correspondiente. Un run de rendimiento exitoso no acredita por sí solo las etapas de calidad del backend.
 
 ## Presentación y demo (A)
 
@@ -449,32 +470,40 @@ Si la demo en vivo falla, usar el video de los escenarios Gherkin y las capturas
 
 ## Matriz de trazabilidad
 
-| Ítem | Historia | Card | Evidencia |
-|---|---|---|---|
-| A. Presentación | `HU-38` | [HU-38](https://trello.com/c/KFVgnBQg) | Guion, video o capturas, reportes enlazados |
-| B. Plan de pruebas | `HU-37` | [HU-37](https://trello.com/c/ZaIwXnKX) | Esta guía |
-| C. JUnit | `HU-14`, `HU-15`, `HU-16` | Cards existentes | `build/reports/tests/test`, análisis de casos |
-| D. PIT | `HU-34` | [HU-34](https://trello.com/c/jCuoecqj) | `build/reports/pitest`, tabla de supervivientes |
-| E. SonarQube | `HU-33` | [HU-33](https://trello.com/c/tDqu9wJQ) | Dashboard, quality gate, triage |
-| F. Gherkin | `HU-31`, `HU-32`, `HU-36` | [HU-36](https://trello.com/c/QpKJys2h) | `build/reports/cucumber`, videos |
-| G. OWASP ZAP | `HU-26`, `HU-36` | [HU-36](https://trello.com/c/QpKJys2h) | `security/zap/reports`, triage |
-| H. JMeter | `HU-35` | [HU-35](https://trello.com/c/JtpIbK6B) | JTL, dashboard, `summary.json` |
-| I. Azure Pipelines | `HU-36` | [HU-36](https://trello.com/c/QpKJys2h) | Run de Azure, artefactos, fallo controlado |
+| Ítem | Historia(s) | Card(s) | Cómo se reproduce | Evidencia |
+|---|---|---|---|---|
+| A. Presentación | `HU-38` | [HU-38](https://trello.com/c/KFVgnBQg) | Seguir `## Presentación y demo (A)` | Guion, video o capturas, reportes enlazados |
+| B. Plan de pruebas | `HU-37` | [HU-37](https://trello.com/c/ZaIwXnKX) | Leer esta guía y revisar el PR | Este documento y el registro de revisión |
+| C. JUnit | `HU-13`, `HU-14`, `HU-15`, `HU-16` | [HU-13](https://trello.com/c/gekDLvyk), [HU-14](https://trello.com/c/yzweceYl), [HU-15](https://trello.com/c/jxOestU8), [HU-16](https://trello.com/c/U7rggwKZ) | `./gradlew test --console=plain` | `build/reports/tests/test`, `build/test-results/test` |
+| D. PIT | `HU-14`, `HU-34` | [HU-14](https://trello.com/c/yzweceYl), [HU-34](https://trello.com/c/jCuoecqj) | `./gradlew pitest pitestFull` | `build/reports/pitest`, `build/reports/pitest-full`, tabla de supervivientes |
+| E. SonarQube | `HU-33` | [HU-33](https://trello.com/c/tDqu9wJQ) | Run `BackendQuality` en Azure | Dashboard de SonarCloud, quality gate y triage enlazados en la card |
+| F. Gherkin | `HU-31`, `HU-32`, `HU-36` | [HU-31](https://trello.com/c/kkbh2Yl3), [HU-32](https://trello.com/c/jzWteyWo), [HU-36](https://trello.com/c/QpKJys2h) | `./gradlew e2eGherkinTest` con el stack levantado | `build/reports/cucumber`, `build/e2e-videos` |
+| G. OWASP ZAP | `HU-26`, `HU-36` | [HU-26](https://trello.com/c/Gq6uXMzI), [HU-36](https://trello.com/c/QpKJys2h) | `bash security/zap/run-baseline.sh` o workflow `zap-baseline.yml` | `security/zap/reports`, artefacto `reporte-seguridad-zap` |
+| H. JMeter | `HU-35` | [HU-35](https://trello.com/c/JtpIbK6B) | `bash perf/scripts/run-hu18.sh` con el stack levantado | JTL, dashboard, `summary.json` y artefacto `jmeter-performance-evidence` |
+| I. Azure Pipelines | `HU-23`, `HU-36` | [HU-23](https://trello.com/c/seULlzuC), [HU-36](https://trello.com/c/QpKJys2h) | Push o PR a `main`; revisar las dos etapas del pipeline | Run de Azure, artefactos y fallo controlado |
 
-Las cards `HU-33` a `HU-38` están en la lista `Backlog` del tablero `Sistema de Reservas [CALIDAD]`.
+El estado vigente de cada card se consulta en el tablero `Sistema de Reservas [CALIDAD]`. Las cards completadas no se usan como evidencia por sí mismas: la evidencia es el run o el artefacto enlazado.
 
 ## Checklist de cierre
 
 - [ ] JUnit ejecutado y reporte adjunto.
-- [ ] PIT ejecutado, mutation score y supervivientes documentados.
+- [x] PIT ejecutado, mutation score y supervivientes documentados.
 - [ ] SonarQube analizado y quality gate evaluado.
 - [ ] Gherkin de login ejecutado en Azure con videos.
 - [ ] ZAP ejecutado en Azure y triage actualizado.
-- [ ] JMeter ejecutado con dashboard, throughput, errores y percentiles.
+- [x] JMeter ejecutado con dashboard, throughput, errores y percentiles.
 - [ ] Azure Pipelines verde en `main` y fallo controlado documentado.
 - [ ] Plan de pruebas y guía revisados.
 - [ ] Presentación y demo ensayadas.
 - [ ] Evidencia enlazada en las cards y en el README.
+
+Los ítems marcados tienen un reporte local o un run verificado; los pendientes requieren una ejecución o una revisión que todavía no está registrada.
+
+## Registro de revisión
+
+| Fecha | Alcance | Resultado |
+|---|---|---|
+| 2026-11-22 | Revisión técnica de comandos, umbrales, rutas, estado de CI y matriz A–I (HU-37) | Guía actualizada y contrastada con el repositorio; `check-references.sh` no introdujo hallazgos nuevos (los 12 existentes son ajenos a HU-37); pendiente la aprobación del equipo en el PR |
 
 ## Referencias
 
