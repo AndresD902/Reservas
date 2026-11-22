@@ -274,6 +274,6 @@
   - **Archivos**: `docs/quality-evidence-guide.md`, `backlog/backlog.md`.
   - **Dependencias**: T-056.
 
-- [ ] **T-058**: Ejecutar la verificación de referencias, abrir el PR y solicitar la revisión del equipo.
+- [x] **T-058**: Ejecutar la verificación de referencias, abrir el PR y solicitar la revisión del equipo.
   - **Archivos**: `docs/quality-evidence-guide.md`, `backlog/backlog.md`, `specs/001-sistema-reservas-recursos/tasks.md`.
   - **Dependencias**: T-057.

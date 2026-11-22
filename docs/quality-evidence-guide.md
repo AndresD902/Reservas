@@ -473,7 +473,7 @@ Si la demo en vivo falla, usar el video de los escenarios Gherkin y las capturas
 | Ítem | Historia(s) | Card(s) | Cómo se reproduce | Evidencia |
 |---|---|---|---|---|
 | A. Presentación | `HU-38` | [HU-38](https://trello.com/c/KFVgnBQg) | Seguir `## Presentación y demo (A)` | Guion, video o capturas, reportes enlazados |
-| B. Plan de pruebas | `HU-37` | [HU-37](https://trello.com/c/ZaIwXnKX) | Leer esta guía y revisar el PR | Este documento y el registro de revisión |
+| B. Plan de pruebas | `HU-37` | [HU-37](https://trello.com/c/ZaIwXnKX) | Leer esta guía y revisar el PR #35 | Este documento y el registro de revisión |
 | C. JUnit | `HU-13`, `HU-14`, `HU-15`, `HU-16` | [HU-13](https://trello.com/c/gekDLvyk), [HU-14](https://trello.com/c/yzweceYl), [HU-15](https://trello.com/c/jxOestU8), [HU-16](https://trello.com/c/U7rggwKZ) | `./gradlew test --console=plain` | `build/reports/tests/test`, `build/test-results/test` |
 | D. PIT | `HU-14`, `HU-34` | [HU-14](https://trello.com/c/yzweceYl), [HU-34](https://trello.com/c/jCuoecqj) | `./gradlew pitest pitestFull` | `build/reports/pitest`, `build/reports/pitest-full`, tabla de supervivientes |
 | E. SonarQube | `HU-33` | [HU-33](https://trello.com/c/tDqu9wJQ) | Run `BackendQuality` en Azure | Dashboard de SonarCloud, quality gate y triage enlazados en la card |
@@ -503,7 +503,7 @@ Los ítems marcados tienen un reporte local o un run verificado; los pendientes 
 
 | Fecha | Alcance | Resultado |
 |---|---|---|
-| 2026-11-22 | Revisión técnica de comandos, umbrales, rutas, estado de CI y matriz A–I (HU-37) | Guía actualizada y contrastada con el repositorio; `check-references.sh` no introdujo hallazgos nuevos (los 12 existentes son ajenos a HU-37); pendiente la aprobación del equipo en el PR |
+| 2026-11-22 | Revisión técnica de comandos, umbrales, rutas, estado de CI y matriz A–I (HU-37) | Guía actualizada y contrastada con el repositorio; PR #35 abierto para revisión del equipo; `check-references.sh` sin hallazgos nuevos (12 preexistentes ajenos a HU-37). |
 
 ## Referencias
 
