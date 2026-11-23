@@ -419,12 +419,12 @@ de Vitest y la etapa de navegador publica los resultados XML de Gherkin.
 
 ### Evidencia de ejecución
 
-- URL del PR exitoso con las cuatro etapas de validación y sus artefactos.
-- URL del run de `main` o manual con la etapa de rendimiento y el artefacto JMeter.
-- URL del run manual con fallo controlado y del run normal posterior exitoso.
-- URL del proyecto SonarCloud con cobertura y métricas visibles.
-- Confirmación de que Build validation quedó como requerida en la política de `main`.
-- Clasificación y acción para bugs, vulnerabilidades, code smells, deuda y duplicación observados.
+- [PR #34](https://github.com/AndresD902/Reservas/pull/34) y [run 26](https://dev.azure.com/andresposada274/Reservas/_build/results?buildId=26): backend, frontend, navegador y ZAP aprobados; JMeter omitido conforme a la condición del PR.
+- [Run manual 25](https://dev.azure.com/andresposada274/Reservas/_build/results?buildId=25): cinco etapas aprobadas y artefactos de backend, frontend, navegador, ZAP y JMeter descargados y revisados. JMeter registró 500 muestras, 1×201, 499×409 esperados, 500 CSRF HTTP 200, ningún error inesperado, p95 de 130 ms y 53,52 muestras/s.
+- [Run 27](https://dev.azure.com/andresposada274/Reservas/_build/results?buildId=27): fallo intencional de `ControlledFailureEvidenceTest.reportsAnIdentifiableAssertionFailureWhenExplicitlyEnabled()`, etapa roja y resultado JUnit publicado en el test run 56. El check agregado requerido quedó rojo.
+- [Run normal 28](https://dev.azure.com/andresposada274/Reservas/_build/results?buildId=28): backend, frontend, navegador y ZAP aprobados; el check agregado requerido volvió a verde.
+- El ruleset `Azure Pipelines required on main` exige el check `AndresD902.Reservas`. El run de `main` y la comprobación posterior al merge siguen pendientes.
+- Pendiente de registrar aquí: URL del proyecto SonarCloud con sus métricas visibles y clasificación de bugs, vulnerabilidades, code smells, deuda y duplicación observados.
 
 ## Presentación y demo (A)
 
