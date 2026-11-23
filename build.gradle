@@ -59,6 +59,9 @@ tasks.named('test') {
 	useJUnitPlatform {
 		excludeTags 'acceptance', 'e2e', 'postgres', 'serenity'
 	}
+	if (project.hasProperty('hu36.forceFailure')) {
+		systemProperty 'hu36.forceFailure', project.property('hu36.forceFailure').toString()
+	}
 	// La suite de Cucumber se ejecuta solo con acceptanceTest, nunca en la suite rápida.
 	exclude '**/CucumberAcceptanceSuite.class'
 }
