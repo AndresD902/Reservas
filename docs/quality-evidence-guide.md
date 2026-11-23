@@ -446,43 +446,53 @@ de Vitest y la etapa de navegador publica los resultados XML de Gherkin.
 
 ## Presentación y demo (A)
 
-### Guion de diapositivas
+La exposición dura 15 minutos. La ruta de la tabla sigue A–I y reserva cuatro minutos para ejecutar el recorrido funcional. Los tiempos son acumulados; si una herramienta tarda, se muestra el artefacto guardado y se continúa.
 
-1. Problema que resuelve el sistema.
-2. Funcionalidades principales.
-3. Arquitectura y tecnologías.
-4. Recorrido crítico del usuario.
-5. Plan de pruebas.
-6. JUnit.
-7. PIT.
-8. SonarQube.
-9. Gherkin E2E.
-10. OWASP ZAP.
-11. JMeter.
-12. Azure Pipelines.
-13. Conclusiones y mejoras.
+| Minuto | Diapositiva | Guion y evidencia |
+|---|---|---|
+| 0:00–1:00 | A. Sistema de reservas | Explicar el problema: administrar usuarios y recursos, reservar horarios y evitar solapamientos. Indicar que el recorrido y los reportes respaldan la demo. |
+| 1:00–2:00 | Arquitectura | Mostrar SPA React, API Spring Boot y PostgreSQL; la API aplica las reglas y persiste las reservas. Referencia: `docs/frontend-standards.md` y `docs/backend-standards.md`. |
+| 2:00–6:00 | Recorrido crítico | Seguir la secuencia de demo de abajo: login, administración, reserva, conflicto 409, consulta, cancelación y logout. |
+| 6:00–7:00 | B. Plan de pruebas | Presentar los tipos de prueba, alcance y riesgos en `## Plan de pruebas`. |
+| 7:00–8:00 | C. JUnit | Abrir el artefacto `backend-quality-reports` del [run 33 de Azure](https://dev.azure.com/andresposada274/Reservas/_build/results?buildId=33) y mostrar resultados XML/HTML de JUnit. |
+| 8:00–9:00 | D. PIT | Mostrar reportes `pitest` y `pitest-full`; explicar umbrales y el mutante sobreviviente documentado en esta guía. |
+| 9:00–10:00 | E. SonarQube | Abrir el [proyecto en SonarCloud](https://sonarcloud.io/project/overview?id=AndresD902_Reservas) y señalar quality gate, cobertura y triage vigente. |
+| 10:00–11:00 | F. Gherkin | Mostrar `browser-e2e-evidence` del run 33, los escenarios y los videos de respaldo. |
+| 11:00–12:00 | G. OWASP ZAP | Mostrar el resumen y reportes HTML/JSON del artefacto `zap-security-evidence` del run 33. |
+| 12:00–13:00 | H. JMeter | Mostrar el dashboard del artefacto del run 33: 500 muestras, 1×201, 499×409 esperados, p95 213 ms y 53,28 reservas/s. |
+| 13:00–14:00 | I. Azure Pipelines | Mostrar [run 33](https://dev.azure.com/andresposada274/Reservas/_build/results?buildId=33), sus cinco etapas verdes y artefactos. Mencionar el fallo controlado en run 27 y recuperación en run 28. |
+| 14:00–15:00 | Cierre | Resumir qué demuestra cada capa y mencionar límites: ZAP es pasivo y la métrica JMeter depende del agente. Dejar preguntas. |
 
-### Recorrido crítico
+### Datos de la demo
 
-1. Abrir `/login` e intentar con contraseña incorrecta.
-2. Iniciar sesión con `admin@example.com` y `admin123`.
-3. Mostrar `/admin/usuarios` y `/admin/recursos`.
-4. Crear un usuario y un recurso de demo.
-5. Abrir `/reservar` y reservar un intervalo.
-6. Abrir `/mis-reservas` y cancelar la reserva.
-7. Intentar el mismo intervalo dos veces y mostrar `409 RECURSO_NO_DISPONIBLE`.
-8. Cerrar sesión.
+Usar exclusivamente el stack local desechable de Docker Compose y sus datos semilla. El perfil local toma `ADMIN_EMAIL` y `ADMIN_PASSWORD` del entorno; `.env.example` contiene valores solo para desarrollo. No reutilizar esas credenciales fuera del entorno local. Crear un usuario y un recurso identificables con prefijo `DEMO-HU38`, en estado disponible, y usar un intervalo futuro de una hora, redondeado al siguiente cuarto de hora. El recurso y el intervalo deben permanecer iguales para reproducir el 409; cancelarlos al final o destruir el stack de demo.
 
-### Precondiciones
+### Preparación
 
 ```bash
 docker compose --profile frontend up -d --build
-./gradlew test
+docker compose ps
+curl --fail http://localhost:5173/login
 ```
+
+Abrir `http://localhost:5173/login`. Confirmar que la página carga y que `api`, `db` y `frontend` están saludables antes de iniciar. Para reiniciar por completo los datos de la demo, destruir únicamente el stack local de Reservas y volver a ejecutar Compose; esto elimina los datos locales de demostración.
+
+### Recorrido crítico
+
+1. En `/login`, enviar una contraseña incorrecta. Resultado esperado: mensaje de credenciales inválidas y la sesión permanece cerrada.
+2. Iniciar sesión usando las variables locales `ADMIN_EMAIL` y `ADMIN_PASSWORD`. Resultado: el panel administrativo queda accesible.
+3. Abrir `/admin/usuarios` y crear un usuario activo con documento/correo únicos que empiecen por `DEMO-HU38`. Confirmar que aparece en el listado.
+4. Abrir `/admin/recursos` y crear un recurso disponible con nombre `DEMO-HU38`. Confirmar que aparece en el listado.
+5. En `/reservar`, seleccionar el usuario y recurso de demo y reservar el intervalo futuro. Resultado esperado: creación exitosa y una reserva activa.
+6. Sin cancelar la primera reserva, repetir el mismo recurso e intervalo. Resultado esperado: HTTP 409 `RECURSO_NO_DISPONIBLE` visible para el usuario. Así el conflicto es reproducible.
+7. Abrir `/mis-reservas`, consultar la reserva creada y cancelarla. Resultado esperado: estado cancelado y la reserva ya no aparece activa.
+8. Cerrar sesión desde el encabezado. Resultado esperado: el acceso a `/admin` vuelve a `/login`.
+
+**Ensayo HU-38 (2026-11-23):** Docker informó Linux, 16 vCPU y 7,59 GiB disponibles; `/login` respondió HTTP 200. El frontend compiló, pero se interrumpió la descarga de dependencias del backend antes de completar el build. El recorrido funcional y su duración siguen pendientes de validación en el navegador. No presentar los resultados esperados como resultados observados hasta completar ese ensayo. Registrar aquí el tiempo real y corregir el guion si excede cuatro minutos.
 
 ### Plan de respaldo
 
-Si la demo en vivo falla, usar el video de los escenarios Gherkin y las capturas de los reportes. La presentación no debe depender de una ejecución en vivo.
+Si falla la demo en vivo, mostrar el video grabado por los escenarios de navegador en el artefacto `browser-e2e-evidence` del [run 33](https://dev.azure.com/andresposada274/Reservas/_build/results?buildId=33). Ese artefacto cubre login correcto y reintento tras credenciales incorrectas; no contiene gestión, reserva ni cancelación. Para esas pantallas, usar capturas locales del ensayo HU-38 cuando se completen; conservarlas junto con el registro privado de la presentación y enlazarlas desde la card. Los reportes de backend, PIT, SonarCloud, Gherkin, ZAP, JMeter y Azure se abren desde los enlaces y artefactos indicados arriba y en sus secciones. La guía no afirma que haya un video completo del recorrido si no se grabó.
 
 ## Matriz de trazabilidad
 
