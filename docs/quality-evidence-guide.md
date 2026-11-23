@@ -23,19 +23,19 @@ La guía distingue **cómo se reproduce** una evidencia de **qué resultado se o
 
 ## Estado de la evidencia
 
-Esta tabla es una foto al 2026-11-22. No sustituye los artefactos: indica qué está listo y qué falta para cerrar la entrega.
+Esta tabla es una foto al 2026-11-23. No sustituye los artefactos: indica qué está listo y qué falta para cerrar la entrega.
 
 | Ítem | Estado | Evidencia vigente | Qué falta |
 |---|---|---|---|
 | A. Presentación | Guion y recorrido definidos en esta guía | `## Presentación y demo (A)` | Grabar el video de respaldo, ensayar tiempos y registrar la demo |
-| B. Plan de pruebas | En preparación con HU-37 | Esta guía | Aprobación del equipo en el PR |
+| B. Plan de pruebas | En revisión en HU-37 | Esta guía y PR #35 | Merge del PR y revisión del equipo |
 | C. JUnit | Reporte local disponible sin fallos; la corrida de cierre se toma de CI | `build/reports/tests/test`, `build/test-results/test` | Adjuntar el reporte de la corrida de cierre |
 | D. PIT | Gate 80/90 y corrida ampliada documentados | `build/reports/pitest`, `build/reports/pitest-full`, tabla de supervivientes | Repetir la corrida ampliada cuando cambie la lógica de negocio |
-| E. SonarQube | Configurado en Azure `BackendQuality` | `azure-pipelines.yml`, dashboard de SonarCloud | Registrar la URL del run con el quality gate y el triage de hallazgos |
-| F. Gherkin | Escenarios A/B implementados y ejecutables en local y GitHub Actions | `build/reports/cucumber`, `build/e2e-videos` | Registrar la evidencia de Azure si se integra allí |
-| G. OWASP ZAP | Escaneo pasivo local y workflow de GitHub Actions | `security/zap/reports`, `.github/workflows/zap-baseline.yml` | Registrar el run oficial y el triage vigente |
-| H. JMeter | Escenario, dashboard y run 18 verificados | `perf/results`, artefacto `jmeter-performance-evidence` | Repetir si cambia el agente o el escenario |
-| I. Azure Pipelines | Etapas `BackendQuality` y `PerformanceEvidence` versionadas | `azure-pipelines.yml`, run 18 de rendimiento | Cerrar la evidencia de `BackendQuality`, el ruleset de `main` y el fallo controlado |
+| E. SonarQube | `BackendQuality` aprobado en Azure | Run 33 y dashboard SonarCloud | Registrar URL directa del dashboard y triage de hallazgos |
+| F. Gherkin | E2E Serenity/Gherkin aprobado en Azure | Artefacto `browser-e2e-evidence` del run 33 | Conservar los reportes y videos del artefacto |
+| G. OWASP ZAP | Baseline DAST aprobado en Azure | Artefacto `zap-security-evidence` del run 33 | Registrar triage vigente de alertas |
+| H. JMeter | 500 muestras verificadas en `main`; p95 213 ms y 53,28 muestras/s | [Run 33](https://dev.azure.com/andresposada274/Reservas/_build/results?buildId=33), `jmeter-performance-evidence` | Repetir si cambia el agente o el escenario |
+| I. Azure Pipelines | Cinco etapas aprobadas en `main`; fallo controlado identificado y documentado | Runs 27, 28 y 33; ruleset requerido `AndresD902.Reservas` | Revisar artefactos/triage y mantener la evidencia al cambiar el CI |
 
 ## Plan de pruebas
 
@@ -393,10 +393,18 @@ El intento anterior, run 17, publicó JTL/dashboard pero falló antes del resume
 
 | Etapa | Qué ejecuta | Artefactos |
 |---|---|---|
-| `PerformanceEvidence` | Docker Compose, 500 usuarios JMeter, verificación de integridad | Artefacto `jmeter-performance-evidence` con JTL, dashboard HTML y `summary.json` |
-| `BackendQuality` | `test`, `pitest`, `pitestFull`, JaCoCo, aceptación, E2E HTTP y SonarCloud | Artefacto `backend-quality-reports` y resultados JUnit publicados en Azure |
+| `PerformanceEvidence` | Docker Compose, 500 usuarios JMeter, verificación de integridad | Artefacto `jmeter-performance-evidence` con JTL, dashboard HTML y `summary.json`; `run-status.txt` si no se completa la ejecución |
+| `BackendQuality` | JUnit, PIT, JaCoCo, aceptación, E2E HTTP y SonarCloud | Reportes de pruebas, cobertura, mutación y resultado del quality gate |
+| `FrontendQuality` | Node 24, lint, typecheck, Vitest y build | Artefacto `frontend-quality-reports` y resultados JUnit |
+| `BrowserE2E` | Stack Docker Compose, Serenity/Playwright y Gherkin | Artefacto `browser-e2e-evidence` con reportes y videos; resultados JUnit de Gherkin |
+| `ZapSecurity` | Baseline DAST de API e interfaz con umbral medio | Artefacto `zap-security-evidence` con JSON, HTML y resumen del run |
 
-El pipeline cubre backend, SonarCloud y rendimiento. Las pruebas de frontend, navegador (Serenity/Gherkin) y el escaneo ZAP se ejecutan en GitHub Actions hasta que se agreguen etapas equivalentes en Azure.
+La etapa `ControlledFailureEvidence` se agrega únicamente cuando una ejecución manual
+selecciona el parámetro `runControlledFailure=true`. Activa una aserción JUnit dedicada,
+publica el XML aunque el test falle y deja el pipeline rojo de forma intencional. Las
+ejecuciones normales omiten esa etapa. Después de capturar la evidencia roja, ejecutar
+el pipeline con el valor predeterminado para volver a obtener un resultado verde.
+
 
 ### Pipeline versionado
 
@@ -404,29 +412,37 @@ El pipeline versionado en `azure-pipelines.yml` se dispara con cambios y pull re
 
 La etapa de backend genera el reporte JaCoCo y ejecuta SonarCloud con el secreto `SONAR_TOKEN` del variable group `reservas-quality`. El checkout usa `fetchDepth: 0` para descargar el historial completo: Sonar necesita el blame para distinguir issues existentes de issues nuevos y evaluar correctamente el quality gate. El job falla si el gate no se aprueba.
 
-Este pipeline cubre backend, SonarCloud y rendimiento; no sustituye los jobs de GitHub Actions para frontend, navegador o seguridad.
+Backend, frontend, navegador y ZAP se ejecutan en pushes y pull requests a `main`, en
+agentes hospedados de Ubuntu. JMeter se ejecuta en pushes a `main` o al iniciar una
+ejecución manual con `runPerformance=true`; por tanto, no bloquea PR por indisponibilidad
+del agente local. Requiere `NewAgent` conectado en `LocalPool`. Todas las etapas
+publican sus artefactos con condición `always()` para conservar evidencia diagnóstica
+cuando una verificación falla. La etapa de frontend también publica resultados JUnit
+de Vitest y la etapa de navegador publica los resultados XML de Gherkin.
 
 ### Configuración manual en Azure DevOps
 
 1. Abrir **Pipelines → New pipeline** y seleccionar **GitHub**.
 2. Elegir la conexión existente de GitHub para `AndresD902`; si se solicita, autorizarla para acceder al repositorio `AndresD902/Reservas`.
 3. Seleccionar el repositorio y elegir **Existing Azure Pipelines YAML file**.
-4. Seleccionar la rama `main` y la ruta `/azure-pipelines.yml`; guardar y ejecutar.
+4. Seleccionar `main` (o la rama que contiene el archivo si se configura antes del merge) y la ruta `/azure-pipelines.yml`; guardar y ejecutar.
 5. Si Azure solicita autorización de recursos, autorizar la conexión GitHub y el variable group `reservas-quality` para este pipeline. También puede hacerse en **Pipelines → Library → reservas-quality → Pipeline permissions**, habilitando este pipeline.
-6. Confirmar que el run de `main` termina con `BackendQuality` exitoso y que el dashboard SonarCloud muestra cobertura JaCoCo y quality gate. Revisar el log para confirmar que no se expone el valor del token.
-7. En GitHub, abrir **Settings → Rules → Rulesets** y crear un ruleset para `main` que requiera el status check publicado por este pipeline. El check aparecerá para seleccionarlo después de la primera ejecución de validación de PR.
+6. Confirmar que backend, frontend, navegador y ZAP terminan en el PR y que el dashboard SonarCloud muestra cobertura JaCoCo y quality gate. Revisar el log para confirmar que no se expone el token.
+7. En la validación del PR no debe ejecutarse JMeter. En un push a `main` o en una ejecución manual con `runPerformance=true`, confirmar que JMeter publica el quinto artefacto.
+8. Ejecutar manualmente con `runControlledFailure=true`; verificar que `ControlledFailureEvidence` quede roja y que el XML identifique `ControlledFailureEvidenceTest`. Después, ejecutar el pipeline con el valor predeterminado y confirmar que vuelve a verde.
+9. En GitHub, abrir **Settings → Rules → Rulesets** y confirmar que el ruleset `Azure Pipelines required on main` exige el check `AndresD902.Reservas` para `main`.
 
 ### Evidencia de ejecución
 
-| Evidencia | Estado | Dónde se registra |
-|---|---|---|
-| `PerformanceEvidence` verde y artefacto `jmeter-performance-evidence` verificado | Verificado en el run 18 | Card HU-35 y sección de JMeter |
-| `BackendQuality` verde, resultados JUnit publicados y artefacto `backend-quality-reports` descargado | Pendiente de registrar el run de `main` | Card HU-36 |
-| Quality gate de SonarCloud aprobado | Pendiente de registrar la URL del run | Card HU-33 |
-| Ruleset de `main` con el check de Azure requerido | Pendiente de confirmar en GitHub | Card HU-36 |
-| Fallo controlado: el pipeline se pone rojo cuando una prueba o el quality gate fallan | Pendiente de registrar la prueba | Card HU-36 |
+- [PR #34](https://github.com/AndresD902/Reservas/pull/34) y [run 31](https://dev.azure.com/andresposada274/Reservas/_build/results?buildId=31): backend, frontend, navegador y ZAP aprobados; JMeter omitido conforme a la condición del PR.
+- [Run manual 25](https://dev.azure.com/andresposada274/Reservas/_build/results?buildId=25): cinco etapas aprobadas y artefactos de backend, frontend, navegador, ZAP y JMeter descargados y revisados. JMeter registró 500 muestras, 1×201, 499×409 esperados, 500 CSRF HTTP 200, ningún error inesperado, p95 de 130 ms y 53,52 muestras/s.
+- [Run 27](https://dev.azure.com/andresposada274/Reservas/_build/results?buildId=27): fallo intencional de `ControlledFailureEvidenceTest.reportsAnIdentifiableAssertionFailureWhenExplicitlyEnabled()`, etapa roja y resultado JUnit publicado en el test run 56. El check agregado requerido quedó rojo.
+- [Run normal 28](https://dev.azure.com/andresposada274/Reservas/_build/results?buildId=28): backend, frontend, navegador y ZAP aprobados; el check agregado requerido volvió a verde.
+- [Run automático 32 en `main`](https://dev.azure.com/andresposada274/Reservas/_build/results?buildId=32): backend, frontend, navegador y ZAP aprobados; JMeter falló porque Docker Desktop no estaba iniciado en `NewAgent`.
+- [Run 33 en `main`](https://dev.azure.com/andresposada274/Reservas/_build/results?buildId=33): cinco etapas aprobadas después de iniciar Docker. JMeter: 500 muestras, 1×201, 499×409 esperados, 500 CSRF HTTP 200, 0 errores inesperados, p95 213 ms, throughput 53,28 muestras/s y una reserva activa solapada verificada por API y base de datos. El artefacto `jmeter-performance-evidence` fue descargado y revisado.
+- El ruleset `Azure Pipelines required on main` exige el check `AndresD902.Reservas`; el run 33 confirma su verificación en `main` después del merge del PR #34.
+- Pendiente de registrar aquí: URL del proyecto SonarCloud con sus métricas visibles y clasificación de bugs, vulnerabilidades, code smells, deuda y duplicación observados.
 
-No se marca una fila como verificada hasta que exista la URL o el artefacto correspondiente. Un run de rendimiento exitoso no acredita por sí solo las etapas de calidad del backend.
 
 ## Presentación y demo (A)
 
@@ -514,3 +530,5 @@ Los ítems marcados tienen un reporte local o un run verificado; los pendientes 
 - `security/zap/reports/hu-26-zap-baseline.md`
 - `perf/README.md`
 - `backlog/backlog.md`
+
+\r\n

@@ -1229,10 +1229,10 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 **Conversación**
 
 - Complementa HU-23 (GitHub Actions), HU-26 (ZAP), HU-30 (Serenity) y HU-31/HU-32 (Gherkin). Azure DevOps pasa a ser el CI oficial; GitHub Actions queda como respaldo hasta que Azure esté verde.
-- Etapas: backend (JUnit, PIT, JaCoCo, aceptación y E2E HTTP), frontend (lint, typecheck, Vitest y build), navegador (Serenity y Gherkin), seguridad (ZAP) y rendimiento (JMeter manual).
+- Etapas: backend (JUnit, PIT, JaCoCo, aceptación y E2E HTTP), frontend (lint, typecheck, Vitest y build), navegador (Serenity y Gherkin), seguridad (ZAP) y rendimiento (JMeter manual, en pushes a `main` o al activar el parámetro `runPerformance`). La validación de PR no ejecuta JMeter automáticamente.
 - Publica artefactos de pruebas, cobertura, mutación, Serenity, Cucumber, videos, ZAP y JMeter.
 - Los secretos viven en el variable group `reservas-quality`; no se escriben tokens en el YAML.
-- La evidencia de fallo se produce con una rama temporal que rompe una aserción, un run en rojo y la reversión posterior.
+- La evidencia de fallo se produce con el parámetro manual `runControlledFailure=true`, que activa el test `ControlledFailureEvidenceTest` en un stage separado; el valor predeterminado omite ese stage. El test publica su resultado aunque falle y una ejecución normal posterior restablece el resultado verde sin alterar el código funcional.
 - Fuera de alcance: despliegue a producción y cambios de lógica de la aplicación.
 
 **Tareas**
@@ -1255,10 +1255,11 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 
 **Evidencia**
 
-- URL del run de Azure en `main`
-- Captura de las etapas en verde y de la etapa roja controlada
-- Artefactos publicados por el pipeline
-- `docs/quality-evidence-guide.md`, sección Azure Pipelines
+- [PR #34](https://github.com/AndresD902/Reservas/pull/34) y [run 26 de PR](https://dev.azure.com/andresposada274/Reservas/_build/results?buildId=26): backend, frontend, navegador y ZAP en verde; JMeter omitido según la condición del PR.
+- [Run manual 25](https://dev.azure.com/andresposada274/Reservas/_build/results?buildId=25): cinco etapas en verde y artefactos de pruebas, cobertura, mutación, E2E, ZAP y JMeter descargados y revisados.
+- [Run 27](https://dev.azure.com/andresposada274/Reservas/_build/results?buildId=27): etapa de fallo controlado roja, `ControlledFailureEvidenceTest` identificado y JUnit publicado; [run 28](https://dev.azure.com/andresposada274/Reservas/_build/results?buildId=28) normal en verde.
+- El ruleset de `main` exige `AndresD902.Reservas`; el run en `main` queda pendiente del merge del PR.
+- `docs/quality-evidence-guide.md`, sección Azure Pipelines.
 
 ### HU-37 · Plan de pruebas y guía de evidencia de calidad
 
