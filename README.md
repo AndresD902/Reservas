@@ -462,6 +462,8 @@ cd frontend && npm test
 
 Los reportes de cada etapa quedan como artefactos de la ejecución del workflow, incluidos el reporte HTML de Serenity (`target/site/serenity`), el reporte de Cucumber (`build/reports/cucumber`) y los videos de los flujos Gherkin (`build/e2e-videos`).
 
+El plan de pruebas, los comandos de cada tipo de evidencia y la matriz que enlaza cada ítem A–I con su historia, card y reporte están en [`docs/quality-evidence-guide.md`](docs/quality-evidence-guide.md).
+
 El workflow [`zap-baseline.yml`](.github/workflows/zap-baseline.yml) ejecuta además el análisis DAST con OWASP ZAP sobre la API y la interfaz, y publica los reportes HTML y JSON como el artefacto `reporte-seguridad-zap`. El procedimiento reproducible vive en [`security/zap`](security/zap/README.md).
 
 ## Comandos de referencia
@@ -521,6 +523,7 @@ Antes de cambiar código o documentación, lee **[`docs/base-standards.md`](docs
 | `checklists/` | Listas de verificación de requisitos |
 | `backlog/backlog.md` | Marco del backlog —iniciativa, DoR, DoD, épicas, perfiles y tabla de seguimiento— y las historias completas |
 | `docs/` | Estándares del proyecto. `base-standards.md` es el punto de entrada |
+| `docs/quality-evidence-guide.md` | Plan de pruebas y guía de evidencia de calidad, con la matriz A–I y sus comandos |
 | `docs/api-spec.yml` | Contrato OpenAPI versionado de la API |
 | `ai-specs/` | La capa agéntica y su fuente canónica: las *skills*, los *agents* y los *scripts* |
 | `CLAUDE.md`, `AGENTS.md` | Symlinks a `docs/base-standards.md` |

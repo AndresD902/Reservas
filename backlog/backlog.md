@@ -113,7 +113,7 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 | HU-34 · Evidencia de mutación PIT y análisis de mutantes sobrevivientes | EP-04 | Backlog | 2 |
 | HU-35 · Evidencia de rendimiento JMeter con dashboard y análisis | EP-05 | Backlog | 2 |
 | HU-36 · Pipeline de Azure DevOps con pruebas, ZAP y E2E | EP-07 | Backlog | 1 |
-| HU-37 · Plan de pruebas y guía de evidencia de calidad | EP-04 | Backlog | 1 |
+| HU-37 · Plan de pruebas y guía de evidencia de calidad | EP-04 | En Revisión | 1 |
 | HU-38 · Guion de presentación y demo del recorrido crítico | EP-04 | Backlog | 3 |
 
 ## Historias
@@ -1276,6 +1276,9 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 - Incluye objetivo, alcance, componentes, tipos de prueba, entornos, riesgos y criterios de éxito.
 - La matriz de trazabilidad enlaza A–I, HUs, cards y evidencia.
 - Fuera de alcance: ejecutar las pruebas; la guía describe cómo hacerlo y dónde queda la evidencia.
+- La versión vigente se contrastó con `build.gradle`, `.github/workflows/ci.yml`, `azure-pipelines.yml` y los reportes disponibles; incluye el estado de cada ítem, comandos, umbrales y checklist de cierre.
+- El README enlaza la guía y la revisión técnica quedó registrada en el documento.
+- PR #35 abierto para revisión del equipo: https://github.com/AndresD902/Reservas/pull/35. El merge queda para el usuario.
 
 **Tareas**
 
