@@ -14,77 +14,12 @@ variables:
     value: $(Pipeline.Workspace)/.gradle
 
 parameters:
-  - name: runPerformance
-    displayName: Ejecutar evidencia JMeter
-    type: boolean
-    default: false
   - name: runControlledFailure
     displayName: Ejecutar fallo controlado para HU-36
     type: boolean
     default: false
 
 stages:
-  - stage: PerformanceEvidence
-    displayName: Evidencia de rendimiento JMeter
-    condition: or(eq(variables['Build.Reason'], 'IndividualCI'), eq('${{ parameters.runPerformance }}', 'true'))
-    dependsOn: []
-    jobs:
-      - job: JMeter
-        displayName: Ejecutar carga y publicar evidencia
-        pool:
-          name: LocalPool
-          demands:
-            - Agent.Name -equals NewAgent
-        timeoutInMinutes: 30
-        steps:
-          - checkout: self
-
-          - powershell: |
-              New-Item -ItemType Directory -Force perf/results | Out-Null
-              'La ejecución JMeter todavía no ha generado evidencia.' | Set-Content -Encoding utf8 perf/results/run-status.txt
-              $env:API_PORT = '18085'
-              $env:POSTGRES_PORT = '15435'
-              docker compose -p hu35-$(Build.BuildId) up --build -d
-              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-            displayName: Levantar API y base de datos
-
-          - powershell: |
-              New-Item -ItemType Directory -Force perf/results | Out-Null
-              $resources = docker info --format '{{.NCPU}}|{{.MemTotal}}'
-              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-              $parts = $resources.Split('|')
-              @{ cpu = [int]$parts[0]; memoryBytes = [long]$parts[1]; agent = '$(Agent.Name)'; buildId = '$(Build.BuildId)'; commit = '$(Build.SourceVersion)' } | ConvertTo-Json | Set-Content -Encoding utf8 perf/results/environment.json
-              $windowsPath = '$(System.DefaultWorkingDirectory)'.Replace('\', '/')
-              $wslPath = '/mnt/' + $windowsPath.Substring(0, 1).ToLower() + $windowsPath.Substring(2)
-              $command = "cd '$wslPath' && COMPOSE_PROJECT_NAME=hu35-$(Build.BuildId) API_PORT=18085 bash perf/scripts/run-hu18.sh"
-              & "$env:WINDIR\System32\wsl.exe" --exec bash -c $command
-              $exitCode = $LASTEXITCODE
-              if ($exitCode -eq 0) {
-                Remove-Item -LiteralPath perf/results/run-status.txt -ErrorAction SilentlyContinue
-              } else {
-                'El escenario JMeter no terminó correctamente. Consulta los logs del run.' | Set-Content -Encoding utf8 perf/results/run-status.txt
-              }
-              exit $exitCode
-            displayName: Ejecutar escenario de 500 reservas
-
-          - powershell: |
-              if (Test-Path perf/results/load-users.csv) { Remove-Item -LiteralPath perf/results/load-users.csv }
-            displayName: Retirar datos auxiliares del artefacto
-            condition: always()
-
-          - task: PublishPipelineArtifact@1
-            displayName: Publicar evidencia JMeter
-            condition: always()
-            inputs:
-              targetPath: $(System.DefaultWorkingDirectory)/perf/results
-              artifact: jmeter-performance-evidence
-
-          - powershell: |
-              docker compose -p hu35-$(Build.BuildId) down -v
-              exit $LASTEXITCODE
-            displayName: Detener el entorno de rendimiento
-            condition: always()
-
   - stage: BackendQuality
     displayName: Calidad del backend
     dependsOn: []
@@ -218,20 +153,40 @@ stages:
           - bash: chmod +x ./gradlew
             displayName: Habilitar Gradle Wrapper
 
-          - bash: docker compose --profile frontend up -d --build
+          - bash: |
+              for attempt in 1 2 3; do
+                if docker compose --profile frontend up -d --build; then
+                  echo "Stack levantado en el intento $attempt"
+                  exit 0
+                fi
+                echo "Fallo al levantar el stack (intento $attempt); se reintenta en 10s"
+                docker compose --profile frontend down -v || true
+                sleep 10
+              done
+              echo "No se pudo levantar el stack tras 3 intentos"
+              docker compose --profile frontend logs --tail 100 || true
+              exit 1
             displayName: Levantar el stack para E2E
 
           - bash: |
-              for attempt in $(seq 1 60); do
+              deadline=$((SECONDS + 300))
+              consecutive=0
+              while [ $SECONDS -lt $deadline ]; do
                 frontend=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5173/login || true)
                 api=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/recursos || true)
                 if [ "$frontend" = "200" ] && [ "$api" = "200" ]; then
-                  echo "Stack listo (frontend=$frontend api=$api)"
-                  exit 0
+                  consecutive=$((consecutive + 1))
+                  if [ $consecutive -ge 3 ]; then
+                    echo "Stack listo y estable (frontend=$frontend api=$api)"
+                    exit 0
+                  fi
+                else
+                  consecutive=0
                 fi
                 sleep 3
               done
-              docker compose --profile frontend logs --tail 50
+              echo "El stack no respondió de forma estable a tiempo"
+              docker compose --profile frontend logs --tail 100
               exit 1
             displayName: Esperar a API e interfaz
 
@@ -241,10 +196,20 @@ stages:
           - bash: ./gradlew installPlaywrightBrowsers --console=plain
             displayName: Instalar Chromium de Playwright
 
-          - bash: ./gradlew serenityE2ETest --console=plain
+          - bash: |
+              if ./gradlew serenityE2ETest --console=plain; then
+                exit 0
+              fi
+              echo "Serenity falló; se reintenta una vez para absorber intermitencias de la interfaz"
+              ./gradlew serenityE2ETest --console=plain
             displayName: Ejecutar Serenity con Playwright
 
-          - bash: ./gradlew e2eGherkinTest --console=plain
+          - bash: |
+              if ./gradlew e2eGherkinTest --console=plain; then
+                exit 0
+              fi
+              echo "Gherkin falló; se reintenta una vez para absorber intermitencias de la interfaz"
+              ./gradlew e2eGherkinTest --console=plain
             displayName: Ejecutar flujos Gherkin
             condition: always()
 

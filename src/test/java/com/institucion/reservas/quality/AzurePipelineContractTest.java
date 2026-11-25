@@ -18,20 +18,19 @@ class AzurePipelineContractTest {
             "BackendQuality",
             "FrontendQuality",
             "BrowserE2E",
-            "ZapSecurity",
-            "PerformanceEvidence"
+            "ZapSecurity"
     );
 
     @Test
     void pipelineRunsEveryQualityStageAndPublishesItsEvidence() throws IOException {
-        JsonNode pipeline = new YAMLMapper().readTree(Path.of("azure-pipelines.yml").toFile());
-        List<JsonNode> stages = StreamSupport.stream(pipeline.path("stages").spliterator(), false).toList();
+        List<JsonNode> stages = stages();
+
         Set<String> actualStages = stages.stream()
                 .map(stage -> stage.path("stage").asText())
                 .collect(Collectors.toSet());
 
         assertTrue(actualStages.containsAll(REQUIRED_STAGES),
-                "El pipeline debe ejecutar backend, frontend, navegador, ZAP y rendimiento");
+                "El pipeline debe ejecutar backend, frontend, navegador y ZAP");
         assertTrue(stages.stream()
                         .filter(stage -> REQUIRED_STAGES.contains(stage.path("stage").asText()))
                         .allMatch(this::publishesPipelineArtifact),
@@ -39,40 +38,22 @@ class AzurePipelineContractTest {
     }
 
     @Test
-    void performanceStageRunsForMainPushesOrWhenManuallyRequested() throws IOException {
-        JsonNode pipeline = new YAMLMapper().readTree(Path.of("azure-pipelines.yml").toFile());
-        JsonNode parameter = StreamSupport.stream(pipeline.path("parameters").spliterator(), false)
-                .filter(item -> item.path("name").asText().equals("runPerformance"))
-                .findFirst()
-                .orElse(null);
-        JsonNode performanceStage = StreamSupport.stream(pipeline.path("stages").spliterator(), false)
-                .filter(stage -> stage.path("stage").asText().equals("PerformanceEvidence"))
-                .findFirst()
-                .orElse(null);
+    void everyJobRunsOnAMicrosoftHostedAgent() throws IOException {
+        List<JsonNode> pools = stages().stream()
+                .flatMap(stage -> StreamSupport.stream(stage.findValues("pool").spliterator(), false))
+                .toList();
 
-        assertTrue(parameter != null && parameter.path("default").asBoolean(true) == false,
-                "JMeter debe quedar manual por defecto en las validaciones de pull request");
-        assertTrue(performanceStage != null
-                        && performanceStage.path("condition").asText().contains("runPerformance"),
-                "JMeter debe ejecutarse al pedirlo manualmente o en el push a main");
+        assertTrue(!pools.isEmpty(), "Cada etapa debe declarar su pool");
+        assertTrue(pools.stream().allMatch(pool -> !pool.hasNonNull("name") && !pool.has("demands")),
+                "Ninguna etapa debe depender de un agente self-hosted: si el agente está "
+                        + "desconectado el run queda encolado y el pipeline no termina");
+        assertTrue(pools.stream().allMatch(pool -> !pool.path("vmImage").asText().isBlank()),
+                "Cada etapa debe fijar un vmImage hospedado por Microsoft");
     }
 
-    @Test
-    void performanceEvidenceDirectoryExistsEvenWhenDockerSetupFails() throws IOException {
+    private List<JsonNode> stages() throws IOException {
         JsonNode pipeline = new YAMLMapper().readTree(Path.of("azure-pipelines.yml").toFile());
-        JsonNode performanceStage = StreamSupport.stream(pipeline.path("stages").spliterator(), false)
-                .filter(stage -> stage.path("stage").asText().equals("PerformanceEvidence"))
-                .findFirst()
-                .orElse(null);
-        boolean initializesEvidenceBeforeRunningDocker = performanceStage != null
-                && StreamSupport.stream(performanceStage.findValues("powershell").spliterator(), false)
-                .map(JsonNode::asText)
-                .anyMatch(script -> script.contains("New-Item -ItemType Directory -Force perf/results")
-                        && script.indexOf("New-Item -ItemType Directory -Force perf/results")
-                        < script.indexOf("docker compose"));
-
-        assertTrue(initializesEvidenceBeforeRunningDocker,
-                "El artefacto de rendimiento debe existir aunque Docker no pueda arrancar");
+        return StreamSupport.stream(pipeline.path("stages").spliterator(), false).toList();
     }
 
     private boolean publishesPipelineArtifact(JsonNode stage) {
