@@ -36,7 +36,7 @@ El servicio `api` queda accesible como host `api:8080` dentro de la red `sistema
 
 Para un stack aislado se pueden definir `COMPOSE_PROJECT_NAME` y `API_PORT`; los valores por defecto siguen siendo `sistema-reservas` y `8080`. La red y el contenedor PostgreSQL se derivan del nombre del proyecto.
 
-En Azure Pipelines la carga corre en `LocalPool` / `NewAgent` (Windows con Docker Desktop Linux, Bash/WSL y Python 3 en WSL). Cada run usa proyecto `hu35-<BuildId>`, API en 18085 y PostgreSQL en 15435. El artefacto incluye `environment.json` con CPU/RAM de Docker, agente, commit y run. El agente debe permanecer conectado; los recursos disponibles no garantizan el umbral y se comprueban contra el JTL de cada corrida.
+La carga no forma parte del pipeline de Azure: se ejecuta en una máquina con Docker Desktop Linux, Bash/WSL y Python 3 en WSL, con proyecto Compose, puertos y volumen aislados de los del entorno local. Para aislar cada corrida, definir `COMPOSE_PROJECT_NAME` y `API_PORT` (por ejemplo `hu35-local`, API en 18085 y PostgreSQL en 15435). El artefacto incluye `environment.json` con CPU/RAM de Docker, commit y run; los recursos disponibles no garantizan el umbral y se comprueban contra el JTL de cada corrida.
 
 ## Resultados esperados
 

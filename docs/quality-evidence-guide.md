@@ -387,13 +387,12 @@ El intento anterior, run 17, publicó JTL/dashboard pero falló antes del resume
 1. El proyecto `andresposada274/Reservas` y la service connection GitHub de `AndresD902` ya existen.
 2. El variable group `reservas-quality` ya existe y contiene `SONAR_TOKEN` como secreto.
 3. Crear o autorizar el pipeline desde `azure-pipelines.yml` siguiendo la sección de configuración manual.
-4. El agente `ubuntu-latest` usa JDK 21 para backend. Rendimiento requiere el agente Windows self-hosted `NewAgent` en `LocalPool`, con Docker Desktop Linux, Compose v2, Bash/WSL y Python 3 en WSL; debe estar conectado cuando se ejecute el pipeline. El checkout se resuelve explícitamente bajo `/mnt/<unidad>/`: una ruta temporal de Docker Desktop puede desaparecer al terminar JMeter y dejar a Python sin directorio de trabajo.
+4. Todas las etapas usan agentes hospedados por Microsoft (`vmImage`), de modo que la ejecución no queda encolada por un agente self-hosted desconectado. La evidencia JMeter se produce aparte con `bash perf/scripts/run-hu18.sh` (ver la sección H) y no forma parte del pipeline de Azure.
 
 ### Etapas implementadas
 
 | Etapa | Qué ejecuta | Artefactos |
 |---|---|---|
-| `PerformanceEvidence` | Docker Compose, 500 usuarios JMeter, verificación de integridad | Artefacto `jmeter-performance-evidence` con JTL, dashboard HTML y `summary.json`; `run-status.txt` si no se completa la ejecución |
 | `BackendQuality` | JUnit, PIT, JaCoCo, aceptación, E2E HTTP y SonarCloud | Reportes de pruebas, cobertura, mutación y resultado del quality gate |
 | `FrontendQuality` | Node 24, lint, typecheck, Vitest y build | Artefacto `frontend-quality-reports` y resultados JUnit |
 | `BrowserE2E` | Stack Docker Compose, Serenity/Playwright y Gherkin | Artefacto `browser-e2e-evidence` con reportes y videos; resultados JUnit de Gherkin |
@@ -408,17 +407,16 @@ el pipeline con el valor predeterminado para volver a obtener un resultado verde
 
 ### Pipeline versionado
 
-El pipeline versionado en `azure-pipelines.yml` se dispara con cambios y pull requests hacia `main`. Ejecuta en paralelo la suite de backend y la etapa `PerformanceEvidence`. Esta última levanta Docker Compose, ejecuta `perf/scripts/run-hu18.sh` y publica JTL, dashboard y resumen como `jmeter-performance-evidence`, incluso si falla una verificación para facilitar el diagnóstico. El agente `NewAgent` ejecuta la carga con proyecto Compose `hu35-<BuildId>` y puertos 18085 (API) y 15435 (PostgreSQL), conservando aislados los volúmenes del entorno local. La limpieza elimina solo el stack de esa corrida. `environment.json` registra CPU y RAM disponibles para Docker, agente, commit y run; esos recursos no equivalen a capacidad dedicada. `LocalPool` debe estar autorizado para este pipeline. El umbral se conserva en p95 < 800 ms.
+El pipeline versionado en `azure-pipelines.yml` se dispara con cambios y pull requests hacia `main`. Ejecuta en paralelo backend, frontend, navegador y ZAP sobre agentes hospedados por Microsoft. Ninguna etapa depende de un agente self-hosted: así el run siempre termina aunque un agente local esté desconectado. La evidencia JMeter no se produce en el pipeline; se genera con `perf/scripts/run-hu18.sh` en una máquina con Docker (ver la sección H) y se conserva como evidencia histórica (run 33). El umbral se mantiene en p95 < 800 ms para esa corrida manual.
 
 La etapa de backend genera el reporte JaCoCo y ejecuta SonarCloud con el secreto `SONAR_TOKEN` del variable group `reservas-quality`. El checkout usa `fetchDepth: 0` para descargar el historial completo: Sonar necesita el blame para distinguir issues existentes de issues nuevos y evaluar correctamente el quality gate. El job falla si el gate no se aprueba.
 
 Backend, frontend, navegador y ZAP se ejecutan en pushes y pull requests a `main`, en
-agentes hospedados de Ubuntu. JMeter se ejecuta en pushes a `main` o al iniciar una
-ejecución manual con `runPerformance=true`; por tanto, no bloquea PR por indisponibilidad
-del agente local. Requiere `NewAgent` conectado en `LocalPool`. Todas las etapas
-publican sus artefactos con condición `always()` para conservar evidencia diagnóstica
-cuando una verificación falla. La etapa de frontend también publica resultados JUnit
-de Vitest y la etapa de navegador publica los resultados XML de Gherkin.
+agentes hospedados de Ubuntu. El pipeline no ejecuta JMeter, por lo que ningún run queda
+encolado esperando un agente self-hosted. Todas las etapas publican sus artefactos con
+condición `always()` para conservar evidencia diagnóstica cuando una verificación falla.
+La etapa de frontend también publica resultados JUnit de Vitest y la etapa de navegador
+publica los resultados XML de Gherkin.
 
 ### Configuración manual en Azure DevOps
 
@@ -428,7 +426,7 @@ de Vitest y la etapa de navegador publica los resultados XML de Gherkin.
 4. Seleccionar `main` (o la rama que contiene el archivo si se configura antes del merge) y la ruta `/azure-pipelines.yml`; guardar y ejecutar.
 5. Si Azure solicita autorización de recursos, autorizar la conexión GitHub y el variable group `reservas-quality` para este pipeline. También puede hacerse en **Pipelines → Library → reservas-quality → Pipeline permissions**, habilitando este pipeline.
 6. Confirmar que backend, frontend, navegador y ZAP terminan en el PR y que el dashboard SonarCloud muestra cobertura JaCoCo y quality gate. Revisar el log para confirmar que no se expone el token.
-7. En la validación del PR no debe ejecutarse JMeter. En un push a `main` o en una ejecución manual con `runPerformance=true`, confirmar que JMeter publica el quinto artefacto.
+7. El pipeline no ejecuta JMeter en ningún caso. Para nueva evidencia de rendimiento, ejecutar `bash perf/scripts/run-hu18.sh` en una máquina con Docker (sección H) y conservar el artefacto fuera del pipeline.
 8. Ejecutar manualmente con `runControlledFailure=true`; verificar que `ControlledFailureEvidence` quede roja y que el XML identifique `ControlledFailureEvidenceTest`. Después, ejecutar el pipeline con el valor predeterminado y confirmar que vuelve a verde.
 9. En GitHub, abrir **Settings → Rules → Rulesets** y confirmar que el ruleset `Azure Pipelines required on main` exige el check `AndresD902.Reservas` para `main`.
 

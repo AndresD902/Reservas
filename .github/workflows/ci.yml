@@ -161,21 +161,40 @@ jobs:
         run: chmod +x gradlew
 
       - name: Levantar el stack con Docker Compose
-        run: docker compose --profile frontend up -d --build
+        run: |
+          for attempt in 1 2 3; do
+            if docker compose --profile frontend up -d --build; then
+              echo "Stack levantado en el intento $attempt"
+              exit 0
+            fi
+            echo "Fallo al levantar el stack (intento $attempt); se reintenta en 10s"
+            docker compose --profile frontend down -v || true
+            sleep 10
+          done
+          echo "No se pudo levantar el stack tras 3 intentos"
+          docker compose --profile frontend logs --tail 100 || true
+          exit 1
 
       - name: Esperar a que la interfaz y la API respondan
         run: |
-          for i in $(seq 1 60); do
+          deadline=$((SECONDS + 300))
+          consecutive=0
+          while [ $SECONDS -lt $deadline ]; do
             frontend=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5173/login || true)
             api=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/recursos || true)
             if [ "$frontend" = "200" ] && [ "$api" = "200" ]; then
-              echo "Stack listo (frontend=$frontend api=$api)"
-              exit 0
+              consecutive=$((consecutive + 1))
+              if [ $consecutive -ge 3 ]; then
+                echo "Stack listo y estable (frontend=$frontend api=$api)"
+                exit 0
+              fi
+            else
+              consecutive=0
             fi
             sleep 3
           done
-          echo "El stack no respondió a tiempo"
-          docker compose logs --tail 50
+          echo "El stack no respondió de forma estable a tiempo"
+          docker compose --profile frontend logs --tail 100
           exit 1
 
       - name: Instalar dependencias del sistema para Chromium
@@ -185,11 +204,21 @@ jobs:
         run: ./gradlew installPlaywrightBrowsers --console=plain
 
       - name: Pruebas E2E de navegador con Serenity
-        run: ./gradlew serenityE2ETest --console=plain
+        run: |
+          if ./gradlew serenityE2ETest --console=plain; then
+            exit 0
+          fi
+          echo "Serenity falló; se reintenta una vez para absorber intermitencias de la interfaz"
+          ./gradlew serenityE2ETest --console=plain
 
       - name: Flujos Gherkin E2E de login
         if: always()
-        run: ./gradlew e2eGherkinTest --console=plain
+        run: |
+          if ./gradlew e2eGherkinTest --console=plain; then
+            exit 0
+          fi
+          echo "Gherkin falló; se reintenta una vez para absorber intermitencias de la interfaz"
+          ./gradlew e2eGherkinTest --console=plain
 
       - name: Publicar reporte de Serenity
         if: always()

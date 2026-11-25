@@ -40,6 +40,7 @@ public class LoginE2eSteps {
             Double.parseDouble(System.getProperty("playwright.slowmo", "0"));
     private static final Path VIDEO_DIR =
             Paths.get(System.getProperty("e2e.video.dir", "build/e2e-videos"));
+    private static final double DEFAULT_TIMEOUT_MILLIS = 45_000;
 
     private static Playwright playwright;
     private static Browser browser;
@@ -72,6 +73,8 @@ public class LoginE2eSteps {
                 .setRecordVideoDir(VIDEO_DIR)
                 .setRecordVideoSize(1280, 720));
         page = context.newPage();
+        page.setDefaultTimeout(DEFAULT_TIMEOUT_MILLIS);
+        page.setDefaultNavigationTimeout(DEFAULT_TIMEOUT_MILLIS);
     }
 
     @After

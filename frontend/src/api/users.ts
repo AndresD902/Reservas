@@ -1,9 +1,12 @@
 import { apiFetch } from './client'
 import type { CreateUserRequest, Page, User, UserStatus } from './types'
 
-export async function listUsers(estado?: UserStatus): Promise<Page<User>> {
+const USERS_PAGE_SIZE = 100
+
+async function listUsersPage(page: number, estado?: UserStatus): Promise<Page<User>> {
   const params = new URLSearchParams({
-    size: '100',
+    page: String(page),
+    size: String(USERS_PAGE_SIZE),
     sort: 'nombre,asc',
   })
 
@@ -14,8 +17,24 @@ export async function listUsers(estado?: UserStatus): Promise<Page<User>> {
   return apiFetch<Page<User>>(`/usuarios?${params.toString()}`)
 }
 
+export async function listUsers(estado?: UserStatus): Promise<Page<User>> {
+  return listUsersPage(0, estado)
+}
+
+// El selector de usuario debe ofrecer todos los usuarios activos, no solo la
+// primera página: si no, un usuario fuera de las primeras 100 filas no puede
+// seleccionarse para reservar.
 export async function listActiveUsers(): Promise<Page<User>> {
-  return listUsers('ACTIVO')
+  const first = await listUsersPage(0, 'ACTIVO')
+  const remainingPages = Array.from({ length: Math.max(first.totalPages - 1, 0) }, (_, index) =>
+    listUsersPage(index + 1, 'ACTIVO'),
+  )
+  const remaining = await Promise.all(remainingPages)
+
+  return {
+    ...first,
+    content: [first, ...remaining].flatMap((page) => page.content),
+  }
 }
 
 export async function createUser(request: CreateUserRequest): Promise<User> {
