@@ -1229,8 +1229,8 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 **Conversación**
 
 - Complementa HU-23 (GitHub Actions), HU-26 (ZAP), HU-30 (Serenity) y HU-31/HU-32 (Gherkin). Azure DevOps pasa a ser el CI oficial; GitHub Actions queda como respaldo hasta que Azure esté verde.
-- Etapas: backend (JUnit, PIT, JaCoCo, aceptación y E2E HTTP), frontend (lint, typecheck, Vitest y build), navegador (Serenity y Gherkin) y seguridad (ZAP). JMeter se conserva como ejecución independiente fuera del pipeline.
-- Publica artefactos de pruebas, cobertura, mutación, Serenity, Cucumber, videos y ZAP.
+- Etapas: backend (JUnit, PIT, JaCoCo, aceptación y E2E HTTP), frontend (lint, typecheck, Vitest y build), navegador (Serenity y Gherkin), seguridad (ZAP) y rendimiento (JMeter manual, en pushes a `main` o al activar el parámetro `runPerformance`). La validación de PR no ejecuta JMeter automáticamente.
+- Publica artefactos de pruebas, cobertura, mutación, Serenity, Cucumber, videos, ZAP y JMeter.
 - Los secretos viven en el variable group `reservas-quality`; no se escriben tokens en el YAML.
 - La evidencia de fallo se produce con el parámetro manual `runControlledFailure=true`, que activa el test `ControlledFailureEvidenceTest` en un stage separado; el valor predeterminado omite ese stage. El test publica su resultado aunque falle y una ejecución normal posterior restablece el resultado verde sin alterar el código funcional.
 - Fuera de alcance: despliegue a producción y cambios de lógica de la aplicación.
@@ -1240,17 +1240,17 @@ El orden es una sugerencia para planificar, no una dependencia entre historias: 
 - Crear `azure-pipelines.yml` con las etapas y condiciones
 - Configurar JDK 21, Node 24, Gradle y Docker Compose en el agente
 - Integrar JUnit, PIT, JaCoCo, aceptación y E2E HTTP
-- Integrar Serenity, Gherkin y ZAP como etapas o artefactos
+- Integrar Serenity, Gherkin, ZAP y JMeter como etapas o artefactos
 - Publicar resultados de pruebas y artefactos con `PublishTestResults@2` y `PublishPipelineArtifact@1`
 - Ejecutar el pipeline en `main` y verificar el run verde
 - Ejecutar el fallo controlado y capturar la evidencia roja
 
 **Criterios de Aceptación**
 
-- Dado un push a `main` o un pull request, cuando corre el pipeline, entonces se ejecutan las etapas de backend, frontend, navegador y seguridad, sin iniciar JMeter.
+- Dado un push a `main`, cuando corre el pipeline, entonces se ejecutan todas las etapas configuradas.
 - Dado un pull request, cuando corre el pipeline, entonces las pruebas y el quality gate pueden bloquear la integración.
 - Dada una prueba que falla, cuando corre el pipeline, entonces la etapa termina en rojo e identifica el test fallido.
-- Dado un run exitoso, cuando se revisan los artefactos, entonces están disponibles los reportes de pruebas, cobertura, mutación, E2E y ZAP, sin artefactos JMeter.
+- Dado un run exitoso, cuando se revisan los artefactos, entonces están disponibles los reportes de pruebas, cobertura, mutación, E2E, ZAP y JMeter.
 - Dado el run de fallo controlado, cuando se revisa, entonces la evidencia muestra la etapa y la prueba que fallaron.
 
 **Evidencia**
